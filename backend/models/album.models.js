@@ -60,6 +60,26 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
   }
 }
 
+export async function getAllAlbumsPublic() {
+  const { rows } = await pool.query(`
+    SELECT 
+      a.id,
+      a.title,
+      a.release_date AS "releaseDate",
+      a.cover_art AS "coverArt",
+      ar.id AS "artistId",
+      ar.name AS artist,
+      COUNT(alr.user_id) AS "ratingCount",
+      ROUND(AVG(alr.rating)::numeric, 2) AS "avgScore"
+    FROM albums a
+    JOIN artists ar ON ar.id = a.artist_id
+    LEFT JOIN album_ratings alr ON alr.album_id = a.id
+    GROUP BY a.id, ar.id
+    ORDER BY a.title
+  `);
+  return rows;
+}
+
 /**
  * Get all albums (with optional user filter)
  */

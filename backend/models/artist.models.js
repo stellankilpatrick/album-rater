@@ -102,40 +102,6 @@ export async function getArtistAlbums(artistId) {
   return attachAlbumStats(albumsRes.rows);
 }
 
-export async function attachAlbumStats(albums, userId = null) {
-  const result = [];
-
-  for (const album of albums) {
-    const statsRes = await pool.query(
-      `
-      SELECT
-        COUNT(s.id) AS "totalSongs",
-        COUNT(sr.rating) FILTER (WHERE sr.rating > 0) AS "ratedSongs",
-        COALESCE(SUM(sr.rating), 0) AS "sumRatings"
-      FROM songs s
-      LEFT JOIN song_ratings sr
-        ON sr.song_id = s.id
-       ${userId ? "AND sr.user_id = $1" : ""}
-      WHERE s.album_id = $2
-      `,
-      userId ? [userId, album.id] : [album.id]
-    );
-
-    const stats = statsRes.rows[0];
-    const totalSongs = Number(stats.totalSongs);
-    const ratedSongs = Number(stats.ratedSongs);
-    const sumRatings = Number(stats.sumRatings);
-
-    result.push({
-      ...album,
-      rating: totalSongs > 0 ? Math.pow(sumRatings, 2) / totalSongs : 0,
-      rate: `${ratedSongs}/${totalSongs}`,
-    });
-  }
-
-  return result;
-}
-
 export async function getArtistAlbumsWithTotal(artistId) {
   const albumsRes = await pool.query(
     `
