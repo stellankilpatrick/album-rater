@@ -1,8 +1,5 @@
 import pool from "../db/database.js";
 
-// Assuming you have a "pool" from pg
-import pool from "../db/pool.js"; // your Postgres client
-
 // Get all artists with their albums and stats
 export async function getArtistRankings() {
   const artists = await pool.query("SELECT * FROM artists");
@@ -104,8 +101,6 @@ export async function getArtistAlbums(artistId) {
   );
   return attachAlbumStats(albumsRes.rows);
 }
-
-import pool from "../db/pool.js"; // your Postgres pool
 
 export async function attachAlbumStats(albums, userId = null) {
   const result = [];
