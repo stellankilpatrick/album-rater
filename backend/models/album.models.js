@@ -289,25 +289,6 @@ export async function getAlbumsByUser(userId) {
   );
   return res.rows;
 }
-
-/**
- * Get all albums with aggregates (public)
- */
-export async function getAllAlbumsWithAggregates() {
-  const res = await pool.query(
-    `
-    SELECT
-      artist_id, title,
-      COUNT(*) AS "ratingCount",
-      AVG(score) AS "avgScore"
-    FROM albums
-    GROUP BY artist_id, title
-    ORDER BY "avgScore" DESC
-    `
-  );
-  return res.rows;
-}
-
 /**
  * Update album title
  */
