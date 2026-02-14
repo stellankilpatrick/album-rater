@@ -1,7 +1,9 @@
-import Database from "better-sqlite3";
-import path from "path";
+import pkg from "pg";
+const { Pool } = pkg;
 
-const dbPath = path.resolve("db", "database.sqlite"); // this is where the SQLite file will live
-const db = new Database(dbPath); // will create database.sqlite if it doesn't exist
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
 
-export default db;
+export default pool;
