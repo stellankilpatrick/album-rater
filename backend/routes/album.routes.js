@@ -1,5 +1,5 @@
 import express from "express";
-import db from "../db/database.js";
+import pool from "../db/database.js";
 import { requireAuth } from "../auth/auth.middleware.js";
 import {
   getAlbumDetailsPublic, createAlbum,
