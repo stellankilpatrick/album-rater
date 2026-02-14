@@ -37,7 +37,7 @@ async function init() {
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         artist_id INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
         title TEXT NOT NULL,
-        release_date TEXT,
+        release_date DATE,
         cover_art TEXT,
         UNIQUE(user_id, artist_id, title)
       );
@@ -59,8 +59,8 @@ async function init() {
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         song_id INTEGER NOT NULL REFERENCES songs(id) ON DELETE CASCADE,
         rating INTEGER CHECK (rating BETWEEN 0 AND 2),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
         PRIMARY KEY (user_id, song_id)
       );
     `);
@@ -73,8 +73,8 @@ async function init() {
         rating REAL,
         non_skips INTEGER NOT NULL,
         rated_songs INTEGER NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
         PRIMARY KEY (user_id, album_id)
       );
     `);
@@ -84,7 +84,7 @@ async function init() {
       CREATE TABLE IF NOT EXISTS follows (
         follower_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         following_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
         CHECK (follower_id != following_id),
         PRIMARY KEY (follower_id, following_id)
       );

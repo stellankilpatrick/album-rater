@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import db from "../db/database.js";
 
 export function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;

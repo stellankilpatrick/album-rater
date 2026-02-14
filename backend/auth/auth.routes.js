@@ -2,10 +2,13 @@ import express from "express";
 import bcrypt from "bcrypt";
 import { generateToken } from "./auth.utils.js";
 import { requireAuth } from "./auth.middleware.js";
-import db from "../db/database.js";
+import pool from "../db/database.js";
 
 const router = express.Router();
 
+// ===============================
+// REGISTER
+// ===============================
 // ===============================
 // REGISTER
 // ===============================
@@ -15,20 +18,23 @@ router.post("/register", async (req, res) => {
     if (!username || !email || !password)
       return res.status(400).json({ error: "Missing fields" });
 
-    const exists = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
-    if (exists) return res.status(409).json({ error: "Email already in use" });
+    // Check email
+    const emailCheck = await pool.query(`SELECT * FROM users WHERE email = $1`, [email]);
+    if (emailCheck.rows.length > 0) return res.status(409).json({ error: "Email already in use" });
 
-    const usernameExists = db
-      .prepare("SELECT 1 FROM users WHERE username = ?")
-      .get(username);
+    // Check username
+    const usernameCheck = await pool.query(`SELECT 1 FROM users WHERE username = $1`, [username]);
+    if (usernameCheck.rows.length > 0) return res.status(409).json({ error: "Username already in use" });
 
-    if (usernameExists) return res.status(409).json({ error: "Username already in use" })
     const passwordHash = await bcrypt.hash(password, 10);
-    const result = db.prepare(
-      "INSERT INTO users (username, email, password) VALUES (?, ?, ?)"
-    ).run(username, email, passwordHash);
 
-    const user = { id: result.lastInsertRowid, username, email };
+    // Insert new user
+    const result = await pool.query(
+      `INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email`,
+      [username, email, passwordHash]
+    );
+
+    const user = result.rows[0];
     const token = generateToken(user);
 
     res.status(201).json({ token, user });
@@ -44,7 +50,8 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
+    const result = await pool.query(`SELECT * FROM users WHERE email = $1`, [email]);
+    const user = result.rows[0];
 
     if (!user) return res.status(401).json({ error: "Invalid email" });
 
@@ -66,18 +73,26 @@ router.post("/login", async (req, res) => {
 // ===============================
 // LOGGED-IN USER
 // ===============================
-router.get("/me", requireAuth, (req, res) => {
-  const user = db.prepare("SELECT id, username, email, created_at FROM users WHERE id = ?")
-    .get(req.user.id);
+router.get("/me", requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, username, email, created_at FROM users WHERE id = $1`,
+      [req.user.id]
+    );
+    const user = result.rows[0];
 
-  if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-  res.json({
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    createdAt: user.created_at
-  });
+    res.json({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      createdAt: user.created_at
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch user" });
+  }
 });
 
 export default router;

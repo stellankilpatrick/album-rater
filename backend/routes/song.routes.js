@@ -1,139 +1,164 @@
-import db from "../db/database.js";
 import express from "express";
+import pool from "../db/pool.js";
 import { requireAuth } from "../auth/auth.middleware.js";
-import { addSongsToAlbum, rateSong, updateSong, deleteSong } from "../models/song.models.js";
 import { getAlbumById } from "../models/album.models.js";
 
 const router = express.Router();
 
-router.param("username", (req, res, next, username) => {
-  const user = db
-    .prepare(`SELECT id, username FROM users WHERE username = ?`)
-    .get(username);
+router.param("username", async (req, res, next, username) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, username FROM users WHERE username = $1`,
+      [username]
+    );
+    const user = rows[0];
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-  if (!user) {
-    return res.status(404).json({ error: "User not found" });
+    req.profileUser = user;
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
-
-  req.profileUser = user; // attach once
-  next();
 });
 
-// ===============================
-// CREATE SONG IN ALBUM (linked to user)
-// ===============================
+// ---------------------
+// CREATE SONG
+// ---------------------
 router.post("/:id", requireAuth, async (req, res) => {
-    const { title, num } = req.body;
-    const albumId = req.params.id;
+  const { title, num } = req.body;
+  const albumId = req.params.id;
 
-    if (!title || !num) {
-        return res.status(400).json({ error: "Missing title or track number" });
-    }
+  if (!title || !num) return res.status(400).json({ error: "Missing title or track number" });
 
-    const album = await addSongsToAlbum(albumId, [{ title, num }]);
-    res.json(album.songs[album.songs.length - 1]);
+  try {
+    const { rows: albumRows } = await pool.query(
+      `SELECT * FROM albums WHERE id = $1`,
+      [albumId]
+    );
+    const album = albumRows[0];
+    if (!album) return res.status(404).json({ error: "Album not found" });
+
+    await pool.query(
+      `INSERT INTO songs (album_id, title, track_number) VALUES ($1, $2, $3)`,
+      [albumId, title, num]
+    );
+
+    const { rows: songs } = await pool.query(
+      `SELECT id, title, track_number AS num FROM songs WHERE album_id = $1 ORDER BY track_number`,
+      [albumId]
+    );
+
+    res.json(songs[songs.length - 1]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to add song" });
+  }
 });
 
 // ---------------------
-// Rating routes
+// UPDATE SONG TITLE
 // ---------------------
-
-// Patch a song title
 router.patch("/:id/title", requireAuth, async (req, res) => {
-    const songId = req.params.id;
-    const { title } = req.body;
+  const songId = req.params.id;
+  const { title } = req.body;
+  if (!title?.trim()) return res.status(400).json({ error: "Title cannot be empty" });
 
-    if (!title || !title.trim()) {
-        return res.status(400).json({ error: "Title cannot be empty" });
-    }
+  try {
+    const result = await pool.query(
+      `UPDATE songs SET title = $1 WHERE id = $2 RETURNING id, title, track_number AS num`,
+      [title, songId]
+    );
 
-    try {
-        // update song in database
-        const result = db.prepare("UPDATE songs SET title = ? WHERE id = ?").run(title, songId);
+    if (result.rowCount === 0) return res.status(404).json({ error: "Song not found" });
 
-        if (result.changes === 0) return res.status(404).json({ error: "Song not found" });
-
-        // Assuming you have updateSongTitleFunction
-        const updatedSong = updateSong(songId, { title });
-        res.json(updatedSong)
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Failed to update song title" });
-    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update song title" });
+  }
 });
 
-// Patch a song rating
+// ---------------------
+// RATE SONG
+// ---------------------
 router.patch("/:songId/rating", requireAuth, async (req, res) => {
-    try {
-        let { rating } = req.body;
-        const songId = req.params.songId;
+  try {
+    const songId = req.params.songId;
+    let { rating } = req.body;
 
-        // allow null, 0, 1, or 2
-        if (rating !== null && ![0, 1, 2].includes(rating)) {
-            return res.status(400).json({ error: "Rating must be 0, 1, 2, or null" });
-        }
-
-        // updateSong / delete if null
-        if (rating === null) {
-            db.prepare(
-                `DELETE FROM song_ratings WHERE song_id = ? AND user_id = ?`
-            ).run(songId, req.user.id);
-        } else {
-            // upsert rating
-            db.prepare(
-                `INSERT INTO song_ratings (song_id, user_id, rating)
-                 VALUES (?, ?, ?)
-                 ON CONFLICT(song_id, user_id) DO UPDATE SET rating=excluded.rating`
-            ).run(songId, req.user.id, rating);
-        }
-
-        // find album id for song
-        const song = db.prepare("SELECT album_id FROM songs WHERE id = ?").get(songId);
-        if (!song) return res.status(404).json({ error: "Song not found" });
-
-        const album = getAlbumById(song.album_id);
-        res.json({ success: true, albumRating: album.rating });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Failed to rate song" });
+    if (rating !== null && ![0, 1, 2].includes(rating)) {
+      return res.status(400).json({ error: "Rating must be 0, 1, 2, or null" });
     }
+
+    if (rating === null) {
+      await pool.query(
+        `DELETE FROM song_ratings WHERE song_id = $1 AND user_id = $2`,
+        [songId, req.user.id]
+      );
+    } else {
+      await pool.query(
+        `INSERT INTO song_ratings (song_id, user_id, rating)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (song_id, user_id)
+         DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()`,
+        [songId, req.user.id, rating]
+      );
+    }
+
+    const { rows: songRows } = await pool.query(
+      `SELECT album_id FROM songs WHERE id = $1`,
+      [songId]
+    );
+    if (!songRows[0]) return res.status(404).json({ error: "Song not found" });
+
+    const album = await getAlbumById(songRows[0].album_id);
+    res.json({ success: true, albumRating: album.rating });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to rate song" });
+  }
 });
 
-// Patch a song track number
+// ---------------------
+// UPDATE TRACK NUMBER
+// ---------------------
 router.patch("/:songId/num", requireAuth, async (req, res) => {
-    try {
-        const songId = req.params.songId;
-        let { num } = req.body;
+  try {
+    const songId = req.params.songId;
+    let { num } = req.body;
 
-        // Validate num
-        if (num === undefined || num === null || isNaN(Number(num)) || Number(num) < 1) {
-            return res.status(400).json({ error: "Track number must be a positive integer" });
-        }
-        num = Number(num);
-
-        // Update the song in the database
-        const result = db.prepare("UPDATE songs SET track_number = ? WHERE id = ?").run(num, songId);
-        if (result.changes === 0) return res.status(404).json({ error: "Song not found" });
-
-        // Return updated song object
-        const updatedSong = db.prepare("SELECT * FROM songs WHERE id = ?").get(songId);
-        res.json({ success: true, song: updatedSong });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Failed to update track number" });
+    if (num === undefined || num === null || isNaN(Number(num)) || Number(num) < 1) {
+      return res.status(400).json({ error: "Track number must be a positive integer" });
     }
+    num = Number(num);
+
+    const result = await pool.query(
+      `UPDATE songs SET track_number = $1 WHERE id = $2 RETURNING *`,
+      [num, songId]
+    );
+    if (result.rowCount === 0) return res.status(404).json({ error: "Song not found" });
+
+    res.json({ success: true, song: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update track number" });
+  }
 });
 
+// ---------------------
+// DELETE SONG
+// ---------------------
 router.delete("/:songId", requireAuth, async (req, res) => {
-    const { songId } = req.params;
+  const songId = req.params.songId;
 
-    try {
-        deleteSong(songId);
-        res.json({ success: true });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Failed to delete song"});
-    }
-})
+  try {
+    await pool.query(`DELETE FROM songs WHERE id = $1`, [songId]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete song" });
+  }
+});
 
 export default router;

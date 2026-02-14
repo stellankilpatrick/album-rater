@@ -1,118 +1,120 @@
-import db from "../db/database.js";
+import pool from "../db/database.js";
 
 /**
  * Add songs to an album
  * @param {number} albumId
  * @param {Array} songs [{ title, num }]
  */
-export function addSongsToAlbum(albumId, songs) {
-  const albumExists = db.prepare("SELECT id FROM albums WHERE id = ?").get(albumId);
-
-  if (!albumExists) throw new Error("Album not found");
-
-  const insertSong = db.prepare(
-    "INSERT INTO songs (album_id, title, track_number) VALUES (?, ?, ?)"
+export async function addSongsToAlbum(albumId, songs) {
+  const { rows: albumRows } = await pool.query(
+    "SELECT id FROM albums WHERE id = $1",
+    [albumId]
   );
+  if (albumRows.length === 0) throw new Error("Album not found");
 
-  const insertMany = db.transaction((songs) => {
-    for (const song of songs) {
-      if (!song.num || song.num <= 0) {
-        throw new Error("Invalid track number");
-      }
-      insertSong.run(albumId, song.title, song.num);
-    }
-  });
-
+  const client = await pool.connect();
   try {
-    insertMany(songs);
-  } catch (err) {
-    if (err.code === "SQLITE_CONSTRAINT_UNIQUE") {
-      throw new Error("Duplicate track number in album");
+    await client.query("BEGIN");
+    for (const song of songs) {
+      if (!song.num || song.num <= 0) throw new Error("Invalid track number");
+
+      await client.query(
+        `INSERT INTO songs (album_id, title, track_number)
+         VALUES ($1, $2, $3)`,
+        [albumId, song.title, song.num]
+      );
     }
+    await client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    if (err.code === "23505") throw new Error("Duplicate track number in album"); // unique violation
     throw err;
+  } finally {
+    client.release();
   }
 
-  // Return updated album
-  const album = db.prepare("SELECT * FROM albums WHERE id = ?").get(albumId);
+  // Return updated album with songs
+  const { rows: albumResult } = await pool.query(
+    "SELECT * FROM albums WHERE id = $1",
+    [albumId]
+  );
+  const album = albumResult[0];
 
-  album.songs = db
-    .prepare(`
-      SELECT id, title, track_number AS num 
-      FROM songs 
-      WHERE album_id = ? 
-      ORDER BY track_number`)
-    .all(albumId);
-
+  const { rows: songsRows } = await pool.query(
+    `SELECT id, title, track_number AS num 
+     FROM songs 
+     WHERE album_id = $1 
+     ORDER BY track_number`,
+    [albumId]
+  );
+  album.songs = songsRows;
   return album;
 }
 
 /**
  * Rate (or re-rate) a song
- * @param {number} userId
- * @param {number} songId
- * @param {number} rating
  */
-export function rateSong(userId, songId, rating) {
-  if (![0, 1, 2].includes(rating)) {
-    throw new Error("Invalid rating");
-  }
+export async function rateSong(userId, songId, rating) {
+  if (![0, 1, 2].includes(rating)) throw new Error("Invalid rating");
 
-  db.prepare(`
-    INSERT INTO song_ratings (user_id, song_id, rating)
-    VALUES (?, ?, ?)
+  await pool.query(
+    `
+    INSERT INTO song_ratings (user_id, song_id, rating, updated_at)
+    VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
     ON CONFLICT(user_id, song_id)
-    DO UPDATE SET
-      rating = excluded.rating,
-      updated_at = CURRENT_TIMESTAMP
-  `).run(userId, songId, rating);
+    DO UPDATE SET rating = EXCLUDED.rating, updated_at = CURRENT_TIMESTAMP
+  `,
+    [userId, songId, rating]
+  );
 }
 
 /**
  * Update a song's info
  */
-export function updateSong(songId, data) {
-  const song = db.prepare("SELECT * FROM songs WHERE id = ?").get(songId);
-
+export async function updateSong(songId, data) {
+  const { rows: songRows } = await pool.query(
+    "SELECT * FROM songs WHERE id = $1",
+    [songId]
+  );
+  const song = songRows[0];
   if (!song) return null;
 
   const fields = [];
   const values = [];
+  let idx = 1;
 
   if (data.title) {
-    fields.push("title = ?");
+    fields.push(`title = $${idx++}`);
     values.push(data.title);
   }
-
   if (data.num !== undefined) {
-    fields.push("track_number = ?");
+    fields.push(`track_number = $${idx++}`);
     values.push(data.num);
   }
-
   if (!fields.length) return song;
 
+  values.push(songId);
+
   try {
-    db.prepare(`
-    UPDATE songs 
-    SET ${fields.join(", ")} 
-    WHERE id = ?
-    `).run(...values, songId);
+    await pool.query(
+      `UPDATE songs SET ${fields.join(", ")} WHERE id = $${idx}`,
+      values
+    );
   } catch (err) {
-    if (err.code === "SQLITE_CONSTRAINT_UNIQUE") {
-      throw new Error("Track number already exists in album");
-    }
+    if (err.code === "23505") throw new Error("Track number already exists in album"); // unique violation
     throw err;
   }
 
-  return db.prepare(`
-      SELECT id, title, track_number AS num
-      FROM songs 
-      WHERE id = ?
-    `).get(songId);
+  const { rows: updatedRows } = await pool.query(
+    `SELECT id, title, track_number AS num FROM songs WHERE id = $1`,
+    [songId]
+  );
+  return updatedRows[0];
 }
 
 /**
  * Delete a song
  */
-export function deleteSong(songId) {
-  db.prepare("DELETE FROM songs WHERE id = ?").run(songId);
+export async function deleteSong(songId) {
+  await pool.query("DELETE FROM songs WHERE id = $1", [songId]);
 }

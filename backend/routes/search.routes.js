@@ -1,37 +1,52 @@
 import express from "express";
-import db from "../db/database.js";
+import pool from "../db/database.js";
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  const q = req.query.q?.trim();
-  if (!q) return res.json({ albums: [], artists: [], users: [] });
+router.get("/", async (req, res) => {
+  try {
+    const q = req.query.q?.trim();
+    if (!q) return res.json({ albums: [], artists: [], users: [] });
 
-  const like = `%${q}%`;
+    const like = `%${q}%`;
 
-  const albums = db.prepare(`
-    SELECT albums.id, albums.title, artists.name AS artist
-    FROM albums
-    JOIN artists ON albums.artist_id = artists.id
-    WHERE albums.title LIKE ?
-    LIMIT 10
-  `).all(like);
+    const albumsPromise = pool.query(`
+      SELECT a.id, a.title, ar.name AS artist
+      FROM albums a
+      JOIN artists ar ON a.artist_id = ar.id
+      WHERE a.title ILIKE $1
+      LIMIT 10
+    `, [like]);
 
-  const artists = db.prepare(`
-    SELECT id, name
-    FROM artists
-    WHERE name LIKE ?
-    LIMIT 10
-  `).all(like);
+    const artistsPromise = pool.query(`
+      SELECT id, name
+      FROM artists
+      WHERE name ILIKE $1
+      LIMIT 10
+    `, [like]);
 
-  const users = db.prepare(`
-    SELECT id, username
-    FROM users
-    WHERE username LIKE ?
-    LIMIT 10
-  `).all(like);
+    const usersPromise = pool.query(`
+      SELECT id, username
+      FROM users
+      WHERE username ILIKE $1
+      LIMIT 10
+    `, [like]);
 
-  res.json({ albums, artists, users });
+    const [albumsRes, artistsRes, usersRes] = await Promise.all([
+      albumsPromise,
+      artistsPromise,
+      usersPromise
+    ]);
+
+    res.json({
+      albums: albumsRes.rows,
+      artists: artistsRes.rows,
+      users: usersRes.rows
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Search failed" });
+  }
 });
 
 export default router;

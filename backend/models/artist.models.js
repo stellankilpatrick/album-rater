@@ -1,37 +1,71 @@
-import db from "../db/database.js";
+import pool from "../db/database.js";
 
-// MOVE TO USER.MODELS.JS, rename getUserArtistRankings()
-export function getArtistRankings() {
-  // Get all artists
-  const artists = db.prepare("SELECT * FROM artists").all();
+// Assuming you have a "pool" from pg
+import pool from "../db/pool.js"; // your Postgres client
 
-  return artists
-    .map(artist => {
-      // Get albums for this artist
-      const albums = db.prepare(`
-      SELECT a.* 
-      FROM albums a
-      WHERE a.artist_id = ?
-    `).all(artist.id);
+// Get all artists with their albums and stats
+export async function getArtistRankings() {
+  const artists = await pool.query("SELECT * FROM artists");
+  
+  const result = [];
+  for (const artist of artists.rows) {
+    const albumsRes = await pool.query(
+      "SELECT * FROM albums WHERE artist_id = $1",
+      [artist.id]
+    );
 
-      const albumsWithRating = attachAlbumStats(albums);
+    const albumsWithRating = await attachAlbumStats(albumsRes.rows);
+    if (albumsWithRating.length > 0) {
+      result.push({ ...artist, albums: albumsWithRating });
+    }
+  }
 
-      return {
-        ...artist,
-        albums: albumsWithRating,
-      };
-    })
-    .filter(artist => artist.albums.length > 0);
+  return result;
 }
 
-export function getAllRatedArtists() {
-  return db.prepare(`
+// Attach stats to albums (optionally per user)
+export async function attachAlbumStats(albums, userId = null) {
+  const result = [];
+  for (const album of albums) {
+    const statsRes = await pool.query(
+      `
+      SELECT
+        COUNT(s.id) AS "totalSongs",
+        COUNT(sr.rating) FILTER (WHERE sr.rating > 0) AS "ratedSongs",
+        COALESCE(SUM(sr.rating), 0) AS "sumRatings"
+      FROM songs s
+      LEFT JOIN song_ratings sr
+        ON sr.song_id = s.id
+       ${userId ? "AND sr.user_id = $1" : ""}
+      WHERE s.album_id = $2
+      `,
+      userId ? [userId, album.id] : [album.id]
+    );
+
+    const stats = statsRes.rows[0];
+    const totalSongs = Number(stats.totalSongs);
+    const ratedSongs = Number(stats.ratedSongs);
+    const sumRatings = Number(stats.sumRatings);
+
+    result.push({
+      ...album,
+      rating: totalSongs > 0 ? Math.pow(sumRatings, 2) / totalSongs : 0,
+      rate: `${ratedSongs}/${totalSongs}`,
+    });
+  }
+
+  return result;
+}
+
+// Get all rated artists (avg album score)
+export async function getAllRatedArtists() {
+  const res = await pool.query(`
     WITH user_album_scores AS (
       SELECT
         a.id AS album_id,
         a.artist_id,
         sr.user_id,
-        (SUM(sr.rating) * SUM(sr.rating)) * 1.0 / COUNT(sr.rating) AS userScore
+        (SUM(sr.rating) * SUM(sr.rating))::float / COUNT(sr.rating) AS userScore
       FROM albums a
       JOIN songs s ON s.album_id = a.id
       JOIN song_ratings sr ON sr.song_id = s.id
@@ -50,88 +84,98 @@ export function getAllRatedArtists() {
       ar.id,
       ar.name,
       ar.image,
-      ROUND(AVG(album_scores.albumScore), 2) AS avgRating,
-      SUM(album_scores.ratingCount) AS ratingCount,
-      COUNT(album_scores.album_id) AS albumCount
+      ROUND(AVG(album_scores.albumScore), 2) AS "avgRating",
+      SUM(album_scores.ratingCount) AS "ratingCount",
+      COUNT(album_scores.album_id) AS "albumCount"
     FROM artists ar
     JOIN album_scores ON album_scores.artist_id = ar.id
     GROUP BY ar.id
-    ORDER BY avgRating DESC
-  `).all();
+    ORDER BY "avgRating" DESC
+  `);
+
+  return res.rows;
 }
 
-/**
- * Returns all albums (with statistics) that an artist has
- */
-export function getArtistAlbums(artistId) {
-  const albums = db.prepare(`
-    SELECT a.*
-    FROM albums a
-    WHERE a.artist_id = ?
-    `).all(artistId);
-
-  return attachAlbumStats(albums);
+// Get albums for a specific artist
+export async function getArtistAlbums(artistId) {
+  const albumsRes = await pool.query(
+    "SELECT * FROM albums WHERE artist_id = $1",
+    [artistId]
+  );
+  return attachAlbumStats(albumsRes.rows);
 }
 
-function attachAlbumStats(albums, userId) {
-  return albums.map(album => {
-    const stats = db.prepare(`
+import pool from "../db/pool.js"; // your Postgres pool
+
+export async function attachAlbumStats(albums, userId = null) {
+  const result = [];
+
+  for (const album of albums) {
+    const statsRes = await pool.query(
+      `
       SELECT
-        COUNT(s.id) AS totalSongs,
-        SUM(CASE WHEN sr.rating > 0 THEN 1 ELSE 0 END) AS ratedSongs,
-        SUM(COALESCE(sr.rating, 0)) AS sumRatings
+        COUNT(s.id) AS "totalSongs",
+        COUNT(sr.rating) FILTER (WHERE sr.rating > 0) AS "ratedSongs",
+        COALESCE(SUM(sr.rating), 0) AS "sumRatings"
       FROM songs s
       LEFT JOIN song_ratings sr
         ON sr.song_id = s.id
-       AND sr.user_id = ?
-      WHERE s.album_id = ?
-    `).get(userId, album.id);
+       ${userId ? "AND sr.user_id = $1" : ""}
+      WHERE s.album_id = $2
+      `,
+      userId ? [userId, album.id] : [album.id]
+    );
 
-    const totalSongs = stats?.totalSongs ?? 0;
-    const ratedSongs = stats?.ratedSongs ?? 0;
-    const sumRatings = stats?.sumRatings ?? 0;
+    const stats = statsRes.rows[0];
+    const totalSongs = Number(stats.totalSongs);
+    const ratedSongs = Number(stats.ratedSongs);
+    const sumRatings = Number(stats.sumRatings);
 
-    return {
+    result.push({
       ...album,
-      rating: totalSongs > 0
-        ? Math.pow(sumRatings, 2) / totalSongs
-        : 0,
-      rate: `${ratedSongs}/${totalSongs}`
-    };
-  });
+      rating: totalSongs > 0 ? Math.pow(sumRatings, 2) / totalSongs : 0,
+      rate: `${ratedSongs}/${totalSongs}`,
+    });
+  }
+
+  return result;
 }
 
-export function getArtistAlbumsWithTotal(artistId) {
-  const albums = db.prepare(`
+export async function getArtistAlbumsWithTotal(artistId) {
+  const albumsRes = await pool.query(
+    `
     WITH user_album_scores AS (
       SELECT
-        a.id AS albumId,
-        a.cover_art AS albumCoverArt,
+        a.id AS "albumId",
+        a.cover_art AS "albumCoverArt",
         sr.user_id,
-        (SUM(sr.rating) * SUM(sr.rating)) * 1.0 / COUNT(sr.rating) AS userScore
+        (SUM(sr.rating) * SUM(sr.rating))::float / COUNT(sr.rating) AS "userScore"
       FROM albums a
       JOIN songs s ON s.album_id = a.id
       JOIN song_ratings sr ON sr.song_id = s.id
-      WHERE a.artist_id = ?
+      WHERE a.artist_id = $1
       GROUP BY a.id, sr.user_id
     )
     SELECT
       a.id,
       a.title,
-      a.release_date AS releaseDate,
-      a.cover_art AS albumCoverArt,
+      a.release_date AS "releaseDate",
+      a.cover_art AS "albumCoverArt",
       ar.name AS artist,
-      ar.image AS artistImage,
-      ROUND(AVG(uas.userScore), 2) AS avgScore,
-      COUNT(uas.user_id) AS ratingCount
+      ar.image AS "artistImage",
+      ROUND(AVG(uas."userScore"), 2) AS "avgScore",
+      COUNT(uas.user_id) AS "ratingCount"
     FROM albums a
     JOIN artists ar ON ar.id = a.artist_id
-    LEFT JOIN user_album_scores uas ON uas.albumId = a.id
-    WHERE a.artist_id = ?
-    GROUP BY a.id
-    ORDER BY avgScore DESC
-  `).all(artistId, artistId);
+    LEFT JOIN user_album_scores uas ON uas."albumId" = a.id
+    WHERE a.artist_id = $1
+    GROUP BY a.id, ar.name, ar.image
+    ORDER BY "avgScore" DESC
+    `,
+    [artistId]
+  );
 
+  const albums = albumsRes.rows;
   const totalRating = albums.reduce(
     (sum, a) => sum + (a.avgScore * a.ratingCount),
     0
@@ -140,95 +184,103 @@ export function getArtistAlbumsWithTotal(artistId) {
   return { albums, totalRating };
 }
 
-export function getUserRatedAlbumsByArtist(userId, artistId) {
-  return db.prepare(`
+export async function getUserRatedAlbumsByArtist(userId, artistId) {
+  const res = await pool.query(
+    `
     SELECT
       a.id,
       a.title,
-      a.release_date AS releaseDate,
-      a.cover_art AS coverArt,
-      ar.id AS artistId,
+      a.release_date AS "releaseDate",
+      a.cover_art AS "coverArt",
+      ar.id AS "artistId",
       ar.name AS artist,
-      ar.image AS artistImage,
-
-      COUNT(s.id) AS numSongs,
-      COUNT(CASE WHEN sr.rating > 0 THEN 1 END) AS ratedSongs,
-      COALESCE(SUM(sr.rating), 0) AS totalValue
-
+      ar.image AS "artistImage",
+      COUNT(s.id) AS "numSongs",
+      COUNT(sr.rating) FILTER (WHERE sr.rating > 0) AS "ratedSongs",
+      COALESCE(SUM(sr.rating), 0) AS "totalValue"
     FROM albums a
     JOIN artists ar ON ar.id = a.artist_id
     JOIN songs s ON s.album_id = a.id
     LEFT JOIN song_ratings sr
-      ON sr.song_id = s.id
-     AND sr.user_id = ?
-
-    WHERE ar.id = ?
-
-    GROUP BY a.id
-    HAVING ratedSongs > 0
+      ON sr.song_id = s.id AND sr.user_id = $1
+    WHERE ar.id = $2
+    GROUP BY a.id, ar.id
+    HAVING COUNT(sr.rating) FILTER (WHERE sr.rating > 0) > 0
     ORDER BY (COALESCE(SUM(sr.rating), 0) * COALESCE(SUM(sr.rating), 0)) / COUNT(s.id) DESC
-  `).all(userId, artistId)
-  .map(a => ({
+    `,
+    [userId, artistId]
+  );
+
+  return res.rows.map(a => ({
     ...a,
-    rating: a.numSongs > 0
-      ? Math.pow(a.totalValue, 2) / a.numSongs
-      : 0,
-    rate: `${a.ratedSongs}/${a.numSongs}`
+    rating: a.numSongs > 0 ? Math.pow(a.totalValue, 2) / a.numSongs : 0,
+    rate: `${a.ratedSongs}/${a.numSongs}`,
   }));
 }
 
-export function attachUserAlbumStats(albums, userId) {
-  return albums.map(a => {
-    const stats = db.prepare(`
+export async function attachUserAlbumStats(albums, userId) {
+  const result = [];
+
+  for (const a of albums) {
+    const statsRes = await pool.query(
+      `
       SELECT
-        COUNT(s.id) AS numSongs,
-        COUNT(CASE WHEN sr.rating > 0 THEN 1 END) AS ratedSongs,
-        SUM(sr.rating) AS totalRating
+        COUNT(s.id) AS "numSongs",
+        COUNT(sr.rating) FILTER (WHERE sr.rating > 0) AS "ratedSongs",
+        COALESCE(SUM(sr.rating), 0) AS "totalRating"
       FROM songs s
       LEFT JOIN song_ratings sr
-        ON sr.song_id = s.id AND sr.user_id = ?
-      WHERE s.album_id = ?
-    `).get(userId, a.id);
+        ON sr.song_id = s.id AND sr.user_id = $1
+      WHERE s.album_id = $2
+      `,
+      [userId, a.id]
+    );
 
-    const numSongs = stats?.numSongs ?? 0;
-    const ratedSongs = stats?.ratedSongs ?? 0;
-    const totalRating = stats?.totalRating ?? 0;
+    const stats = statsRes.rows[0];
+    const numSongs = Number(stats.numSongs);
+    const ratedSongs = Number(stats.ratedSongs);
+    const totalRating = Number(stats.totalRating);
 
-    return {
+    result.push({
       ...a,
-      personalScore:
-        numSongs > 0 ? Math.pow(totalRating, 2) / numSongs : 0,
-      rate: `${ratedSongs}/${numSongs}`
-    };
-  });
+      personalScore: numSongs > 0 ? Math.pow(totalRating, 2) / numSongs : 0,
+      rate: `${ratedSongs}/${numSongs}`,
+    });
+  }
+
+  return result;
 }
 
-export function getUserArtistStats(userId) {
-  return db.prepare(`
+export async function getUserArtistStats(userId) {
+  const res = await pool.query(
+    `
     WITH album_scores AS (
       SELECT
         a.id AS album_id,
         a.artist_id,
-        a.cover_art AS coverArt,
-        SUM(sr.rating) AS ratingSum,
-        COUNT(sr.rating) AS ratedSongs
+        a.cover_art AS "coverArt",
+        SUM(sr.rating) AS "ratingSum",
+        COUNT(sr.rating) AS "ratedSongs"
       FROM albums a
       JOIN songs s ON s.album_id = a.id
       LEFT JOIN song_ratings sr
-        ON sr.song_id = s.id
-       AND sr.user_id = ?
+        ON sr.song_id = s.id AND sr.user_id = $1
       GROUP BY a.id
-      HAVING ratedSongs > 0
+      HAVING COUNT(sr.rating) > 0
     )
     SELECT
       ar.id,
       ar.name,
       ar.image,
-      COUNT(album_scores.album_id) AS albumCount,
-      SUM((ratingSum * ratingSum) * 1.0 / ratedSongs) AS totalScore
+      COUNT(album_scores.album_id) AS "albumCount",
+      SUM((ratingSum * ratingSum)::float / ratedSongs) AS "totalScore"
     FROM artists ar
     JOIN album_scores ON album_scores.artist_id = ar.id
     GROUP BY ar.id
-    ORDER BY totalScore DESC
-  `).all(userId);
+    ORDER BY "totalScore" DESC
+    `,
+    [userId]
+  );
+
+  return res.rows;
 }

@@ -10,17 +10,21 @@ import { addSongsToAlbum } from "../models/song.models.js";
 
 const router = express.Router();
 
-router.param("username", (req, res, next, username) => {
-  const user = db
-    .prepare(`SELECT id, username FROM users WHERE username = ?`)
-    .get(username);
+router.param("username", async (req, res, next, username) => {
+  try {
+    const userRes = await pool.query(
+      `SELECT id, username FROM users WHERE username = $1`,
+      [username]
+    );
+    const user = userRes.rows[0];
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-  if (!user) {
-    return res.status(404).json({ error: "User not found" });
+    req.profileUser = user;
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch user" });
   }
-
-  req.profileUser = user; // attach once
-  next();
 });
 
 //////////////////////////////////////////////////////////////////////
@@ -65,21 +69,30 @@ router.get("/:id", async (req, res) => {
 // ---------------------
 router.post("/:id/rate", requireAuth, async (req, res) => {
   try {
-    const { ratings } = req.body; // [{ songId, rating }]
+    const { ratings } = req.body;
     if (!Array.isArray(ratings)) return res.status(400).json({ error: "Invalid ratings" });
 
-    const insert = db.prepare(`
-      INSERT OR REPLACE INTO song_ratings (user_id, song_id, rating)
-      VALUES (?, ?, ?)
-    `);
-
-    const transaction = db.transaction((ratingsArr) => {
-      for (const r of ratingsArr) {
-        insert.run(req.user.id, r.songId, r.rating);
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      for (const r of ratings) {
+        await client.query(
+          `
+          INSERT INTO song_ratings (user_id, song_id, rating, updated_at)
+          VALUES ($1, $2, $3, NOW())
+          ON CONFLICT (user_id, song_id)
+          DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()
+          `,
+          [req.user.id, r.songId, r.rating]
+        );
       }
-    });
-
-    transaction(ratings);
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
 
     const album = await getAlbumDetailsPublic(req.params.id);
     res.json(album);
@@ -103,25 +116,28 @@ router.post("/:id/songs", requireAuth, async (req, res) => {
 });
 
 router.delete("/:id", requireAuth, async (req, res) => {
-  const { id } = req.params;
-
   try {
-    // count ratings for this album
-    const row = db.prepare(`
-      SELECT COUNT(sr.song_id) AS ratingCount
+    const albumId = req.params.id;
+
+    // Count ratings for the album
+    const ratingRes = await pool.query(
+      `
+      SELECT COUNT(sr.song_id) AS "ratingCount"
       FROM songs s
       LEFT JOIN song_ratings sr ON sr.song_id = s.id
-      WHERE s.album_id = ?
-    `).get(id);
+      WHERE s.album_id = $1
+      `,
+      [albumId]
+    );
 
-    if (row.ratingCount > 0) {
+    if (parseInt(ratingRes.rows[0].ratingCount) > 0) {
       return res.status(400).json({
         error: "Album cannot be deleted once it has ratings"
       });
     }
 
-    // delete album (songs will cascade)
-    db.prepare(`DELETE FROM albums WHERE id = ?`).run(id);
+    // Delete album (songs cascade)
+    await pool.query(`DELETE FROM albums WHERE id = $1`, [albumId]);
 
     res.json({ success: true });
   } catch (err) {
@@ -192,24 +208,40 @@ router.patch("/:id/cover", requireAuth, async (req, res) => {
 // CREATE OR FIND ALBUM
 // Any user can create a rating version of an existing album
 // ---------------------
-router.post("/new", requireAuth, (req, res) => {
+router.post("/new", requireAuth, async (req, res) => {
   try {
     const { title, artist, releaseDate, songs = [], cover_art: coverArt, rating } = req.body;
     if (!title || !artist) return res.status(400).json({ error: "Title and artist required" });
 
-    const album = createAlbum({ title, artist, releaseDate, songs, coverArt, userId: req.user.id });
+    // Create album (make sure createAlbum is async and uses Postgres)
+    const album = await createAlbum({ title, artist, releaseDate, songs, coverArt, userId: req.user.id });
 
-    // Insert rating if provided
+    // Insert initial ratings if provided
     if (rating !== undefined && album.songs.length > 0) {
-      db.prepare(`
-        INSERT OR REPLACE INTO song_ratings (user_id, song_id, rating)
-        SELECT ?, id, ?
-        FROM songs
-        WHERE album_id = ?
-      `).run(req.user.id, rating, album.id);
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        for (const song of album.songs) {
+          await client.query(
+            `
+            INSERT INTO song_ratings (user_id, song_id, rating, created_at, updated_at)
+            VALUES ($1, $2, $3, NOW(), NOW())
+            ON CONFLICT (user_id, song_id)
+            DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()
+            `,
+            [req.user.id, song.id, rating]
+          );
+        }
+        await client.query("COMMIT");
+      } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+      } finally {
+        client.release();
+      }
     }
 
-    res.status(201).json(album); // always a fully valid album object
+    res.status(201).json(album); // return full album object
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to create album" });
@@ -296,18 +328,29 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
     const { ratings } = req.body; // [{ songId, rating }]
     if (!Array.isArray(ratings)) return res.status(400).json({ error: "Invalid ratings" });
 
-    const insert = db.prepare(`
-      INSERT OR REPLACE INTO song_ratings (user_id, song_id, rating)
-      VALUES (?, ?, ?)
-    `);
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
 
-    const transaction = db.transaction((ratingsArr) => {
-      for (const r of ratingsArr) {
-        insert.run(req.user.id, r.songId, r.rating);
+      for (const r of ratings) {
+        await client.query(
+          `
+          INSERT INTO song_ratings (user_id, song_id, rating, updated_at)
+          VALUES ($1, $2, $3, NOW())
+          ON CONFLICT (user_id, song_id)
+          DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()
+          `,
+          [req.user.id, r.songId, r.rating]
+        );
       }
-    });
 
-    transaction(ratings);
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
 
     const album = await getAlbumDetailsPublic(req.params.id);
     res.json(album);
@@ -322,25 +365,22 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
 // ---------------------
 router.post("/:id/users/:username", requireAuth, async (req, res) => {
   try {
-    const { username, id } = req.params;
+    const { id } = req.params;
 
-    // Make sure the user exists (req.profileUser is set by router.param)
-    if (!req.profileUser) return res.status(404).json({ error: "User not found" });
-
-    // Fetch album details
     const album = await getAlbumDetailsPublic(id);
     if (!album) return res.status(404).json({ error: "Album not found" });
 
-    // Optional: include whether this user has rated any songs
-    const userRatings = db.prepare(`
-      SELECT song_id, rating
-      FROM song_ratings
-      WHERE user_id = ? AND song_id IN (SELECT id FROM songs WHERE album_id = ?)
-    `).all(req.user.id, album.id);
+    const userRatingsRes = await pool.query(
+      `SELECT sr.song_id, sr.rating
+      FROM song_ratings sr
+      JOIN songs s ON s.id = sr.song_id
+      WHERE sr.user_id = $1 AND s.album_id = $2`,
+      [req.user.id, album.id]
+    );
 
     res.json({
       ...album,
-      userRatings
+      userRatings: userRatingsRes.rows
     });
   } catch (err) {
     console.error(err);
@@ -368,20 +408,22 @@ router.delete("/:id/users/:username", requireAuth, async (req, res) => {
 
 router.get("/:albumId/following-reviews", requireAuth, async (req, res) => {
   try {
-    const followingReviews = db.prepare(`
+    const reviewsRes = await pool.query(
+      `
       SELECT u.id, u.username, ar.rating
       FROM follows f
       JOIN album_ratings ar ON ar.user_id = f.following_id
       JOIN users u ON u.id = ar.user_id
-      WHERE f.follower_id = ?
-      AND ar.album_id = ?
-  `).all(req.user.id, req.params.albumId);
+      WHERE f.follower_id = $1 AND ar.album_id = $2
+      `,
+      [req.user.id, req.params.albumId]
+    );
 
-    res.json(followingReviews);
+    res.json(reviewsRes.rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to get following reviews" });
   }
-})
+});
 
 export default router;
