@@ -40,7 +40,7 @@ router.param("username", async (req, res, next, username) => {
 // ---------------------
 router.get("/", async (req, res) => {
   try {
-    const albums = getAllAlbumsPublic();
+    const albums = await getAllAlbumsPublic();
     res.json(albums);
   } catch (err) {
     console.error(err);
@@ -291,10 +291,10 @@ router.get("/:id/users/:username", requireAuth, async (req, res) => {
     const albumId = Number(req.params.id);
     const userId = req.profileUser.id;
 
-    const album = getAlbumDetailsPrivate(albumId, userId);
+    const album = await getAlbumDetailsPrivate(albumId, userId);
     if (!album) return res.status(404).json({ error: "Album not found" });
 
-    const score = getUserAlbumScoreSingle(userId, albumId);
+    const score = await getUserAlbumScoreSingle(userId, albumId);
 
     album.songs = album.tracks.map(t => ({
       id: t.id,
