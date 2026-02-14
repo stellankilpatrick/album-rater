@@ -111,7 +111,7 @@ router.post("/:id/songs", requireAuth, async (req, res) => {
 
   if (!title || !num) return res.status(400).json({ error: "Missing title or track number" });
 
-  const album = addSongsToAlbum(id, [{ title, num }]);
+  const album = await addSongsToAlbum(id, [{ title, num }]);
   res.json(album.songs[album.songs.length - 1]);
 });
 
