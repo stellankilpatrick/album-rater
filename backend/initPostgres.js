@@ -34,7 +34,6 @@ async function init() {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS albums (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         artist_id INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
         title TEXT NOT NULL,
         release_date DATE,

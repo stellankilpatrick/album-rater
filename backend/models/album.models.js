@@ -361,17 +361,15 @@ export async function updateAlbumCover(albumId, coverArt) {
  */
 export async function getUserRatedAlbums(userId) {
   const res = await pool.query(
-    `
-    SELECT
+    `SELECT
       a.id, a.title, a.release_date AS "releaseDate", a.cover_art AS "coverArt",
       ar.id AS "artistId", ar.name AS artist,
       alr.rating, alr.non_skips, alr.rated_songs
     FROM album_ratings alr
-    JOIN albums a ON a.id = alr.album_id
-    JOIN artists ar ON ar.id = a.artist_id
+    LEFT JOIN albums a ON a.id = alr.album_id
+    LEFT JOIN artists ar ON ar.id = a.artist_id
     WHERE alr.user_id = $1
-    ORDER BY alr.rating DESC
-    `,
+    ORDER BY alr.rating DESC`,
     [userId]
   );
   return res.rows.map(a => ({ ...a, rate: `${a.non_skips}/${a.rated_songs}` }));
