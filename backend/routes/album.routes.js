@@ -257,13 +257,13 @@ router.post("/new", requireAuth, async (req, res) => {
 // ===============================
 // GET ALL ALBUMS USER HAS RATED
 // ===============================
-router.get("/users/:username", requireAuth, (req, res) => {
+router.get("/users/:username", requireAuth, async (req, res) => {
   try {
     const power = req.query.power ? Number(req.query.power) : 0.6;
     const userId = req.profileUser.id;
 
-    const albums = getUserRatedAlbums(userId);
-    const scores = getUserAlbumScores(userId, power);
+    const albums = await getUserRatedAlbums(userId);
+    const scores = await getUserAlbumScores(userId, power);
 
     // Build a fast lookup table
     const scoreMap = new Map(
