@@ -81,8 +81,7 @@ export async function getAllRatedArtists() {
       ar.id,
       ar.name,
       ar.image,
-      ROUND(AVG(album_scores.albumScore), 2) AS "avgRating",
-      SUM(album_scores.ratingCount) AS "ratingCount",
+      ROUND(AVG(album_scores.albumScore)::numeric, 2) AS "avgRating"      SUM(album_scores.ratingCount) AS "ratingCount",
       COUNT(album_scores.album_id) AS "albumCount"
     FROM artists ar
     JOIN album_scores ON album_scores.artist_id = ar.id
@@ -124,7 +123,7 @@ export async function getArtistAlbumsWithTotal(artistId) {
       a.cover_art AS "albumCoverArt",
       ar.name AS artist,
       ar.image AS "artistImage",
-      ROUND(AVG(uas."userScore"), 2) AS "avgScore",
+      ROUND(AVG(uas."userScore")::numeric, 2) AS "avgScore",      
       COUNT(uas.user_id) AS "ratingCount"
     FROM albums a
     JOIN artists ar ON ar.id = a.artist_id
@@ -234,7 +233,7 @@ export async function getUserArtistStats(userId) {
       ar.name,
       ar.image,
       COUNT(album_scores.album_id) AS "albumCount",
-      SUM(("ratingSum" * "ratingSum")::float / ratedSongs) AS "totalScore"
+      SUM(("ratingSum" * "ratingSum")::float / "ratedSongs") AS "totalScore"
     FROM artists ar
     JOIN album_scores ON album_scores.artist_id = ar.id
     GROUP BY ar.id
