@@ -362,30 +362,34 @@ export async function updateAlbumCover(albumId, coverArt) {
 export async function getUserRatedAlbums(userId) {
 
   const res = await pool.query(
-    `
-    SELECT
+    `SELECT
       a.id,
       a.title,
       a.release_date AS "releaseDate",
       a.cover_art AS "coverArt",
       ar.id AS "artistId",
       ar.name AS artist,
-      COUNT(sr.rating) AS rated_songs,
-      COALESCE(SUM(sr.rating), 0) AS rating_sum
+      COUNT(s.id) AS "numSongs",
+      COUNT(sr.rating) FILTER (WHERE sr.rating > 0) AS "ratedSongs",
+      COALESCE(SUM(sr.rating), 0) AS "totalRating"
     FROM albums a
     JOIN artists ar ON ar.id = a.artist_id
     JOIN songs s ON s.album_id = a.id
-    JOIN song_ratings sr ON sr.song_id = s.id
-    WHERE sr.user_id = $1
+    LEFT JOIN song_ratings sr
+      ON sr.song_id = s.id AND sr.user_id = $1
     GROUP BY a.id, ar.id
-    ORDER BY rating_sum DESC;
-    `,
+    HAVING COUNT(sr.rating) FILTER (WHERE sr.rating > 0) > 0
+    ORDER BY totalRating DESC`,
     [userId]
   );
 
   return res.rows.map(a => {
-    const rate = a.rated_songs && a.non_skips ? `${a.non_skips}/${a.rated_songs}` : "0/0";
-    return { ...a, rate };
+    const rate = `${a.ratedSongs}/${a.numSongs}`;
+    return {
+      ...a,
+      rate,
+      // score10 comes from your percentile calculation later
+    };
   });
 }
 
