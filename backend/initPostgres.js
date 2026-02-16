@@ -38,7 +38,7 @@ async function init() {
         title TEXT NOT NULL,
         release_date DATE,
         cover_art TEXT,
-        UNIQUE(user_id, artist_id, title)
+        UNIQUE(artist_id, title)
       );
     `);
 
