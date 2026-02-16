@@ -379,7 +379,7 @@ export async function getUserRatedAlbums(userId) {
       ON sr.song_id = s.id AND sr.user_id = $1
     GROUP BY a.id, ar.id
     HAVING COUNT(sr.rating) FILTER (WHERE sr.rating > 0) > 0
-    ORDER BY totalRating DESC`,
+    ORDER BY "totalRating" DESC`,
     [userId]
   );
 
