@@ -66,7 +66,7 @@ export async function getAllRatedArtists() {
       FROM albums a
       JOIN songs s ON s.album_id = a.id
       JOIN song_ratings sr ON sr.song_id = s.id
-      GROUP BY a.id, sr.user_id
+      GROUP BY a.id, a.artist_id, sr.user_id
     ),
     album_scores AS (
       SELECT
@@ -75,7 +75,7 @@ export async function getAllRatedArtists() {
         AVG(userScore) AS albumScore,
         COUNT(user_id) AS ratingCount
       FROM user_album_scores
-      GROUP BY album_id
+      GROUP BY album_id, artist_id
     )
     SELECT
       ar.id,
@@ -86,7 +86,7 @@ export async function getAllRatedArtists() {
       COUNT(album_scores.album_id) AS "albumCount"
     FROM artists ar
     JOIN album_scores ON album_scores.artist_id = ar.id
-    GROUP BY ar.id
+    GROUP BY ar.id, ar.name, ar.image
     ORDER BY "avgRating" DESC
   `);
 
@@ -234,7 +234,7 @@ export async function getUserArtistStats(userId) {
       ar.name,
       ar.image,
       COUNT(album_scores.album_id) AS "albumCount",
-      SUM((ratingSum * ratingSum)::float / ratedSongs) AS "totalScore"
+      SUM(("ratingSum" * "ratingSum")::float / ratedSongs) AS "totalScore"
     FROM artists ar
     JOIN album_scores ON album_scores.artist_id = ar.id
     GROUP BY ar.id
