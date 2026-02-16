@@ -363,22 +363,30 @@ export async function getUserRatedAlbums(userId) {
   console.log("Running getUserRatedAlbums for userId:", userId);
 
   const res = await pool.query(
-    `SELECT
-      a.id, a.title, a.release_date AS "releaseDate", a.cover_art AS "coverArt",
-      ar.id AS "artistId", ar.name AS artist,
-      alr.rating, alr.non_skips, alr.rated_songs
-    FROM album_ratings alr
-    LEFT JOIN albums a ON a.id = alr.album_id
-    LEFT JOIN artists ar ON ar.id = a.artist_id
-    WHERE alr.user_id = $1
-    ORDER BY alr.rating DESC`,
+    `
+    SELECT
+      a.id,
+      a.title,
+      a.release_date AS "releaseDate",
+      a.cover_art AS "coverArt",
+      ar.id AS "artistId",
+      ar.name AS artist,
+      alr.rating,
+      alr.non_skips,
+      alr.rated_songs
+    FROM albums a
+    JOIN artists ar ON ar.id = a.artist_id
+    LEFT JOIN album_ratings alr
+      ON alr.album_id = a.id AND alr.user_id = $1
+    ORDER BY alr.rating DESC NULLS LAST, a.title ASC
+    `,
     [userId]
   );
 
   console.log("Raw rows from DB:", res.rows);
 
   return res.rows.map(a => {
-    const rate = `${a.non_skips}/${a.rated_songs}`;
+    const rate = a.rated_songs && a.non_skips ? `${a.non_skips}/${a.rated_songs}` : "0/0";
     console.log("Processed album:", { ...a, rate });
     return { ...a, rate };
   });
@@ -391,9 +399,14 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
   const albumRes = await pool.query(
     `
     SELECT
-      a.id, a.title, a.release_date AS "releaseDate", a.cover_art AS "coverArt",
-      ar.id AS "artistId", ar.name AS artist,
-      alr.rating AS "userRating", alr.rated_songs
+      a.id, 
+      a.title, 
+      a.release_date AS "releaseDate", 
+      a.cover_art AS "coverArt",
+      ar.id AS "artistId", 
+      ar.name AS artist,
+      alr.rating AS "userRating", 
+      alr.rated_songs
     FROM albums a
     JOIN artists ar ON a.artist_id = ar.id
     LEFT JOIN album_ratings alr
