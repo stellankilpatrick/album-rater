@@ -360,6 +360,8 @@ export async function updateAlbumCover(albumId, coverArt) {
  * Get all albums rated by a user (with viewer stats)
  */
 export async function getUserRatedAlbums(userId) {
+  console.log("Running getUserRatedAlbums for userId:", userId);
+
   const res = await pool.query(
     `SELECT
       a.id, a.title, a.release_date AS "releaseDate", a.cover_art AS "coverArt",
@@ -372,7 +374,14 @@ export async function getUserRatedAlbums(userId) {
     ORDER BY alr.rating DESC`,
     [userId]
   );
-  return res.rows.map(a => ({ ...a, rate: `${a.non_skips}/${a.rated_songs}` }));
+
+  console.log("Raw rows from DB:", res.rows);
+
+  return res.rows.map(a => {
+    const rate = `${a.non_skips}/${a.rated_songs}`;
+    console.log("Processed album:", { ...a, rate });
+    return { ...a, rate };
+  });
 }
 
 /**
