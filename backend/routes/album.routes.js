@@ -262,23 +262,16 @@ router.get("/users/:username", requireAuth, async (req, res) => {
     const power = req.query.power ? Number(req.query.power) : 0.6;
     const userId = req.profileUser.id;
 
-    console.log("Fetching albums for userId:", userId);
-
     const albums = await getUserRatedAlbums(userId);
-    console.log("Albums from getUserRatedAlbums:", albums);
 
     const scores = await getUserAlbumScores(userId, power);
-    console.log("Scores from getUserAlbumScores:", scores);
 
     const scoreMap = new Map(scores.map(s => [s.albumId, s.score10]));
-    console.log("Score map:", scoreMap);
 
     const enrichedAlbums = albums.map(album => ({
       ...album,
       score10: Math.min(10, Math.max(1, scoreMap.get(album.id) ?? 1))
     }));
-
-    console.log("Enriched albums sent to frontend:", enrichedAlbums);
 
     res.json(enrichedAlbums);
   } catch (err) {

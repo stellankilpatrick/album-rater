@@ -360,7 +360,6 @@ export async function updateAlbumCover(albumId, coverArt) {
  * Get all albums rated by a user (with viewer stats)
  */
 export async function getUserRatedAlbums(userId) {
-  console.log("Running getUserRatedAlbums for userId:", userId);
 
   const res = await pool.query(
     `
@@ -371,23 +370,21 @@ export async function getUserRatedAlbums(userId) {
       a.cover_art AS "coverArt",
       ar.id AS "artistId",
       ar.name AS artist,
-      alr.rating,
-      alr.non_skips,
-      alr.rated_songs
+      COUNT(sr.rating) AS rated_songs,
+      COALESCE(SUM(sr.rating), 0) AS rating_sum
     FROM albums a
     JOIN artists ar ON ar.id = a.artist_id
-    LEFT JOIN album_ratings alr
-      ON alr.album_id = a.id AND alr.user_id = $1
-    ORDER BY alr.rating DESC NULLS LAST, a.title ASC
+    JOIN songs s ON s.album_id = a.id
+    JOIN song_ratings sr ON sr.song_id = s.id
+    WHERE sr.user_id = $1
+    GROUP BY a.id, ar.id
+    ORDER BY rating_sum DESC;
     `,
     [userId]
   );
 
-  console.log("Raw rows from DB:", res.rows);
-
   return res.rows.map(a => {
     const rate = a.rated_songs && a.non_skips ? `${a.non_skips}/${a.rated_songs}` : "0/0";
-    console.log("Processed album:", { ...a, rate });
     return { ...a, rate };
   });
 }

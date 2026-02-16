@@ -34,15 +34,11 @@ export default function AlbumList({ user }) {
                     headers: { Authorization: `Bearer ${token}` },
                 });
 
-                console.log("Raw backend data:", res.data); // <-- check what backend actually sent
-
                 const normalized = res.data.map(a => ({
                     ...a,
                     releaseDate: a.releaseDate ?? a.release_date ?? "",
                     score10: a.score10 ?? 0
                 }));
-
-                console.log("Normalized albums:", normalized); // <-- check mapping & field names
 
                 setAlbums(normalized);
             } catch (err) {
