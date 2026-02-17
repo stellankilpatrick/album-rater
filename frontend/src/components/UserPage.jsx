@@ -164,7 +164,7 @@ export default function ProfilePage({ user }) {
                             >
                                 <img
                                     src={album.coverArt}
-                                    alt=""
+                                    alt={album.title}
                                     style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "4px" }}
                                 />
                             </Link>

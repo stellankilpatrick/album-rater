@@ -152,8 +152,7 @@ export async function getArtistAlbumsWithTotal(artistId) {
 
 export async function getUserRatedAlbumsByArtist(userId, artistId) {
   const res = await pool.query(
-    `
-    SELECT
+    `SELECT
       a.id,
       a.title,
       a.release_date AS "releaseDate",
@@ -162,7 +161,7 @@ export async function getUserRatedAlbumsByArtist(userId, artistId) {
       ar.name AS artist,
       ar.image AS "artistImage",
       COUNT(s.id) AS "numSongs",
-      COUNT(sr.rating) FILTER (WHERE sr.rating > 0) AS "ratedSongs",
+      COUNT(sr.rating) AS "ratedSongs",
       COALESCE(SUM(sr.rating), 0) AS "totalValue"
     FROM albums a
     JOIN artists ar ON ar.id = a.artist_id
@@ -172,8 +171,7 @@ export async function getUserRatedAlbumsByArtist(userId, artistId) {
     WHERE ar.id = $2
     GROUP BY a.id, ar.id
     HAVING COUNT(sr.rating) FILTER (WHERE sr.rating > 0) > 0
-    ORDER BY (COALESCE(SUM(sr.rating), 0) * COALESCE(SUM(sr.rating), 0)) / COUNT(s.id) DESC
-    `,
+    ORDER BY (COALESCE(SUM(sr.rating), 0) * COALESCE(SUM(sr.rating), 0)) / COUNT(sr.rating) DESC`,
     [userId, artistId]
   );
 

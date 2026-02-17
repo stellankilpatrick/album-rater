@@ -41,14 +41,14 @@ export async function getTopAlbums(userId) {
     SELECT
       a.id,
       a.title,
-      a.cover_art AS coverArt,
-      (SUM(r.rating) * SUM(r.rating)) / COUNT(r.rating) AS avgRating
+      a.cover_art AS "coverArt",
+      (SUM(r.rating) * SUM(r.rating)) / COUNT(r.rating) AS "avgRating"
     FROM song_ratings r
     JOIN songs s ON s.id = r.song_id
     JOIN albums a ON a.id = s.album_id
     WHERE r.user_id = $1
     GROUP BY a.id
-    ORDER BY avgRating DESC
+    ORDER BY "avgRating" DESC
     LIMIT 5
   `, [userId]);
   return rows;
