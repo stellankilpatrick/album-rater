@@ -203,6 +203,7 @@ export async function attachUserAlbumStats(albums, userId) {
     const numSongs = Number(stats.numSongs);
     const ratedSongs = Number(stats.ratedSongs);
     const totalRating = Number(stats.totalRating);
+    const nonSkips = Number(stats.nonSkips);
 
     result.push({
       ...a,
