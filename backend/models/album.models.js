@@ -369,26 +369,31 @@ export async function getUserRatedAlbums(userId) {
       a.cover_art AS "coverArt",
       ar.id AS "artistId",
       ar.name AS artist,
-      COUNT(s.id) AS "numSongs",
-      COUNT(sr.rating) FILTER (WHERE sr.rating > 0) AS "ratedSongs",
-      COALESCE(SUM(sr.rating), 0) AS "totalRating"
+      COUNT(sr.rating) AS "ratedSongs",
+      COALESCE(SUM(sr.rating), 0) AS "totalRating",
+      COUNT(sr.rating) FILTER (WHERE sr.rating > 0) AS "nonSkips"
     FROM albums a
     JOIN artists ar ON ar.id = a.artist_id
     JOIN songs s ON s.album_id = a.id
     LEFT JOIN song_ratings sr
       ON sr.song_id = s.id AND sr.user_id = $1
     GROUP BY a.id, ar.id
-    HAVING COUNT(sr.rating) FILTER (WHERE sr.rating > 0) > 0
+    HAVING COUNT(sr.rating) > 0
     ORDER BY "totalRating" DESC`,
     [userId]
   );
-
   return res.rows.map(a => {
-    const rate = `${a.ratedSongs}/${a.numSongs}`;
+    const ratedSongs = Number(a.ratedSongs);
+    const totalRating = Number(a.totalRating);
+    const nonSkips = Number(a.nonSkips);
+
+    const rating =
+      ratedSongs > 0 ? (totalRating * totalRating) / ratedSongs : 0;
+
     return {
       ...a,
-      rate,
-      // score10 comes from your percentile calculation later
+      rating,
+      rate: `${nonSkips}/${ratedSongs}`,
     };
   });
 }
@@ -442,7 +447,8 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
 }
 
 /**
- * Get user album scores
+ * Get user album scores as ratings then finds percentiles to turn
+ * into score10s
  */
 export async function getUserAlbumScores(userId, power = 0.6) {
   const res = await pool.query(
