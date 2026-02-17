@@ -76,7 +76,7 @@ export default function ArtistDetail({ user }) {
                             <th></th>
                             <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Album</th>
                             <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Released</th>
-                            <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Rating</th>
+                            <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Points</th>
                             <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Rate</th>
                         </tr>
                     </thead>
