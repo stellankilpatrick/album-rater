@@ -207,7 +207,7 @@ export async function attachUserAlbumStats(albums, userId) {
 
     result.push({
       ...a,
-      personalScore: numSongs > 0 ? Math.pow(totalRating, 2) / numSongs : 0,
+      personalScore: numSongs > 0 ? Math.pow(totalRating, 2) / ratedSongs : 0,
       rate: `${nonSkips}/${ratedSongs}`,
     });
   }

@@ -259,31 +259,30 @@ export async function getAllAlbumsWithAggregates() {
 export async function getAlbumDetailsPublic(albumId) {
   // Album info
   const albumRes = await pool.query(
-    `
-    SELECT
+    `SELECT
       a.id, a.title, a.release_date AS "releaseDate", a.cover_art AS "coverArt",
       ar.id AS "artistId", ar.name AS artist
     FROM albums a
     JOIN artists ar ON a.artist_id = ar.id
-    WHERE a.id = $1
-    `,
+    WHERE a.id = $1`,
     [albumId]
   );
   const album = albumRes.rows[0];
   if (!album) return null;
 
+  // Calculate album-level score from song_ratings
   const albumScoreRes = await pool.query(
-    `
-    SELECT COUNT(*) AS "ratingCount", ROUND(AVG(rating)::numeric,2) AS "avgScore"
-    FROM album_ratings
-    WHERE album_id = $1
-    `,
+    `SELECT
+      COUNT(sr.rating) AS "ratingCount",
+      ROUND(AVG(sr.rating)::numeric, 2) AS "avgScore"
+    FROM songs s
+    LEFT JOIN song_ratings sr ON sr.song_id = s.id
+    WHERE s.album_id = $1`,
     [albumId]
   );
 
   const tracksRes = await pool.query(
-    `
-    SELECT
+    `SELECT
       s.id, s.track_number AS num, s.title,
       COALESCE(ROUND(AVG(sr.rating)::numeric,2),0) AS "avgScore",
       COUNT(sr.rating) AS "totalRatings",
@@ -292,8 +291,7 @@ export async function getAlbumDetailsPublic(albumId) {
     LEFT JOIN song_ratings sr ON sr.song_id = s.id
     WHERE s.album_id = $1
     GROUP BY s.id
-    ORDER BY s.track_number ASC
-    `,
+    ORDER BY s.track_number ASC`,
     [albumId]
   );
 
