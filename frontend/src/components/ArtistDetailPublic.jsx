@@ -62,7 +62,7 @@ export default function ArtistDetailPublic({ user }) {
     <div>
 
       <div style={{ marginBottom: "12px" }}>
-        
+
         {artist.image && !isEditingImage && (
           <img
             src={artist.image}
@@ -139,8 +139,7 @@ export default function ArtistDetailPublic({ user }) {
                     {album.releaseDate ? album.releaseDate.slice(0, 4) : ""}
                   </td>
                   <td style={{ padding: "4px 8px" }}>
-                    {album.avgScore.toFixed(1) ? album.avgScore.toFixed(1) : "0.0"}
-                  </td>
+                    <td>{(album.avgScore ?? 0).toFixed(1)}</td>                  </td>
                   <td style={{ padding: "4px 8px" }}>{album.ratingCount ?? 0}</td>
                 </tr>
               ))}

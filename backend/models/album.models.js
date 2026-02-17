@@ -494,15 +494,13 @@ export async function getUserAlbumScores(userId, power = 0.6) {
 export async function getUserAlbumScoreSingle(userId, albumId, power = 0.6) {
   // Get rating for target album
   const targetRes = await pool.query(
-    `
-    SELECT
+    `SELECT
       COALESCE(SUM(sr.rating), 0) AS total_rating,
       COUNT(sr.rating) FILTER (WHERE sr.rating IS NOT NULL) AS rated_songs
     FROM songs s
     LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
     WHERE s.album_id = $2
-    GROUP BY s.album_id
-    `,
+    GROUP BY s.album_id`,
     [userId, albumId]
   );
 
