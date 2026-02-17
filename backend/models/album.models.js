@@ -544,3 +544,62 @@ export async function getUserAlbumScoreSingle(userId, albumId, power = 0.6) {
 
   return { rawRating: rating, percentile, score10 };
 }
+
+/**
+ * Calculate and upsert album rating for a specific user
+ */
+export async function updateAlbumRatingForUser(userId, albumId) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // Get aggregate data from song_ratings
+    const res = await client.query(
+      `
+      SELECT 
+        COUNT(*) AS rated_songs,
+        SUM(CASE WHEN rating > 0 THEN 1 ELSE 0 END) AS non_skips,
+        COALESCE(SUM(rating), 0) AS total_rating
+      FROM song_ratings sr
+      JOIN songs s ON s.id = sr.song_id
+      WHERE sr.user_id = $1 AND s.album_id = $2
+      `,
+      [userId, albumId]
+    );
+
+    const stats = res.rows[0];
+    const ratedSongs = Number(stats.rated_songs);
+    const nonSkips = Number(stats.non_skips);
+    const totalRating = Number(stats.total_rating);
+
+    if (ratedSongs === 0) {
+      // Remove album rating if no songs are rated
+      await client.query(
+        `DELETE FROM album_ratings WHERE user_id = $1 AND album_id = $2`,
+        [userId, albumId]
+      );
+    } else {
+      // Upsert into album_ratings
+      await client.query(
+        `
+        INSERT INTO album_ratings (user_id, album_id, rating, non_skips, rated_songs, updated_at)
+        VALUES ($1, $2, $3, $4, $5, NOW())
+        ON CONFLICT (user_id, album_id)
+        DO UPDATE SET 
+          rating = EXCLUDED.rating,
+          non_skips = EXCLUDED.non_skips,
+          rated_songs = EXCLUDED.rated_songs,
+          updated_at = NOW()
+        `,
+        [userId, albumId, totalRating, nonSkips, ratedSongs]
+      );
+    }
+
+    await client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}

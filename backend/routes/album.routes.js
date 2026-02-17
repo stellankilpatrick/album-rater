@@ -4,7 +4,7 @@ import { requireAuth } from "../auth/auth.middleware.js";
 import {
   getAlbumDetailsPublic, createAlbum,
   getAllAlbumsPublic, updateAlbumTitle, updateAlbumArtist, updateAlbumCover,
-  getUserRatedAlbums, getUserAlbumScoreSingle, getAlbumDetailsPrivate, getUserAlbumScores
+  getUserRatedAlbums, updateAlbumRatingForUser, getUserAlbumScoreSingle, getAlbumDetailsPrivate, getUserAlbumScores
 } from "../models/album.models.js";
 import { addSongsToAlbum } from "../models/song.models.js";
 
@@ -75,6 +75,7 @@ router.post("/:id/rate", requireAuth, async (req, res) => {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
+
       for (const r of ratings) {
         await client.query(
           `
@@ -86,6 +87,10 @@ router.post("/:id/rate", requireAuth, async (req, res) => {
           [req.user.id, r.songId, r.rating]
         );
       }
+
+      // Keep album_ratings in sync
+      await updateAlbumRatingForUser(req.user.id, req.params.id);
+
       await client.query("COMMIT");
     } catch (err) {
       await client.query("ROLLBACK");
@@ -223,15 +228,17 @@ router.post("/new", requireAuth, async (req, res) => {
         await client.query("BEGIN");
         for (const song of album.songs) {
           await client.query(
-            `
-            INSERT INTO song_ratings (user_id, song_id, rating, created_at, updated_at)
+            `INSERT INTO song_ratings (user_id, song_id, rating, created_at, updated_at)
             VALUES ($1, $2, $3, NOW(), NOW())
             ON CONFLICT (user_id, song_id)
-            DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()
-            `,
+            DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()`,
             [req.user.id, song.id, rating]
           );
         }
+
+        // Keep album_ratings in sync
+        await updateAlbumRatingForUser(req.user.id, req.params.id);
+
         await client.query("COMMIT");
       } catch (err) {
         await client.query("ROLLBACK");
@@ -329,17 +336,19 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
     try {
       await client.query("BEGIN");
 
+      // insert/update song ratings
       for (const r of ratings) {
         await client.query(
-          `
-          INSERT INTO song_ratings (user_id, song_id, rating, updated_at)
+          `INSERT INTO song_ratings (user_id, song_id, rating, updated_at)
           VALUES ($1, $2, $3, NOW())
           ON CONFLICT (user_id, song_id)
-          DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()
-          `,
+          DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()`,
           [req.user.id, r.songId, r.rating]
         );
       }
+
+      // update album_ratings table
+      await updateAlbumRatingForUser(req.user.id, req.params.id);
 
       await client.query("COMMIT");
     } catch (err) {
