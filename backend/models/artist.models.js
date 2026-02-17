@@ -124,7 +124,8 @@ export async function getArtistAlbumsWithTotal(artistId) {
       a.cover_art AS "albumCoverArt",
       ar.name AS artist,
       ar.image AS "artistImage",
-      ROUND(COALESCE(AVG(uas."userScore")::numeric, 0), 2) AS "avgScore"      COUNT(uas.user_id) AS "ratingCount"
+      ROUND(COALESCE(AVG(uas."userScore")::numeric, 0), 2) AS "avgScore",
+      COUNT(uas.user_id) AS "ratingCount"
     FROM albums a
     JOIN artists ar ON ar.id = a.artist_id
     LEFT JOIN user_album_scores uas ON uas."albumId" = a.id
