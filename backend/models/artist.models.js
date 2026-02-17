@@ -190,7 +190,7 @@ export async function attachUserAlbumStats(albums, userId) {
       `SELECT
         COUNT(s.id) AS "numSongs",
         COUNT(sr.rating) AS "ratedSongs",
-        COALESCE(SUM(CASE WHEN sr.rating > 0 THEN 1 ELSE 0 END), 0) AS "nonSkips"
+        COALESCE(SUM(CASE WHEN sr.rating > 0 THEN 1 ELSE 0 END), 0) AS "nonSkips",
         COALESCE(SUM(sr.rating), 0) AS "totalRating"
       FROM songs s
       LEFT JOIN song_ratings sr
