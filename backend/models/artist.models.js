@@ -3,7 +3,7 @@ import pool from "../db/database.js";
 // Get all artists with their albums and stats
 export async function getArtistRankings() {
   const artists = await pool.query("SELECT * FROM artists");
-  
+
   const result = [];
   for (const artist of artists.rows) {
     const albumsRes = await pool.query(
@@ -136,9 +136,14 @@ export async function getArtistAlbumsWithTotal(artistId) {
     [artistId]
   );
 
-  const albums = albumsRes.rows;
+  const albums = albumsRes.rows.map(a => ({
+    ...a,
+    avgScore: Number(a.avgScore) || 0,
+    ratingCount: Number(a.ratingCount) || 0
+  }));
+
   const totalRating = albums.reduce(
-    (sum, a) => sum + (a.avgScore * a.ratingCount),
+    (sum, a) => sum + a.avgScore * a.ratingCount,
     0
   );
 
