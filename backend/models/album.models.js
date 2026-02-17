@@ -450,61 +450,99 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
  * Get user album scores as ratings then finds percentiles to turn
  * into score10s
  */
+// Get all user album scores dynamically
 export async function getUserAlbumScores(userId, power = 0.6) {
+  // Pull all albums the user has rated
   const res = await pool.query(
     `
-    SELECT album_id, rating
-    FROM album_ratings
-    WHERE user_id = $1
-    ORDER BY rating ASC
+    SELECT
+      a.id AS album_id,
+      COALESCE(SUM(sr.rating), 0) AS total_rating,
+      COUNT(sr.rating) FILTER (WHERE sr.rating IS NOT NULL) AS rated_songs
+    FROM albums a
+    JOIN songs s ON s.album_id = a.id
+    LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
+    GROUP BY a.id
+    HAVING COUNT(sr.rating) FILTER (WHERE sr.rating IS NOT NULL) > 0
+    ORDER BY total_rating DESC
     `,
     [userId]
   );
-  const albums = res.rows;
+
+  const albums = res.rows.map(a => {
+    const totalRating = Number(a.total_rating);
+    const ratedSongs = Number(a.rated_songs);
+    const rating = ratedSongs > 0 ? (totalRating * totalRating) / ratedSongs : 0;
+    return { albumId: a.album_id, rating };
+  });
+
   const n = albums.length;
   if (!n) return [];
+
+  // Sort by rating ascending to compute percentiles
+  albums.sort((a, b) => a.rating - b.rating);
 
   return albums.map((album, index) => {
     const percentile = n === 1 ? 1 : index / (n - 1);
     const adjusted = Math.pow(percentile, power);
     const score10 = Math.round(adjusted * 9 + 1);
-    return {
-      albumId: album.album_id,
-      rawRating: album.rating,
-      percentile,
-      score10
-    };
+    return { ...album, percentile, score10 };
   });
 }
 
-/**
- * Get a single user album score
- */
+// Get a single album score dynamically
 export async function getUserAlbumScoreSingle(userId, albumId, power = 0.6) {
+  // Get rating for target album
   const targetRes = await pool.query(
-    `SELECT rating FROM album_ratings WHERE user_id = $1 AND album_id = $2`,
-    [userId, albumId]
-  );
-  const target = targetRes.rows[0];
-  if (!target) return null;
-
-  const statsRes = await pool.query(
     `
     SELECT
-      COUNT(*) AS total,
-      SUM(CASE WHEN rating <= $1 THEN 1 ELSE 0 END) - 1 AS below
-    FROM album_ratings
-    WHERE user_id = $2
+      COALESCE(SUM(sr.rating), 0) AS total_rating,
+      COUNT(sr.rating) FILTER (WHERE sr.rating IS NOT NULL) AS rated_songs
+    FROM songs s
+    LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
+    WHERE s.album_id = $2
+    GROUP BY s.album_id
     `,
-    [target.rating, userId]
+    [userId, albumId]
   );
-  const stats = statsRes.rows[0];
 
-  if (parseInt(stats.total) <= 1) return { rawRating: target.rating, percentile: 1, score10: 10 };
+  const targetRow = targetRes.rows[0];
+  if (!targetRow) return null;
 
-  const percentile = stats.below / (stats.total - 1);
+  const totalRating = Number(targetRow.total_rating);
+  const ratedSongs = Number(targetRow.rated_songs);
+  const rating = ratedSongs > 0 ? (totalRating * totalRating) / ratedSongs : 0;
+
+  // Get all album ratings for this user
+  const allRes = await pool.query(
+    `
+    SELECT
+      a.id AS album_id,
+      COALESCE(SUM(sr.rating), 0) AS total_rating,
+      COUNT(sr.rating) FILTER (WHERE sr.rating IS NOT NULL) AS rated_songs
+    FROM albums a
+    JOIN songs s ON s.album_id = a.id
+    LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
+    GROUP BY a.id
+    HAVING COUNT(sr.rating) FILTER (WHERE sr.rating IS NOT NULL) > 0
+    `,
+    [userId]
+  );
+
+  const albums = allRes.rows.map(a => {
+    const tr = Number(a.total_rating);
+    const rs = Number(a.rated_songs);
+    return rs > 0 ? (tr * tr) / rs : 0;
+  });
+
+  if (!albums.length) return { rawRating: rating, percentile: 1, score10: 10 };
+
+  // Compute percentile
+  const sortedRatings = albums.slice().sort((a, b) => a - b);
+  const below = sortedRatings.filter(r => r < rating).length;
+  const percentile = sortedRatings.length === 1 ? 1 : below / (sortedRatings.length - 1);
   const adjusted = Math.pow(percentile, power);
   const score10 = Math.round(adjusted * 9 + 1);
 
-  return { rawRating: target.rating, percentile, score10 };
+  return { rawRating: rating, percentile, score10 };
 }
