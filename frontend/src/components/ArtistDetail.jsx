@@ -108,7 +108,7 @@ export default function ArtistDetail({ user }) {
                                         {album.releaseDate ? album.releaseDate.slice(0, 4) : ""}
                                     </td>
                                     <td style={{ padding: "4px 8px" }}>
-                                        {Math.round(album.rating)}
+                                        {album.rating}
                                     </td>
                                     <td style={{ padding: "4px 8px" }}>
                                         {album.rate}
