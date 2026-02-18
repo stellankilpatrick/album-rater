@@ -30,8 +30,7 @@ export async function getCommunityFeed(userId, limit = 40) {
 
 export async function getAnniversaryAlbums(userId) {
   const res = await pool.query(
-    `
-    SELECT
+    `SELECT
       a.id,
       a.title,
       a.release_date AS "releaseDate",
@@ -46,9 +45,8 @@ export async function getAnniversaryAlbums(userId) {
       ON alr.album_id = a.id
      AND alr.user_id = $1
     WHERE a.release_date IS NOT NULL
-      AND EXTRACT(WEEK FROM a.release_date) = EXTRACT(WEEK FROM CURRENT_DATE)
-    ORDER BY a.release_date ASC
-  `,
+      AND EXTRACT(WEEK FROM a.release_date::date) = EXTRACT(WEEK FROM CURRENT_DATE)
+    ORDER BY a.release_date ASC`,
     [userId]
   );
 

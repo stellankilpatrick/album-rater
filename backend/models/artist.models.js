@@ -177,7 +177,7 @@ export async function getUserRatedAlbumsByArtist(userId, artistId) {
 
   return res.rows.map(a => ({
     ...a,
-    rating: a.numSongs > 0 ? Math.pow(a.totalValue, 2) / a.numSongs : 0,
+    rating: a.ratedSongs > 0 ? Math.pow(a.totalValue, 2) / a.ratedSongs : 0,
     rate: `${a.ratedSongs}/${a.numSongs}`,
   }));
 }
