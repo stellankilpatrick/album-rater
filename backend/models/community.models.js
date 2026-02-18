@@ -34,7 +34,8 @@ export async function getAnniversaryAlbums(userId) {
       SELECT
         s.album_id,
         sr.user_id,
-        (SUM(sr.rating) * SUM(sr.rating))::float / NULLIF(COUNT(sr.rating), 0) AS rating,
+        (SUM(sr.rating) * SUM(sr.rating))::float
+          / NULLIF(COUNT(sr.rating), 0) AS rating,
         MAX(sr.updated_at) AS "lastRatedAt"
       FROM songs s
       JOIN song_ratings sr ON sr.song_id = s.id
@@ -48,15 +49,15 @@ export async function getAnniversaryAlbums(userId) {
       a.cover_art AS "coverArt",
       ar.name AS artist,
       ar.id AS "artistId",
-      COALESCE(uas.rating, 0) AS rating,
+      uas.rating,
       uas."lastRatedAt"
     FROM albums a
     JOIN artists ar ON ar.id = a.artist_id
-    LEFT JOIN user_album_scores uas
+    JOIN user_album_scores uas
       ON uas.album_id = a.id
     WHERE a.release_date IS NOT NULL
       AND EXTRACT(WEEK FROM a.release_date::date)
-        = EXTRACT(WEEK FROM CURRENT_DATE)
+          = EXTRACT(WEEK FROM CURRENT_DATE)
     ORDER BY a.release_date ASC`,
     [userId]
   );
