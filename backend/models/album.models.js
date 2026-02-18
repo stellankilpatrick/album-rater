@@ -636,3 +636,22 @@ export async function updateAlbumRatingForUser(userId, albumId) {
     client.release();
   }
 }
+
+export async function deleteUserAlbumRating(userId, albumId) {
+  try {
+    // Delete all song ratings for this album by the user
+    const res = await pool.query(
+      `DELETE FROM song_ratings
+      WHERE user_id = $1
+        AND song_id IN (
+          SELECT id FROM songs WHERE album_id = $2
+        )`,
+      [userId, albumId]
+    );
+
+    return res.rowCount;
+  } catch (err) {
+    console.error("Failed to delete album rating:", err);
+    throw err;
+  }
+}
