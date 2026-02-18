@@ -30,20 +30,30 @@ export async function getCommunityFeed(userId, limit = 40) {
 
 export async function getAnniversaryAlbums(userId) {
   const res = await pool.query(
-    `SELECT
+    `WITH user_album_scores AS (
+      SELECT
+        s.album_id,
+        sr.user_id,
+        (SUM(sr.rating) * SUM(sr.rating))::float / NULLIF(COUNT(sr.rating), 0) AS rating,
+        MAX(sr.updated_at) AS "lastRatedAt"
+      FROM songs s
+      JOIN song_ratings sr ON sr.song_id = s.id
+      WHERE sr.user_id = $1
+      GROUP BY s.album_id, sr.user_id
+    )
+    SELECT
       a.id,
       a.title,
       a.release_date AS "releaseDate",
       a.cover_art AS "coverArt",
       ar.name AS artist,
       ar.id AS "artistId",
-      alr.rating,
-      alr.updated_at AS "lastRatedAt"
+      COALESCE(uas.rating, 0) AS rating,
+      uas."lastRatedAt"
     FROM albums a
     JOIN artists ar ON ar.id = a.artist_id
-    LEFT JOIN album_ratings alr
-      ON alr.album_id = a.id
-     AND alr.user_id = $1
+    LEFT JOIN user_album_scores uas
+      ON uas.album_id = a.id
     WHERE a.release_date IS NOT NULL
       AND EXTRACT(WEEK FROM a.release_date::date) = EXTRACT(WEEK FROM CURRENT_DATE)
     ORDER BY a.release_date ASC`,
