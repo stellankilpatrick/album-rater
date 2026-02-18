@@ -62,11 +62,6 @@ export default function AlbumDetail({ user }) {
 
   const goodSongs = songs.filter(s => s.localRating > 0).length;
   const ratedSongs = songs.filter(s => s.localRating !== null && s.localRating !== undefined).length;
-  const sumRatings = songs.reduce((sum, s) => sum + (s.localRating ?? 0), 0);
-
-  const personalScore =
-    ratedSongs > 0 ? Math.pow(sumRatings, 2) / ratedSongs : 0;
-
 
   return (
     <div>
@@ -111,8 +106,8 @@ export default function AlbumDetail({ user }) {
 
       <h4>
         {effectiveUsername === user?.username
-          ? `Song ratio: ${goodSongs}/${ratedSongs}`
-          : `${effectiveUsername}'s Score: ${personalScore.toFixed(0)} (${goodSongs}/${ratedSongs})`
+          ? `Your likes: ${goodSongs} of ${ratedSongs} tracks`
+          : `${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`
         }
       </h4>
 

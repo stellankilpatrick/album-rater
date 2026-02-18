@@ -25,7 +25,7 @@ export default function Community() {
     }, []);
 
     function timeAgo(date) {
-        const timestamp = new Date(date + " UTC").getTime();
+        const timestamp = new Date(date).getTime();
         const seconds = Math.floor((Date.now() - timestamp) / 1000);
         const minutes = Math.floor(seconds / 60);
         const hours = Math.floor(minutes / 60);
