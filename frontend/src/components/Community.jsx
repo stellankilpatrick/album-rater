@@ -14,7 +14,7 @@ export default function Community() {
                     api.get("/community"),
                     api.get("/community/albums")
                 ]);
-                console.log("Anniversary albums from API:", res.data); // ✅ check array
+                console.log("Anniversary albums from API:", anniversaryRes.data); // ✅ check array
 
                 setFeed(feedRes.data);
                 setAnniversaryAlbums(anniversaryRes.data);
