@@ -47,7 +47,7 @@ export default function Community() {
                 <p>No activity yet. Follow more people.</p>
             ) : (
                 feed.map(item => (
-                    <div key={item.rating_id} className="community-item">
+                    <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className="community-item">
                         <Link to={`/users/${item.username}`}>
                             <strong>{item.username}</strong>
                         </Link>
@@ -72,7 +72,6 @@ export default function Community() {
             {anniversaryAlbums.length > 0 && (
                 <div className="anniversary">
                     <h3>Released This Week</h3>
-
                     <div className="anniversary-grid">
                         {anniversaryAlbums.map(album => (
                             <div key={album.id} className="anniversary-card">

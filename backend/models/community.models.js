@@ -55,7 +55,7 @@ export async function getAnniversaryAlbums(userId) {
     LEFT JOIN user_album_scores uas
       ON uas.album_id = a.id
     WHERE a.release_date IS NOT NULL
-      AND EXTRACT(WEEK FROM a.release_date::date) = EXTRACT(WEEK FROM CURRENT_DATE)
+      AND TO_CHAR(a.release_date, 'IW') = TO_CHAR(CURRENT_DATE, 'IW')
     ORDER BY a.release_date ASC`,
     [userId]
   );
