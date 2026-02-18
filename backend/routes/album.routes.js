@@ -209,7 +209,7 @@ router.patch("/:id/cover", requireAuth, async (req, res) => {
   }
 });
 
-router.patch("/:id/releaseDate", requireAuth, async (req, res) => {
+router.patch("/:id/release-date", requireAuth, async (req, res) => {
   const { id } = req.params;
   const { releaseDate } = req.body;
 
