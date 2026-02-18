@@ -5,7 +5,7 @@ import {
   getAlbumDetailsPublic, createAlbum,
   getAllAlbumsPublic, updateAlbumTitle, updateAlbumArtist, updateAlbumCover,
   getUserRatedAlbums, updateAlbumRatingForUser, getUserAlbumScoreSingle, getAlbumDetailsPrivate, 
-  getUserAlbumScores, updateAlbumReleaseDate
+  getUserAlbumScores, updateAlbumReleaseDate, deleteUserAlbumRating
 } from "../models/album.models.js";
 import { addSongsToAlbum } from "../models/song.models.js";
 
