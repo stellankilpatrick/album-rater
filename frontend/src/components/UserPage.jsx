@@ -91,62 +91,73 @@ export default function ProfilePage({ user }) {
 
     return (
         <div>
-            <img
-                src={pfp}
-                alt="profile"
-                onClick={() => isMe && setEditingPfp(true)}
-                style={{
-                    width: "120px",
-                    height: "120px",
-                    objectFit: "cover",
-                    borderRadius: "50%",
-                    cursor: isMe ? "pointer" : "default",
-                    opacity: isMe ? 1 : 0.95
-                }}
-            />
-
-            {isMe && editingPfp && (
-                <div style={{ marginTop: "8px" }}>
-                    <input
-                        type="text"
-                        value={pfpInput}
-                        onChange={e => setPfpInput(e.target.value)}
-                        placeholder="Paste image URL"
-                        style={{ width: "260px" }}
+            <div style={{ display: "flex", alignItems: "center", gap: "24px", marginBottom: "16px" }}>
+                {/* Profile Picture */}
+                <div>
+                    <img
+                        src={pfp}
+                        alt="profile"
+                        onClick={() => isMe && setEditingPfp(true)}
+                        style={{
+                            width: "120px",
+                            height: "120px",
+                            objectFit: "cover",
+                            borderRadius: "50%",
+                            cursor: isMe ? "pointer" : "default",
+                            opacity: isMe ? 1 : 0.95
+                        }}
                     />
-                    <button onClick={savePfp}>Save</button>
-                    <button onClick={() => setEditingPfp(false)}>Cancel</button>
+
+                    {isMe && editingPfp && (
+                        <div style={{ marginTop: "8px" }}>
+                            <input
+                                type="text"
+                                value={pfpInput}
+                                onChange={e => setPfpInput(e.target.value)}
+                                placeholder="Paste image URL"
+                                style={{ width: "260px" }}
+                            />
+                            <button onClick={savePfp}>Save</button>
+                            <button onClick={() => setEditingPfp(false)}>Cancel</button>
+                        </div>
+                    )}
                 </div>
-            )}
 
-            <h1>{effectiveUsername}</h1>
-            {!isMe && (
-                <button onClick={toggleFollow}>
-                    {isFollowing ? "Following" : "Follow"}
-                </button>
-            )}
-            <div style={{ display: "flex", gap: "16px" }}>
-                <Link
-                    to={`/users/${effectiveUsername}/connections#followers`}
-                    style={{ textDecoration: "none", color: "inherit" }}
-                >
-                    <strong>{followCounts.followers}</strong> Followers
-                </Link>
+                {/* User Info */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <h1 style={{ margin: 0 }}>{effectiveUsername}</h1>
+                        {!isMe && (
+                            <button onClick={toggleFollow}>
+                                {isFollowing ? "Following" : "Follow"}
+                            </button>
+                        )}
+                    </div>
 
-                <Link
-                    to={`/users/${effectiveUsername}/connections#following`}
-                    style={{ textDecoration: "none", color: "inherit" }}
-                >
-                    <strong>{followCounts.following}</strong> Following
-                </Link>
-            </div>
+                    <div style={{ display: "flex", gap: "16px" }}>
+                        <Link
+                            to={`/users/${effectiveUsername}/connections#followers`}
+                            style={{ textDecoration: "none", color: "inherit" }}
+                        >
+                            <strong>{followCounts.followers}</strong> Followers
+                        </Link>
 
-            <div style={{ display: "flex", gap: "16px", marginTop: "8px" }}>
-                <div>
-                    <strong>{ratingCounts.albums}</strong> {ratingCounts.albums === 1 ? "Album" : "Albums"}
-                </div>
-                <div>
-                    <strong>{ratingCounts.artists}</strong> {ratingCounts.artists === 1 ? "Artist" : "Artists"}
+                        <Link
+                            to={`/users/${effectiveUsername}/connections#following`}
+                            style={{ textDecoration: "none", color: "inherit" }}
+                        >
+                            <strong>{followCounts.following}</strong> Following
+                        </Link>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "16px" }}>
+                        <div>
+                            <strong>{ratingCounts.albums}</strong> {ratingCounts.albums === 1 ? "Album" : "Albums"}
+                        </div>
+                        <div>
+                            <strong>{ratingCounts.artists}</strong> {ratingCounts.artists === 1 ? "Artist" : "Artists"}
+                        </div>
+                    </div>
                 </div>
             </div>
 
