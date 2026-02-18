@@ -17,7 +17,6 @@ router.get("/", requireAuth, async (req, res) => {
 router.get("/albums", requireAuth, async (req, res) => {
   try {
     const albums = await getAnniversaryAlbums(req.user.id);
-    console.log("Albums after filtering by user and week:", albums); // ✅ check length & content
 
     res.json(albums);
   } catch (err) {

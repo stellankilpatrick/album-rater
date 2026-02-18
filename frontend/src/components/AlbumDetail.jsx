@@ -51,7 +51,7 @@ export default function AlbumDetail({ user }) {
     if (!window.confirm("Delete this album?")) return;
 
     try {
-      await api.delete(`/albums/${album.id}/${effectiveUsername}`);
+      await api.delete(`/albums/${album.id}/users/${effectiveUsername}`);
       navigate(`/albums/users/${effectiveUsername}`);
     } catch (err) {
       console.error("Failed to delete album:", err);
