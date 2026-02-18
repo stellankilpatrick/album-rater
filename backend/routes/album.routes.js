@@ -4,7 +4,8 @@ import { requireAuth } from "../auth/auth.middleware.js";
 import {
   getAlbumDetailsPublic, createAlbum,
   getAllAlbumsPublic, updateAlbumTitle, updateAlbumArtist, updateAlbumCover,
-  getUserRatedAlbums, updateAlbumRatingForUser, getUserAlbumScoreSingle, getAlbumDetailsPrivate, getUserAlbumScores
+  getUserRatedAlbums, updateAlbumRatingForUser, getUserAlbumScoreSingle, getAlbumDetailsPrivate, 
+  getUserAlbumScores, updateAlbumReleaseDate
 } from "../models/album.models.js";
 import { addSongsToAlbum } from "../models/song.models.js";
 
