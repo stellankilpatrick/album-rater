@@ -62,5 +62,18 @@ export async function getAnniversaryAlbums(userId) {
     [userId]
   );
 
+  console.log("anniversary albums raw rows:", res.rows);
+
+  const weekDebug = await pool.query(
+    `SELECT title, release_date,
+          EXTRACT(WEEK FROM release_date::date) AS album_week,
+          EXTRACT(WEEK FROM CURRENT_DATE) AS current_week
+   FROM albums
+   WHERE release_date IS NOT NULL
+   LIMIT 10`
+  );
+  console.log("Week check:", weekDebug.rows);
+
+
   return res.rows;
 }
