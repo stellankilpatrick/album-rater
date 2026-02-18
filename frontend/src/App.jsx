@@ -17,6 +17,7 @@ import ListenList from "./components/ListenList";
 import SearchResults from "./components/SearchResults";
 import UserConnections from "./components/UserConnections";
 import Community from "./components/Community";
+import Home from "./components/Home"
 
 function App() {
   const [user, setUser] = useState(null);
@@ -83,6 +84,7 @@ function App() {
             <Route path="/artists/:artistId" element={<ArtistDetailPublic user={user} />} />
             <Route path="/artists" element={<ArtistsPublic user={user} />} />
             <Route path="/community" element={<Community user={user} />} />
+            <Route path="/" element={<Home user={user} />} />
 
             <Route path="/search" element={<SearchResults user={user} />} />
 

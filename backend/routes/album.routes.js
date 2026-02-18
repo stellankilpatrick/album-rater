@@ -209,6 +209,28 @@ router.patch("/:id/cover", requireAuth, async (req, res) => {
   }
 });
 
+router.patch("/:id/releaseDate", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { releaseDate } = req.body;
+
+  if (!releaseDate) return res.status(400).json({ error: "Release date cannot be empty" });
+
+  try {
+    const success = await updateAlbumReleaseDate(id, releaseDate.trim());
+
+    if (!success) {
+      return res.status(404).json({ error: "Album not found" });
+    }
+
+    const album = await getAlbumDetailsPublic(id);
+    res.json(album);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update album release date" });
+  }
+});
+
+
 // ---------------------
 // CREATE OR FIND ALBUM
 // Any user can create a rating version of an existing album

@@ -379,6 +379,16 @@ export async function updateAlbumCover(albumId, coverArt) {
   return res.rowCount > 0;
 }
 
+export async function updateAlbumReleaseDate(albumId, releaseDate) {
+  const res = await pool.query(
+    `UPDATE albums SET release_date = $1 WHERE id = $2`,
+    [releaseDate, albumId]
+  );
+
+  return res.rowCount > 0;
+}
+
+
 /**
  * Get all albums rated by a user (with viewer stats)
  */
