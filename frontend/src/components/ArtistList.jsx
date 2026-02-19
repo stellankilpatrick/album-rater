@@ -124,7 +124,7 @@ export default function ArtistList({ user }) {
                             )}
                             <div style={{ fontWeight: 500 }}>{a.name}</div>
                             <div style={{ fontSize: "13px" }}>
-                                {a.albumCount} albums · {a.totalScore} points
+                                {a.albumCount} albums · {Math.round(a.totalScore, 1)} points
                             </div>
                         </div>
                     ))}

@@ -79,6 +79,7 @@ export default function ArtistDetail({ user }) {
                             <th></th>
                             <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Album</th>
                             <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Released</th>
+                            <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Rating</th>
                             <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Points</th>
                             <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Rate</th>
                         </tr>
@@ -92,8 +93,7 @@ export default function ArtistDetail({ user }) {
                                 <tr
                                     key={album.id}
                                     style={{ cursor: "pointer" }}
-                                    onClick={() => navigate(`/albums/${album.id}/users/${user.username}`)}
-                                >
+                                    onClick={() => navigate(`/albums/${album.id}/users/${user.username}`)}>
                                     <td>{i + 1}</td>
                                     <td style={{ textAlign: "left" }}>
                                         {album.coverArt && (
@@ -109,6 +109,9 @@ export default function ArtistDetail({ user }) {
                                     </td>
                                     <td style={{ padding: "4px 8px" }}>
                                         {album.releaseDate ? album.releaseDate.slice(0, 4) : ""}
+                                    </td>
+                                    <td style={{ padding: "4px 8px" }}>
+                                        {Math.round(album.score10, 1)}
                                     </td>
                                     <td style={{ padding: "4px 8px" }}>
                                         {Math.round(album.rating)}

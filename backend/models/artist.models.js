@@ -21,12 +21,11 @@ export async function getArtistRankings() {
 }
 
 // Attach stats to albums (optionally per user)
-export async function attachAlbumStats(albums, userId = null) {
+export async function attachAlbumStats(albums, userId = null, power = 0.6) {
   const result = [];
   for (const album of albums) {
     const statsRes = await pool.query(
-      `
-      SELECT
+      `SELECT
         COUNT(s.id) AS "totalSongs",
         COUNT(sr.rating) FILTER (WHERE sr.rating > 0) AS "ratedSongs",
         COALESCE(SUM(sr.rating), 0) AS "sumRatings"
@@ -34,8 +33,7 @@ export async function attachAlbumStats(albums, userId = null) {
       LEFT JOIN song_ratings sr
         ON sr.song_id = s.id
        ${userId ? "AND sr.user_id = $1" : ""}
-      WHERE s.album_id = $2
-      `,
+      WHERE s.album_id = $2`,
       userId ? [userId, album.id] : [album.id]
     );
 
@@ -49,6 +47,23 @@ export async function attachAlbumStats(albums, userId = null) {
       rating: totalSongs > 0 ? Math.pow(sumRatings, 2) / totalSongs : 0,
       rate: `${ratedSongs}/${totalSongs}`,
     });
+  }
+
+  // Compute score10 via percentile rank (same logic as getUserAlbumScores)
+  if (userId && result.length) {
+    const sorted = result.slice().sort((a, b) => a.rating - b.rating);
+    const n = sorted.length;
+
+    const scoreMap = new Map(
+      sorted.map((album, index) => {
+        const percentile = n === 1 ? 1 : index / (n - 1);
+        const adjusted = Math.pow(percentile, power);
+        const score10 = Math.round(adjusted * 9 + 1);
+        return [album.id, score10];
+      })
+    );
+
+    return result.map(album => ({ ...album, score10: scoreMap.get(album.id) }));
   }
 
   return result;
