@@ -271,7 +271,7 @@ export async function getAlbumDetailsPublic(albumId) {
   if (!album) return null;
 
   // Calculate album-level rating per user
- const albumScoreRes = await pool.query(
+  const albumScoreRes = await pool.query(
     `SELECT
       COUNT(*) AS "ratingCount",
       ROUND(AVG(user_album_score)::numeric, 2) AS "avgScore"
