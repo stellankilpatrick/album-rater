@@ -242,7 +242,7 @@ router.post("/new", requireAuth, async (req, res) => {
     if (!title || !artist) return res.status(400).json({ error: "Title and artist required" });
 
     // Create album (make sure createAlbum is async and uses Postgres)
-    const album = await createAlbum({ title, artist, releaseDate, songs, coverArt, userId: req.user.id });
+    const album = await createAlbum({ title, artist, releaseDate, songs, coverArt });
 
     // Insert initial ratings if provided
     if (rating !== undefined && album.songs.length > 0) {
