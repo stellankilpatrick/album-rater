@@ -78,12 +78,11 @@ export default function AlbumDetail({ user }) {
         {/* RIGHT: text */}
         <div>
           <h1 style={{ marginTop: "0px" }}>
-            <i>{album.title}</i>
+            <i>{album.title} </i>
+            <Link to={`/artists/${album.artistId}/users/${effectiveUsername}`}>
+              by {album.artist}
+            </Link>
           </h1>
-
-          <h3 style={{ marginTop: "3px" }}>
-            {album.artist}
-          </h3>
 
           <h4 style={{ marginTop: "4px", color: "#666" }}>
             {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
@@ -101,15 +100,15 @@ export default function AlbumDetail({ user }) {
               {album.score10.toFixed(1)}
             </h1>
           )}
+
+          <h4>
+            {effectiveUsername === user?.username
+              ? `Your likes: ${goodSongs} of ${ratedSongs} tracks`
+              : `${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`
+            }
+          </h4>
         </div>
       </div>
-
-      <h4>
-        {effectiveUsername === user?.username
-          ? `Your likes: ${goodSongs} of ${ratedSongs} tracks`
-          : `${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`
-        }
-      </h4>
 
       <li>
         {songs.map(song => (
