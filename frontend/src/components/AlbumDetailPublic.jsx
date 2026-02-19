@@ -128,7 +128,7 @@ export default function AlbumDetailPublic({ user }) {
 
     try {
       const res = await api.patch(`/albums/${albumId}/release-date`, {
-        releaseDate: editReleaseDate
+        releaseDate: formattedDate
       });
       setAlbum(res.data);
     } catch (err) {
