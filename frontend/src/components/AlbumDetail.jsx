@@ -86,7 +86,7 @@ export default function AlbumDetail({ user }) {
           </h3>
 
           <h4 style={{ marginTop: "4px", color: "#666" }}>
-            {new Date(`${album.releaseDate}T12:00:00`).toLocaleDateString(
+            {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
               "en-US",
               {
                 year: "numeric",
