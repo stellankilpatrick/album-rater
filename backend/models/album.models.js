@@ -49,7 +49,7 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
       artist,
       artistId,
       releaseDate,
-      cover_art: coverArt,
+      cover_art,
       songs: songObjects
     };
   } catch (err) {
