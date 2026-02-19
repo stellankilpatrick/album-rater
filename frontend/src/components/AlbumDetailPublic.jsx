@@ -39,14 +39,19 @@ export default function AlbumDetailPublic({ user }) {
     fetchAlbum();
   }, [albumId]);
 
-  useEffect(() => {
-    if (album) {
-      setEditTitle(album.title);
-      setEditArtist(album.artist);
-      setEditCover(album.coverArt || "");
-      setEditReleaseDate(album.releaseDate || "");
-    }
-  }, [album]);
+useEffect(() => {
+  if (album) {
+    // Convert ISO timestamp to "YYYY-MM-DD" for the date input
+    const formattedDate = album.releaseDate
+      ? album.releaseDate.split("T")[0]  // <- this removes the time part
+      : "";
+    setEditReleaseDate(formattedDate);
+
+    setEditTitle(album.title);
+    setEditArtist(album.artist);
+    setEditCover(album.coverArt || "");
+  }
+}, [album]);
 
   // fetches album reviews from following
   useEffect(() => {
