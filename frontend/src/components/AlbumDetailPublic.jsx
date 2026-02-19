@@ -39,19 +39,19 @@ export default function AlbumDetailPublic({ user }) {
     fetchAlbum();
   }, [albumId]);
 
-useEffect(() => {
-  if (album) {
-    // Convert ISO timestamp to "YYYY-MM-DD" for the date input
-    const formattedDate = album.releaseDate
-      ? album.releaseDate.split("T")[0]  // <- this removes the time part
-      : "";
-    setEditReleaseDate(formattedDate);
+  useEffect(() => {
+    if (album) {
+      // Convert ISO timestamp to "YYYY-MM-DD" for the date input
+      const formattedDate = album.releaseDate
+        ? album.releaseDate.split("T")[0]  // <- this removes the time part
+        : "";
+      setEditReleaseDate(formattedDate);
 
-    setEditTitle(album.title);
-    setEditArtist(album.artist);
-    setEditCover(album.coverArt || "");
-  }
-}, [album]);
+      setEditTitle(album.title);
+      setEditArtist(album.artist);
+      setEditCover(album.coverArt || "");
+    }
+  }, [album]);
 
   // fetches album reviews from following
   useEffect(() => {
@@ -122,6 +122,9 @@ useEffect(() => {
 
   const saveAlbumReleaseDate = async () => {
     if (!editReleaseDate) return;
+
+    const [month, day, year] = editReleaseDate.split('/');
+    const formattedDate = `${year}-${month}-${day}`;
 
     try {
       const res = await api.patch(`/albums/${albumId}/release-date`, {
