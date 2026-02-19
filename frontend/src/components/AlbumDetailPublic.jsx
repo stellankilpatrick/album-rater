@@ -188,93 +188,124 @@ export default function AlbumDetailPublic({ user }) {
 
   return (
     <div>
-      <h1>
-        {isEditing ? (
-          <>
+      {/* ===== Album Header ===== */}
+      <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
+        {/* Cover */}
+        <div>
+          {album.coverArt && !isEditing && (
+            <img
+              src={album.coverArt}
+              alt={`${album.title} cover`}
+              style={{
+                width: "200px",
+                height: "200px",
+                objectFit: "cover",
+                borderRadius: "6px",
+                flexShrink: 0
+              }}
+            />
+          )}
+
+          {isEditing && (
             <div style={{ marginTop: "8px" }}>
               <input
                 type="text"
                 placeholder="Cover image URL"
                 value={editCover}
                 onChange={e => setEditCover(e.target.value)}
-                onBlur={saveCover} // your function from before
-                style={{ maxWidth: "150px", marginTop: "4px" }}
+                onBlur={saveCover}
+                style={{ width: "200px" }}
               />
             </div>
-            <input
-              value={editTitle}
-              onChange={e => setEditTitle(e.target.value)}
-              onBlur={saveAlbumTitle}
-              onKeyDown={e => e.key === "Enter" && e.target.blur()}
-              style={{ fontStyle: "italic", marginRight: "6px" }}
-            />
-            by
-            <input
-              value={editArtist}
-              onChange={e => setEditArtist(e.target.value)}
-              onBlur={saveAlbumArtist}
-              onKeyDown={e => e.key === "Enter" && e.target.blur()}
-              style={{ marginLeft: "6px" }}
-            />
-          </>
-        ) : (
-          <>
-            {album.coverArt && (
-              <div style={{ marginTop: "8px" }}>
-                <img
-                  src={album.coverArt}
-                  alt={`${album.title} cover`}
-                  style={{ maxWidth: "200px", display: "block", marginTop: "4px" }}
+          )}
+        </div>
+
+        {/* Right side info */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <h1 style={{ margin: 0 }}>
+            {isEditing ? (
+              <>
+                <input
+                  value={editTitle}
+                  onChange={e => setEditTitle(e.target.value)}
+                  onBlur={saveAlbumTitle}
+                  onKeyDown={e => e.key === "Enter" && e.target.blur()}
+                  style={{ fontStyle: "italic", marginRight: "6px" }}
                 />
-              </div>
+                {" "}by{" "}
+                <input
+                  value={editArtist}
+                  onChange={e => setEditArtist(e.target.value)}
+                  onBlur={saveAlbumArtist}
+                  onKeyDown={e => e.key === "Enter" && e.target.blur()}
+                  style={{ marginLeft: "6px" }}
+                />
+              </>
+            ) : (
+              <>
+                <i>{album.title}</i> by {album.artist}
+              </>
             )}
-            <i>{album.title}</i> by {album.artist}
-          </>
-        )}
-      </h1>
+          </h1>
 
-      <h4>
-        Released{" "}
-        {isEditing ? (
-          <input
-            type="date"
-            value={editReleaseDate}
-            onChange={e => setEditReleaseDate(e.target.value)}
-            onBlur={saveAlbumReleaseDate}
-            style={{ marginLeft: "4px" }}
-          />
-        ) : (
-          new Date(`${album.releaseDate}T12:00:00`).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric"
-          })
-        )}
-      </h4>
+          <h4 style={{ margin: 0 }}>
+            Released{" "}
+            {isEditing ? (
+              <input
+                type="date"
+                value={editReleaseDate}
+                onChange={e => setEditReleaseDate(e.target.value)}
+                onBlur={saveAlbumReleaseDate}
+                style={{ marginLeft: "4px" }}
+              />
+            ) : (
+              new Date(`${album.releaseDate}T12:00:00`).toLocaleDateString(
+                "en-US",
+                {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric"
+                }
+              )
+            )}
+          </h4>
 
-      <p>
-        Average Score: {album.avgScore?.toFixed(1) || "0.0"} |{" "}
-        {album.ratingCount ?? 0} rating{album.ratingCount !== 1 ? "s" : ""}
-      </p>
+          <p style={{ margin: 0 }}>
+            Average Score: {album.avgScore?.toFixed(1) || "0.0"} |{" "}
+            {album.ratingCount ?? 0} rating
+            {album.ratingCount !== 1 ? "s" : ""}
+          </p>
 
-      <button onClick={() => {
-        setIsEditing(e => !e);
-        setEditingSongId(null);
-      }}>
-        {isEditing ? "Done editing" : "Edit album"}
-      </button>
+          <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+            <button
+              onClick={() => {
+                setIsEditing(e => !e);
+                setEditingSongId(null);
+              }}
+            >
+              {isEditing ? "Done editing" : "Edit album"}
+            </button>
 
-      {user && !isEditing && (
-        <button onClick={handleRateClick}>Rate album</button>
-      )}
+            {user && !isEditing && (
+              <button onClick={handleRateClick}>Rate album</button>
+            )}
 
-      {user && !isEditing && (
-        <button onClick={() => api.post(`/users/${effectiveUsername}/listen-list/${album.id}`)}>
-          Add to Listen List
-        </button>
-      )}
+            {user && !isEditing && (
+              <button
+                onClick={() =>
+                  api.post(
+                    `/users/${effectiveUsername}/listen-list/${album.id}`
+                  )
+                }
+              >
+                Add to Listen List
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
-
+      {/* ===== Tracks ===== */}
       <h2>Tracks</h2>
 
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -352,7 +383,8 @@ export default function AlbumDetailPublic({ user }) {
                   {isEditing && (
                     <button
                       className="danger"
-                      onClick={() => deleteSong(song.id)}>
+                      onClick={() => deleteSong(song.id)}
+                    >
                       Delete
                     </button>
                   )}
@@ -391,7 +423,6 @@ export default function AlbumDetailPublic({ user }) {
           </ul>
         </>
       )}
-
     </div>
   );
 }
