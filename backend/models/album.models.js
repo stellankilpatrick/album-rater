@@ -99,31 +99,6 @@ export async function getAllAlbumsPublic() {
 }
 
 /**
- * Get all albums (with optional user filter)
- */
-export async function getAllAlbums(userId) {
-  const res = await pool.query(
-    `
-      SELECT
-        a.*,
-        ar.id AS "artistId",
-        ar.name AS artist,
-        COALESCE(AVG(alr.rating),0) AS rating,
-        COUNT(alr.user_id) AS "ratingCount"
-      FROM albums a
-      JOIN artists ar ON ar.id = a.artist_id
-      LEFT JOIN album_ratings alr ON alr.album_id = a.id
-      ${userId ? "WHERE a.user_id = $1" : ""}
-      GROUP BY a.id, ar.id
-      ORDER BY rating DESC
-    `,
-    userId ? [userId] : []
-  );
-
-  return res.rows;
-}
-
-/**
  * Get one album by ID (with songs and ratings)
  */
 export async function getAlbumById(id) {
@@ -131,7 +106,6 @@ export async function getAlbumById(id) {
     `
     SELECT
       a.id, a.title, a.release_date AS "releaseDate",
-      a.user_id AS "userId",
       ar.id AS "artistId", ar.name AS artist
     FROM albums a
     JOIN artists ar ON ar.id = a.artist_id
@@ -316,22 +290,6 @@ export async function getAlbumDetailsPublic(albumId) {
   };
 }
 
-/**
- * Get all albums rated by a user
- */
-export async function getAlbumsByUser(userId) {
-  const res = await pool.query(
-    `
-    SELECT a.*, ar.id AS "artistId", ar.name AS artist
-    FROM albums a
-    JOIN artists ar ON a.artist_id = ar.id
-    WHERE a.user_id = $1
-    ORDER BY a.created_at DESC
-    `,
-    [userId]
-  );
-  return res.rows;
-}
 /**
  * Update album title
  */
