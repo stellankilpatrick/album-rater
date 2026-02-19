@@ -121,24 +121,11 @@ export default function AlbumDetailPublic({ user }) {
   };
 
   const saveAlbumReleaseDate = async () => {
-    if (!editReleaseDate) return;
-
-    // Convert MM/DD/YYYY (or M/D/YYYY) to YYYY-MM-DD safely
-    const parts = editReleaseDate.split('/');
-    if (parts.length !== 3) {
-      console.error("Invalid date format:", editReleaseDate);
-      return;
-    }
-
-    let [month, day, year] = parts;
-    month = month.padStart(2, '0');
-    day = day.padStart(2, '0');
-
-    const formattedDate = `${year}-${month}-${day}`;
+    if (!editReleaseDate) return; // YYYY-MM-DD from the input, no conversion needed
 
     try {
       const res = await api.patch(`/albums/${albumId}/release-date`, {
-        releaseDate: formattedDate
+        releaseDate: editReleaseDate
       });
       setAlbum(res.data);
     } catch (err) {
