@@ -62,42 +62,43 @@ export default function ArtistDetailPublic({ user }) {
     <div>
 
       <div style={{ marginBottom: "12px" }}>
-
-        {artist.image && !isEditingImage && (
-          <img
-            src={artist.image}
-            alt={`${artist.name} cover`}
-            style={{
-              width: "150px",
-              height: "150px",
-              objectFit: "cover",
-              borderRadius: "50%"
-            }}
-          />
-        )}
-
-        <h1>Albums by {artist.name}</h1>
-
-        {isEditingImage && (
-          <div>
-            <input
-              type="text"
-              placeholder="Paste image URL here"
-              value={editImage}
-              onChange={e => setEditImage(e.target.value)}
-              style={{ maxWidth: "250px", marginRight: "6px", borderRadius: "3px" }}
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          {artist.image && !isEditingImage && (
+            <img
+              src={artist.image}
+              alt={`${artist.name} cover`}
+              onClick={() => setIsEditingImage(true)}
+              style={{
+                width: "150px",
+                height: "150px",
+                objectFit: "cover",
+                borderRadius: "50%",
+                cursor: "pointer"
+              }}
             />
-            <button onClick={saveArtistImage}>Save</button>
-            <button onClick={() => setIsEditingImage(false)}>Cancel</button>
-          </div>
+          )}
+
+          <h1 style={{ margin: 0 }}>Albums by {artist.name}</h1>
+
+          {isEditingImage && (
+            <div>
+              <input
+                type="text"
+                placeholder="Paste image URL here"
+                value={editImage}
+                onChange={e => setEditImage(e.target.value)}
+                style={{ maxWidth: "250px", marginRight: "6px", borderRadius: "3px" }}
+              />
+              <button onClick={saveArtistImage}>Save</button>
+              <button onClick={() => setIsEditingImage(false)}>Cancel</button>
+            </div>
+          )}
+        </div>
+
+        {!artist.image && !isEditingImage && (
+          <button onClick={() => setIsEditingImage(true)}>Add Artist Image</button>
         )}
       </div>
-
-      {!isEditingImage && (
-        <button onClick={() => setIsEditingImage(true)}>
-          {artist.image ? "Edit Artist Image" : "Add Artist Image"}
-        </button>
-      )}
 
       {albums.length === 0 ? (
         <p>No albums for this artist.</p>
@@ -134,18 +135,19 @@ export default function ArtistDetailPublic({ user }) {
                     )}
                   </td>
                   <td style={{ padding: "4px 8px" }}><i>{album.title}</i></td>
-
                   <td style={{ padding: "4px 8px" }}>
                     {album.releaseDate ? album.releaseDate.slice(0, 4) : ""}
                   </td>
                   <td style={{ padding: "4px 8px" }}>
-                    <td>{(album.avgScore ?? 0).toFixed(1)}</td>                  </td>
+                    {(album.avgScore ?? 0).toFixed(1)}
+                  </td>
                   <td style={{ padding: "4px 8px" }}>{album.ratingCount ?? 0}</td>
                 </tr>
               ))}
           </tbody>
         </table>
       )}
+
       <Link to={`/artists/${artist.id}/users/${effectiveUsername}`} style={{}}>
         Your favorite albums by {artist.name}
       </Link>

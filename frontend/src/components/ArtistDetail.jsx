@@ -48,24 +48,27 @@ export default function ArtistDetail({ user }) {
 
     return (
         <div>
-            <h1>{effectiveUsername}'s Top Albums by {artist.name}</h1>
-
-
             <div style={{ marginBottom: "12px" }}>
-                {artist.image && (
-                    <img
-                        src={artist.image}
-                        alt={`${artist.name} cover`}
-                        style={{
-                            maxHeight: "150px",
-                            objectFit: "cover",
-                            borderRadius: "8px",
-                            marginBottom: "12px"
-                        }}
-                    />
-                )}
+                <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
 
+                    {artist.image && (
+                        <img
+                            src={artist.image}
+                            alt={`${artist.name} cover`}
+                            style={{
+                                width: "150px",
+                                height: "150px",
+                                objectFit: "cover",
+                                borderRadius: "50%"
+                            }}
+                        />
+                    )}
+
+                    <h1 style={{ margin: 0 }}>{effectiveUsername}'s Top Albums by {artist.name}</h1>
+
+                </div>
             </div>
+
             {albums.length === 0 ? (
                 <p>No albums for this artist.</p>
             ) : (
@@ -118,6 +121,7 @@ export default function ArtistDetail({ user }) {
                     </tbody>
                 </table>
             )}
+
             <Link to={`/artists/${artist.id}`} style={{}}>
                 All albums by {artist.name}
             </Link>
