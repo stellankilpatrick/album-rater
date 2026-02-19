@@ -121,7 +121,7 @@ export default function AlbumDetailPublic({ user }) {
   };
 
   const saveAlbumReleaseDate = async () => {
-    if (!editReleaseDate) return; // YYYY-MM-DD from the input, no conversion needed
+    if (!editReleaseDate) return;
 
     try {
       const res = await api.patch(`/albums/${albumId}/release-date`, {
@@ -263,7 +263,7 @@ export default function AlbumDetailPublic({ user }) {
                 style={{ marginLeft: "4px" }}
               />
             ) : (
-              new Date(`${album.releaseDate}T12:00:00`).toLocaleDateString(
+              new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
                 "en-US",
                 {
                   year: "numeric",
