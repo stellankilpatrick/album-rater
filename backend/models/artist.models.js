@@ -21,7 +21,7 @@ export async function getArtistRankings() {
 }
 
 // Attach stats to albums (optionally per user)
-export async function attachAlbumStats(albums, userId = null, power = 0.6) {
+export async function attachAlbumStats(albums, userId = null) {
   const result = [];
   for (const album of albums) {
     const statsRes = await pool.query(
@@ -47,23 +47,6 @@ export async function attachAlbumStats(albums, userId = null, power = 0.6) {
       rating: totalSongs > 0 ? Math.pow(sumRatings, 2) / totalSongs : 0,
       rate: `${ratedSongs}/${totalSongs}`,
     });
-  }
-
-  // Compute score10 via percentile rank (same logic as getUserAlbumScores)
-  if (userId && result.length) {
-    const sorted = result.slice().sort((a, b) => a.rating - b.rating);
-    const n = sorted.length;
-
-    const scoreMap = new Map(
-      sorted.map((album, index) => {
-        const percentile = n === 1 ? 1 : index / (n - 1);
-        const adjusted = Math.pow(percentile, power);
-        const score10 = Math.round(adjusted * 9 + 1);
-        return [album.id, score10];
-      })
-    );
-
-    return result.map(album => ({ ...album, score10: scoreMap.get(album.id) }));
   }
 
   return result;
@@ -197,9 +180,40 @@ export async function getUserRatedAlbumsByArtist(userId, artistId) {
   }));
 }
 
-export async function attachUserAlbumStats(albums, userId) {
-  const result = [];
+export async function attachUserAlbumStats(albums, userId, power=0.6) {
+  // Step 1: get ALL rated albums for this user to compute global percentiles
+  const allRes = await pool.query(
+    `SELECT
+      a.id,
+      COALESCE(SUM(sr.rating), 0) AS "totalRating",
+      COUNT(sr.rating) FILTER (WHERE sr.rating IS NOT NULL) AS "ratedSongs"
+    FROM albums a
+    JOIN songs s ON s.album_id = a.id
+    LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
+    GROUP BY a.id
+    HAVING COUNT(sr.rating) FILTER (WHERE sr.rating IS NOT NULL) > 0`,
+    [userId]
+  );
 
+  const allRatings = allRes.rows.map(a => {
+    const total = Number(a.totalRating);
+    const rated = Number(a.ratedSongs);
+    return { id: a.id, rating: rated > 0 ? (total * total) / rated : 0 };
+  });
+
+  const sorted = allRatings.slice().sort((a, b) => a.rating - b.rating);
+  const n = sorted.length;
+
+  const scoreMap = new Map(
+    sorted.map((a, index) => {
+      const percentile = n === 1 ? 1 : index / (n - 1);
+      const score10 = Math.round(Math.pow(percentile, power) * 9 + 1);
+      return [a.id, score10];
+    })
+  );
+
+  // Step 2: attach stats + score10 to the provided albums
+  const result = [];
   for (const a of albums) {
     const statsRes = await pool.query(
       `SELECT
@@ -208,8 +222,7 @@ export async function attachUserAlbumStats(albums, userId) {
         COALESCE(SUM(CASE WHEN sr.rating > 0 THEN 1 ELSE 0 END), 0) AS "nonSkips",
         COALESCE(SUM(sr.rating), 0) AS "totalRating"
       FROM songs s
-      LEFT JOIN song_ratings sr
-        ON sr.song_id = s.id AND sr.user_id = $1
+      LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
       WHERE s.album_id = $2`,
       [userId, a.id]
     );
@@ -221,8 +234,9 @@ export async function attachUserAlbumStats(albums, userId) {
 
     result.push({
       ...a,
-      personalScore: ratedSongs > 0 ? Math.pow(totalRating, 2) / ratedSongs : 0,
+      rating: ratedSongs > 0 ? Math.pow(totalRating, 2) / ratedSongs : 0,
       rate: `${nonSkips}/${ratedSongs}`,
+      score10: scoreMap.get(a.id) ?? null,
     });
   }
 
