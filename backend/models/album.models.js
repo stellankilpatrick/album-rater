@@ -24,7 +24,7 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
     // 2. Insert album
     const albumRes = await client.query(
       `INSERT INTO albums (title, artist_id, release_date, cover_art)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+       VALUES ($1, $2, $3, $4) RETURNING id`,
       [title, artistId, releaseDate, cover_art]
     );
     const albumId = albumRes.rows[0].id;
@@ -49,7 +49,7 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
       artist,
       artistId,
       releaseDate,
-      cover_art,
+      cover_art: coverArt,
       songs: songObjects
     };
   } catch (err) {

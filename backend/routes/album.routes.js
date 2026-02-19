@@ -260,7 +260,7 @@ router.post("/new", requireAuth, async (req, res) => {
         }
 
         // Keep album_ratings in sync
-        await updateAlbumRatingForUser(req.user.id, req.params.id);
+        await updateAlbumRatingForUser(req.user.id, album.id);
 
         await client.query("COMMIT");
       } catch (err) {
