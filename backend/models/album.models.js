@@ -3,7 +3,7 @@ import pool from "../db/database.js";
 /**
  * Create album and optionally its songs
  */
-export async function createAlbum({ title, artist, releaseDate, songs = [], cover_art, userId }) {
+export async function createAlbum({ title, artist, releaseDate, songs = [], cover_art }) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -23,9 +23,9 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
 
     // 2. Insert album
     const albumRes = await client.query(
-      `INSERT INTO albums (title, artist_id, release_date, cover_art, user_id)
+      `INSERT INTO albums (title, artist_id, release_date, cover_art)
        VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [title, artistId, releaseDate, cover_art, userId]
+      [title, artistId, releaseDate, cover_art]
     );
     const albumId = albumRes.rows[0].id;
 
