@@ -123,7 +123,17 @@ export default function AlbumDetailPublic({ user }) {
   const saveAlbumReleaseDate = async () => {
     if (!editReleaseDate) return;
 
-    const [month, day, year] = editReleaseDate.split('/');
+    // Convert MM/DD/YYYY (or M/D/YYYY) to YYYY-MM-DD safely
+    const parts = editReleaseDate.split('/');
+    if (parts.length !== 3) {
+      console.error("Invalid date format:", editReleaseDate);
+      return;
+    }
+
+    let [month, day, year] = parts;
+    month = month.padStart(2, '0');
+    day = day.padStart(2, '0');
+
     const formattedDate = `${year}-${month}-${day}`;
 
     try {
@@ -135,7 +145,6 @@ export default function AlbumDetailPublic({ user }) {
       console.error("Failed to update release date:", err);
     }
   };
-
 
   const saveTrackNum = async (song) => {
     if (!song.num || song.num < 1) return;
