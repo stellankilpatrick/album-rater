@@ -168,42 +168,4 @@ router.get("/:username/listen-list", requireAuth, async (req, res) => {
   }
 });
 
-// Delete your own profile
-router.delete("/:username", requireAuth, async (req, res) => {
-  const { username } = req.params;
-
-  if (req.user.username !== username) {
-    return res.status(403).json({ error: "Forbidden" });
-  }
-
-  const userId = req.user.id;
-  const client = await pool.connect();
-
-  try {
-    await client.query("BEGIN");
-
-    // Delete song ratings
-    await client.query(`DELETE FROM song_ratings WHERE user_id = $1`, [userId]);
-
-    // Delete albums from listen list
-    await client.query(`DELETE FROM listen_list WHERE user_id = $1`, [userId]);
-
-    // Delete follow relationships
-    await client.query(`DELETE FROM follows WHERE follower_id = $1 OR following_id = $1`, [userId]);
-
-    // Delete the user
-    await client.query(`DELETE FROM users WHERE id = $1`, [userId]);
-
-    await client.query("COMMIT");
-
-    res.json({ success: true });
-  } catch (err) {
-    await client.query("ROLLBACK");
-    console.error(err);
-    res.status(500).json({ error: "Failed to delete user" });
-  } finally {
-    client.release();
-  }
-});
-
 export default router;

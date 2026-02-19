@@ -204,30 +204,6 @@ export default function ProfilePage({ user }) {
                     ))}
                 </div>
             )}
-            {
-                isMe && (
-                    <div style={{ marginTop: "24px" }}>
-                        <button
-                            style={{ backgroundColor: "red", color: "white", padding: "8px 16px", borderRadius: "4px", cursor: "pointer" }}
-                            onClick={async () => {
-                                if (!window.confirm("Are you sure you want to delete your profile? This cannot be undone.")) return;
-
-                                try {
-                                    await api.delete(`/users/${effectiveUsername}`);
-                                    // Log out and redirect
-                                    localStorage.removeItem("token");
-                                    window.location.href = "/";
-                                } catch (err) {
-                                    console.error("Failed to delete profile:", err);
-                                    alert("Failed to delete profile. Try again.");
-                                }
-                            }}
-                        >
-                            Delete Profile
-                        </button>
-                    </div>
-                )
-            }
         </div>
     );
 }
