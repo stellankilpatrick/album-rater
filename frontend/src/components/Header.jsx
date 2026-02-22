@@ -1,8 +1,9 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 
 function TopNav({ effectiveUsername, onLogout }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [query, setQuery] = useState("");
 
   const handleSignOut = () => {
@@ -17,34 +18,39 @@ function TopNav({ effectiveUsername, onLogout }) {
     setQuery("");
   };
 
+  const navStyle = (path) => ({
+    textDecoration: location.pathname === path ? "underline" : "none",
+    color: "white",
+    fontWeight: location.pathname === path ? "bold" : "normal"
+  });
+
   return (
-    <div
+    <div className="top-nav"
       style={{
         display: "flex",
         alignItems: "center",
         gap: "16px",
-        marginBottom: "12px",
+        backgroundColor: "black",
+        padding: "10px 16px",
+        minHeight: "40px"
       }}
     >
-      {/* left side nav */}
-      <Link to={`/albums/users/${effectiveUsername}`} style={{ textDecoration: "none" }}>
+      <Link to={`/albums/users/${effectiveUsername}`} style={navStyle(`/albums/users/${effectiveUsername}`)}>
         Album Rankings
       </Link>
-      <Link to={`/artists/users/${effectiveUsername}`} style={{ textDecoration: "none" }}>
+      <Link to={`/artists/users/${effectiveUsername}`} style={navStyle(`/artists/users/${effectiveUsername}`)}>
         Artist Rankings
       </Link>
-      <Link to="/albums" style={{ textDecoration: "none" }}>Albums</Link>
-      <Link to="/artists" style={{ textDecoration: "none" }}>Artists</Link>
-      <Link to="/albums/new" style={{ textDecoration: "none" }}>Add Album</Link>
-      <Link to="/community" style={{ textDecoration: "none" }}>Community</Link>
-      <Link to={`/users/${effectiveUsername}`} style={{ textDecoration: "none" }}>
+      <Link to="/albums" style={navStyle("/albums")}>Albums</Link>
+      <Link to="/artists" style={navStyle("/artists")}>Artists</Link>
+      <Link to="/albums/new" style={navStyle("/albums/new")}>Add Album</Link>
+      <Link to="/community" style={navStyle("/community")}>Community</Link>
+      <Link to={`/users/${effectiveUsername}`} style={navStyle(`/users/${effectiveUsername}`)}>
         Profile
       </Link>
 
-      {/* spacer pushes sign out to the right */}
       <div style={{ marginLeft: "auto" }} />
 
-      {/* search */}
       <form onSubmit={handleSearch} style={{ marginLeft: "24px" }}>
         <input
           type="text"
@@ -54,8 +60,7 @@ function TopNav({ effectiveUsername, onLogout }) {
         />
       </form>
 
-      {/* sign out */}
-      <button onClick={handleSignOut}>
+      <button onClick={handleSignOut} style={{ color: "white", backgroundColor: "black", border: "1px solid white", cursor: "pointer" }}>
         Sign out
       </button>
     </div>

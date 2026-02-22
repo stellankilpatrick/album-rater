@@ -7,6 +7,8 @@ export default function AuthPage({ onLogin }) {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
@@ -14,18 +16,18 @@ export default function AuthPage({ onLogin }) {
         e.preventDefault();
         setError("");
 
+        if (isRegister && password !== confirmPassword) {
+            setError("Passwords do not match");
+            return;
+        }
+
         try {
             const url = isRegister ? "/auth/register" : "/auth/login";
             const body = isRegister ? { username, email, password } : { email, password };
 
             const res = await api.post(url, body);
-            
-            localStorage.setItem("token", res.data.token); // store JWT
-
-            // Save token and call parent handler
+            localStorage.setItem("token", res.data.token);
             onLogin(res.data.user, res.data.token);
-
-            // redirect to albums page
             navigate(`/${username}/albums`);
         } catch (err) {
             console.error(err);
@@ -53,19 +55,45 @@ export default function AuthPage({ onLogin }) {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                 />
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
+
+                {/* Password */}
+                <div style={{ position: "relative", display: "inline-block" }}>
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        style={{ paddingRight: "32px" }}
+                    />
+                    <span
+                        onClick={() => setShowPassword(p => !p)}
+                        style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", cursor: "pointer" }}
+                    >
+                        {showPassword ? "🙈" : "👁️"}
+                    </span>
+                </div>
+
+                {/* Confirm Password */}
+                {isRegister && (
+                    <div style={{ position: "relative", display: "inline-block" }}>
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Confirm Password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                            style={{ paddingRight: "32px" }}
+                        />
+                    </div>
+                )}
+
                 <button type="submit">{isRegister ? "Sign Up" : "Login"}</button>
                 {error && <p className="error">{error}</p>}
             </form>
             <p>
                 {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
-                <button onClick={() => setIsRegister(!isRegister)}>
+                <button onClick={() => { setIsRegister(!isRegister); setError(""); setConfirmPassword(""); }}>
                     {isRegister ? "Login" : "Sign Up"}
                 </button>
             </p>

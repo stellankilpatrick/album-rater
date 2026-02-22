@@ -66,8 +66,13 @@ export default function AlbumsPublic({ user }) {
   const handleSort = (key) => {
     setSortConfig((prev) => ({
       key,
-      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+      direction: prev.key === key && prev.direction === "desc" ? "asc" : "desc",
     }));
+  };
+
+  const getSortArrow = (key) => {
+    if (sortConfig.key !== key) return "";
+    return sortConfig.direction === "asc" ? " ▲" : " ▼";
   };
 
   const toggleArtist = (artist) => {
@@ -205,14 +210,13 @@ export default function AlbumsPublic({ user }) {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              <th onClick={() => handleSort("id")}>Rank</th>
+              <th>Rank</th>
               <th></th>
-              <th onClick={() => handleSort("title")}>Album</th>
-              <th onClick={() => handleSort("artist")}>Artist</th>
-              <th onClick={() => handleSort("releaseDate")}>Released</th>
-              <th onClick={() => handleSort("ratingCount")}>Reviews</th>
-              <th onClick={() => handleSort("avgScore")}>Average Score</th>
-            </tr>
+              <th>Album</th>
+              <th onClick={() => handleSort("artist")}>Artist{getSortArrow("artist")}</th>
+              <th onClick={() => handleSort("releaseDate")}>Released{getSortArrow("releaseDate")}</th>
+              <th onClick={() => handleSort("ratingCount")}>Reviews{getSortArrow("ratingCount")}</th>
+              <th onClick={() => handleSort("avgScore")}>Average Score{getSortArrow("avgScore")}</th>            </tr>
           </thead>
           <tbody>
             {sortedAlbums.map((album, i) => (

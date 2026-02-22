@@ -53,46 +53,48 @@ function App() {
           onLogout={handleLogout}
         />
       )}
-      <Routes>
-        {/* not logged in */}
-        {!user && (
-          <Route path="/*" element={<AuthPage onLogin={handleLogin} />} />
-        )}
+      <div style={{ padding: "10px 16px 0 10px" }}>
+        <Routes>
+          {/* not logged in */}
+          {!user && (
+            <Route path="/*" element={<AuthPage onLogin={handleLogin} />} />
+          )}
 
-        {user && (
-          <>
-            {/* /me shortcuts (most specific) */}
-            <Route path="/albums/:albumId/me" element={<AlbumDetail user={user} />} />
-            <Route path="/artists/:artistId/me" element={<ArtistDetail user={user} />} />
-            <Route path="/albums/me" element={<AlbumList user={user} />} />
-            <Route path="/artists/me" element={<ArtistList user={user} />} />
-            <Route path="/me" element={<UserPage user={user} />} />
+          {user && (
+            <>
+              {/* /me shortcuts (most specific) */}
+              <Route path="/albums/:albumId/me" element={<AlbumDetail user={user} />} />
+              <Route path="/artists/:artistId/me" element={<ArtistDetail user={user} />} />
+              <Route path="/albums/me" element={<AlbumList user={user} />} />
+              <Route path="/artists/me" element={<ArtistList user={user} />} />
+              <Route path="/me" element={<UserPage user={user} />} />
 
-            {/* user-owned pages */}
-            <Route path="/albums/:albumId/users/:username" element={<AlbumDetail user={user} />} />
-            <Route path="/artists/:artistId/users/:username" element={<ArtistDetail user={user} />} />
-            <Route path="/albums/users/:username" element={<AlbumList user={user} />} />
-            <Route path="/artists/users/:username" element={<ArtistList user={user} />} />
-            <Route path="/users/:username/listen-list" element={<ListenList user={user} />} />
-            <Route path="/users/:username" element={<UserPage user={user} />} />
-            <Route path="/users/:username/connections" element={<UserConnections />} />
+              {/* user-owned pages */}
+              <Route path="/albums/:albumId/users/:username" element={<AlbumDetail user={user} />} />
+              <Route path="/artists/:artistId/users/:username" element={<ArtistDetail user={user} />} />
+              <Route path="/albums/users/:username" element={<AlbumList user={user} />} />
+              <Route path="/artists/users/:username" element={<ArtistList user={user} />} />
+              <Route path="/users/:username/listen-list" element={<ListenList user={user} />} />
+              <Route path="/users/:username" element={<UserPage user={user} />} />
+              <Route path="/users/:username/connections" element={<UserConnections />} />
 
-            {/* public pages */}
-            <Route path="/albums/new" element={<AddAlbum user={user} />} />
-            <Route path="/albums/:albumId" element={<AlbumDetailPublic user={user} />} />
-            <Route path="/albums" element={<AlbumsPublic user={user} />} />
-            <Route path="/artists/:artistId" element={<ArtistDetailPublic user={user} />} />
-            <Route path="/artists" element={<ArtistsPublic user={user} />} />
-            <Route path="/community" element={<Community user={user} />} />
-            <Route path="/" element={<Home user={user} />} />
+              {/* public pages */}
+              <Route path="/albums/new" element={<AddAlbum user={user} />} />
+              <Route path="/albums/:albumId" element={<AlbumDetailPublic user={user} />} />
+              <Route path="/albums" element={<AlbumsPublic user={user} />} />
+              <Route path="/artists/:artistId" element={<ArtistDetailPublic user={user} />} />
+              <Route path="/artists" element={<ArtistsPublic user={user} />} />
+              <Route path="/community" element={<Community user={user} />} />
+              <Route path="/" element={<Home user={user} />} />
 
-            <Route path="/search" element={<SearchResults user={user} />} />
+              <Route path="/search" element={<SearchResults user={user} />} />
 
-            {/* catch-all */}
-            <Route path="*" element={<Navigate to="/me" />} />
-          </>
-        )}
-      </Routes>
+              {/* catch-all */}
+              <Route path="*" element={<Navigate to="/me" />} />
+            </>
+          )}
+        </Routes>
+        </div>
     </BrowserRouter>
   );
 }

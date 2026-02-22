@@ -11,6 +11,7 @@ export default function ArtistDetailPublic({ user }) {
   const [loading, setLoading] = useState(true);
   const [editImage, setEditImage] = useState("");
   const [isEditingImage, setIsEditingImage] = useState(false);
+  const [hasRatedArtist, setHasRatedArtist] = useState(false);
 
   const { username } = useParams();
   const effectiveUsername = username ?? user?.username;
@@ -18,6 +19,15 @@ export default function ArtistDetailPublic({ user }) {
   useEffect(() => {
     fetchArtist();
   }, [artistId]);
+
+  // checks if link to albums rated by you would work
+  useEffect(() => {
+  if (!user || !artistId) return;
+  api.get(`/artists/${artistId}/users/${effectiveUsername}`)
+    .then(res => setHasRatedArtist(res.data.albums?.length > 0))
+    .catch(() => setHasRatedArtist(false));
+}, [artistId, effectiveUsername]);
+
 
   const fetchArtist = async () => {
     try {
@@ -148,9 +158,11 @@ export default function ArtistDetailPublic({ user }) {
         </table>
       )}
 
-      <Link to={`/artists/${artist.id}/users/${effectiveUsername}`} style={{}}>
+      {hasRatedArtist && (
+        <Link to={`/artists/${artist.id}/users/${effectiveUsername}`} style={{}}>
         Your favorite albums by {artist.name}
       </Link>
+      )}
     </div>
   );
 }

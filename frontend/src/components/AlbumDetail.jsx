@@ -65,52 +65,137 @@ export default function AlbumDetail({ user }) {
 
   return (
     <div>
-      <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
-        {/* LEFT: cover */}
+      {/* ===== HEADER WITH BLUR ===== */}
+      <div
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          marginBottom: "20px",
+
+          width: "100vw",
+          marginLeft: "calc(50% - 50vw)",
+          marginRight: "calc(50% - 50vw)",
+          marginTop: "-10px", // offsets padding from App.jsx
+          color: "white"
+        }}
+      >
+        {/* blurred background */}
         {album.coverArt && (
           <img
             src={album.coverArt}
-            alt={`${album.title} cover`}
-            style={{ maxWidth: "200px" }}
+            alt=""
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              filter: "blur(60px)",
+              transform: "scale(1.2)",
+              opacity: 0.45
+            }}
           />
         )}
 
-        {/* RIGHT: text */}
-        <div>
-          <h1 style={{ marginTop: "0px" }}>
-            <i>{album.title} </i>
-            <Link to={`/artists/${album.artistId}/users/${effectiveUsername}`}>
-              by {album.artist}
-            </Link>
-          </h1>
+        {/* dark overlay (IMPORTANT for readability) */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.85))"
+          }}
+        />
 
-          <h4 style={{ marginTop: "4px", color: "#666" }}>
-            {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
-              "en-US",
-              {
-                year: "numeric",
-                month: "short",
-                day: "numeric"
-              }
-            )}
-          </h4>
+        {/* ===== YOUR ORIGINAL FLEX ROW ===== */}
+        <div
+          style={{
+            position: "relative",
+            zIndex: 2,
+            display: "flex",
+            gap: "20px",
+            alignItems: "flex-start",
+            padding: "24px"
+          }}
+        >
+          {/* LEFT: cover */}
+          {album.coverArt && (
+            <div
+              style={{
+                position: "relative",
+                width: "200px",
+                height: "200px",
+                overflow: "hidden",
+                borderRadius: "12px"
+              }}
+            >
+              {/* blurred background */}
+              <img
+                src={album.coverArt}
+                alt=""
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  filter: "blur(24px)",
+                  transform: "scale(1.15)",
+                  opacity: 0.7
+                }}
+              />
 
-          {album.score10 != null && (
-            <h1 style={{ marginTop: "12px" }}>
-              {album.score10.toFixed(1)}
-            </h1>
+              {/* foreground cover */}
+              <img
+                src={album.coverArt}
+                alt={`${album.title} cover`}
+                style={{
+                  position: "relative",
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain"
+                }}
+              />
+            </div>
           )}
 
-          <h4>
-            {effectiveUsername === user?.username
-              ? `Your likes: ${goodSongs} of ${ratedSongs} tracks`
-              : `${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`
-            }
-          </h4>
+          {/* RIGHT: text */}
+          <div>
+            <h1 style={{ marginTop: "0px" }}>
+              <i>{album.title} </i>
+              <Link to={`/artists/${album.artistId}/users/${effectiveUsername}`}>
+                by {album.artist}
+              </Link>
+            </h1>
+
+            <h4 style={{ marginTop: "4px" }}>
+              {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
+                "en-US",
+                {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric"
+                }
+              )}
+            </h4>
+
+            {album.score10 != null && (
+              <h1 style={{ marginTop: "12px" }}>
+                {album.score10.toFixed(1)}
+              </h1>
+            )}
+
+            <h4>
+              {effectiveUsername === user?.username
+                ? `Your likes: ${goodSongs} of ${ratedSongs} tracks`
+                : `${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`
+              }
+            </h4>
+          </div>
         </div>
       </div>
 
-      <li>
+      <ul>
         {songs.map(song => (
           <div key={song.id}>
             {song.num}. {song.title} —{" "}
@@ -134,7 +219,7 @@ export default function AlbumDetail({ user }) {
             </select>
           </div>
         ))}
-      </li>
+      </ul>
 
       {isOwner && (
         <button
@@ -143,7 +228,7 @@ export default function AlbumDetail({ user }) {
             marginTop: "1rem",
             backgroundColor: "red",
             color: "white",
-            padding: "0.5rem 1rem",
+            padding: "0.3rem 0.5rem",
             border: "none",
             borderRadius: "4px",
             cursor: "pointer"
@@ -153,15 +238,13 @@ export default function AlbumDetail({ user }) {
         </button>
       )}
 
-      <div>
+      <div style = {{ display: "flex", gap: "16px", marginBotton: "1rem", marginTop: "0.5rem" }}>
         <Link
           to={`/albums/${album.id}`}
           style={{ display: "inline-block", marginBottom: "1rem", textDecoration: "none" }}
         >
           All ratings of {album.title}
         </Link>
-
-        <br />
 
         <Link
           to={`/artists/${album.artistId}/users/${effectiveUsername}`}

@@ -79,8 +79,13 @@ export default function AlbumList({ user }) {
     const handleSort = (key) => {
         setSortConfig((prev) => ({
             key,
-            direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+            direction: prev.key === key && prev.direction === "desc" ? "asc" : "desc",
         }));
+    };
+
+    const getSortArrow = (key) => {
+        if (sortConfig.key !== key) return "";
+        return sortConfig.direction === "asc" ? " ▲" : " ▼";
     };
 
     const toggleArtist = (artist) => {
@@ -224,12 +229,12 @@ export default function AlbumList({ user }) {
                                 <tr>
                                     <th>Rank</th>
                                     <th></th>
-                                    <th onClick={() => handleSort("title")}>Title</th>
-                                    <th onClick={() => handleSort("artist")}>Artist</th>
-                                    <th onClick={() => handleSort("releaseDate")}>Released</th>
-                                    <th onClick={() => handleSort("score10")}>Rating</th>
-                                    <th onClick={() => handleSort("rating")}>Points</th>
-                                    <th onClick={() => handleSort("rate")}>Songs</th>
+                                    <th onClick={() => handleSort("title")}>Title{getSortArrow("title")}</th>
+                                    <th onClick={() => handleSort("artist")}>Artist{getSortArrow("artist")}</th>
+                                    <th onClick={() => handleSort("releaseDate")}>Released{getSortArrow("releaseDate")}</th>
+                                    <th onClick={() => handleSort("score10")}>Rating{getSortArrow("score10")}</th>
+                                    <th onClick={() => handleSort("rating")}>Points{getSortArrow("rating")}</th>
+                                    <th>Songs</th>
                                 </tr>
                             </thead>
                             <tbody>

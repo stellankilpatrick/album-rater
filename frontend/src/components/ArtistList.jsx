@@ -29,7 +29,7 @@ export default function ArtistList({ user }) {
     const handleSort = (key) => {
         setSortConfig((prev) => ({
             key,
-            direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+            direction: prev.key === key && prev.direction === "desc" ? "asc" : "desc",
         }));
     };
 
