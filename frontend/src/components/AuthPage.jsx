@@ -70,7 +70,7 @@ export default function AuthPage({ onLogin }) {
                         onClick={() => setShowPassword(p => !p)}
                         style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", cursor: "pointer" }}
                     >
-                        {showPassword ? "🙈" : "👁️"}
+                        {showPassword ? "Hide" : "Show"}
                     </span>
                 </div>
 
