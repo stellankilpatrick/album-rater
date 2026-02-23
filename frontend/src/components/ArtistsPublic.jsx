@@ -5,7 +5,7 @@ import api from "../api/api";
 export default function ArtistsPublic({ user }) {
     const [artists, setArtists] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [sortConfig, setSortConfig] = useState({ key: "avgRating", direction: "desc" });
+    const [sortConfig, setSortConfig] = useState({ key: "ratingCount", direction: "desc" });
     const navigate = useNavigate();
     const [viewMode, setViewMode] = useState("list");
 
@@ -71,8 +71,8 @@ export default function ArtistsPublic({ user }) {
                             <th></th>
                             <th onClick={() => handleSort("name")}>Artist</th>
                             <th onClick={() => handleSort("albumCount")}>Albums</th>
-                            <th onClick={() => handleSort("ratingCount")}>Album Reviews</th>
-                            <th onClick={() => handleSort("avgRating")}>Average Rating</th>
+                            <th onClick={() => handleSort("ratingCount")}>Reviews</th>
+                            <th onClick={() => handleSort("avgRating")}>Average Score</th>
                         </tr>
                     </thead>
                     <tbody>

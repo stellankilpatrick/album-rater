@@ -176,7 +176,7 @@ export default function ProfilePage({ user }) {
                                 <img
                                     src={album.coverArt}
                                     alt={album.title}
-                                    style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "4px" }}
+                                    style={{ width: "150px", height: "150px", objectFit: "cover", borderRadius: "4px" }}
                                 />
                             </Link>
                         )
@@ -197,7 +197,7 @@ export default function ProfilePage({ user }) {
                                 <img
                                     src={artist.image}
                                     alt=""
-                                    style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "50%" }}
+                                    style={{ width: "150px", height: "150px", objectFit: "cover", borderRadius: "50%" }}
                                 />
                             </Link>
                         )

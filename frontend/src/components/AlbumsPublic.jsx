@@ -5,7 +5,7 @@ import api from "../api/api";
 export default function AlbumsPublic({ user }) {
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortConfig, setSortConfig] = useState({ key: "avgScore", direction: "desc" });
+  const [sortConfig, setSortConfig] = useState({ key: "ratingCount", direction: "desc" });
   const [filters, setFilters] = useState({
     artists: [],
     minYear: "",
@@ -60,7 +60,7 @@ export default function AlbumsPublic({ user }) {
     const key = sortConfig.key;
     if (a[key] < b[key]) return sortConfig.direction === "asc" ? -1 : 1;
     if (a[key] > b[key]) return sortConfig.direction === "asc" ? 1 : -1;
-    return 0;
+    return b.avgScore - a.avgScore;
   });
 
   const handleSort = (key) => {
@@ -72,7 +72,7 @@ export default function AlbumsPublic({ user }) {
 
   const getSortArrow = (key) => {
     if (sortConfig.key !== key) return "";
-    return sortConfig.direction === "asc" ? " ▲" : " ▼";
+    return sortConfig.direction === "asc" ? " ↑" : " ↓";
   };
 
   const toggleArtist = (artist) => {

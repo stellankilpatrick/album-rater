@@ -184,33 +184,45 @@ export default function AlbumDetail({ user }) {
       </div>
 
       {/* ===== TRACKLIST + SIDEBAR ===== */}
-      <div style={{ display: "flex", gap: "32px", alignItems: "flex-start" }}>
+      <div style={{ display: "flex", gap: "32px", alignItems: "flex-start", paddingLeft: "10px" }}>
 
         {/* Tracklist */}
-        <ul style={{ flex: 1, margin: 0, padding: "0 0 0 10px", listStyle: "none" }}>
-          {songs.map(song => (
-            <div key={song.id}>
-              {song.num}. {song.title} —{" "}
-              <select
-                value={song.localRating ?? ""}
-                disabled={!isOwner}
-                onChange={
-                  isOwner
-                    ? e => {
-                        const value = e.target.value === "" ? null : Number(e.target.value);
-                        handleRatingChange(song.id, value);
-                      }
-                    : undefined
-                }
-              >
-                <option value="">Interlude</option>
-                <option value={0}>Skip</option>
-                <option value={1}>Good</option>
-                <option value={2}>Great</option>
-              </select>
-            </div>
-          ))}
-        </ul>
+        <table style={{ borderCollapse: "collapse", flex: "0 0 auto" }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: "left", paddingRight: "12px", width: "30px" }}>#</th>
+              <th style={{ textAlign: "left", paddingRight: "12px" }}>Title</th>
+              <th style={{ textAlign: "left" }}>Rating</th>
+            </tr>
+          </thead>
+          <tbody>
+            {songs.map(song => (
+              <tr key={song.id}>
+                <td style={{ paddingRight: "12px", width: "30px" }}>{song.num}</td>
+                <td style={{ paddingRight: "12px" }}>{song.title}</td>
+                <td>
+                  <select
+                    value={song.localRating ?? ""}
+                    disabled={!isOwner}
+                    onChange={
+                      isOwner
+                        ? e => {
+                          const value = e.target.value === "" ? null : Number(e.target.value);
+                          handleRatingChange(song.id, value);
+                        }
+                        : undefined
+                    }
+                  >
+                    <option value="">Interlude</option>
+                    <option value={0}>Skip</option>
+                    <option value={1}>Good</option>
+                    <option value={2}>Special</option>
+                  </select>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
         {/* Sidebar: links + delete */}
         <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px", marginTop: "4px" }}>

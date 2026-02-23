@@ -85,7 +85,7 @@ export default function AlbumList({ user }) {
 
     const getSortArrow = (key) => {
         if (sortConfig.key !== key) return "";
-        return sortConfig.direction === "asc" ? " ▲" : " ▼";
+        return sortConfig.direction === "asc" ? " ↑" : " ↓";
     };
 
     const toggleArtist = (artist) => {
@@ -224,7 +224,7 @@ export default function AlbumList({ user }) {
                         <p>No albums match your filters.</p>
                     ) : viewMode === "list" ? (
                         /* LIST VIEW (your existing table, unchanged) */
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", borderSpacing: 0 }}>
                             <thead>
                                 <tr>
                                     <th>Rank</th>
@@ -241,12 +241,12 @@ export default function AlbumList({ user }) {
                                 {sortedAlbums.map((album, i) => (
                                     <tr key={album.id}>
                                         <td>{i + 1}</td>
-                                        <td>
+                                        <td style = {{ padding: 0 }}>
                                             {album.coverArt && (
                                                 <img
                                                     src={album.coverArt}
                                                     alt={album.title}
-                                                    style={{ width: 22, height: 22 }}
+                                                    style={{ width: 25, height: 25 }}
                                                 />
                                             )}
                                         </td>
