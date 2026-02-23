@@ -274,7 +274,7 @@ export async function getUserArtistStats(userId) {
   // Apply decay per artist
   return Array.from(artistMap.values()).map(artist => {
     const sorted = artist.albums.slice().sort((a, b) => b - a);
-    const totalScore = sorted.reduce((sum, rating, i) => sum + rating * Math.pow(0.9, i), 0);
+    const totalScore = sorted.reduce((sum, rating, i) => sum + rating * Math.pow(0.85, i), 0);
     return {
       id: artist.id,
       name: artist.name,
