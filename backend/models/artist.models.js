@@ -173,18 +173,14 @@ export async function getUserRatedAlbumsByArtist(userId, artistId) {
     [userId, artistId]
   );
 
-  return res.rows.map((a, index) => {
-    const decay = Math.pow(0.9, index);
-    const rating = a.ratedSongs > 0 ? Math.pow(a.totalValue, 2) / a.ratedSongs : 0;
-    return {
-      ...a,
-      rating: rating * decay,
-      rate: `${a.ratedSongs}/${a.numSongs}`,
-    };
-  });
+  return res.rows.map(a => ({
+    ...a,
+    rating: a.ratedSongs > 0 ? Math.pow(a.totalValue, 2) / a.ratedSongs : 0,
+    rate: `${a.ratedSongs}/${a.numSongs}`,
+  }));
 }
 
-export async function attachUserAlbumStats(albums, userId, power = 0.6) {
+export async function attachUserAlbumStats(albums, userId, power=0.6) {
   // Step 1: get ALL rated albums for this user to compute global percentiles
   const allRes = await pool.query(
     `SELECT
@@ -233,10 +229,12 @@ export async function attachUserAlbumStats(albums, userId, power = 0.6) {
 
     const stats = statsRes.rows[0];
     const ratedSongs = Number(stats.ratedSongs);
+    const totalRating = Number(stats.totalRating);
     const nonSkips = Number(stats.nonSkips);
 
     result.push({
       ...a,
+      rating: ratedSongs > 0 ? Math.pow(totalRating, 2) / ratedSongs : 0,
       rate: `${nonSkips}/${ratedSongs}`,
       score10: scoreMap.get(a.id) ?? null,
     });
@@ -247,34 +245,42 @@ export async function attachUserAlbumStats(albums, userId, power = 0.6) {
 
 export async function getUserArtistStats(userId) {
   const res = await pool.query(
-    `
-    WITH album_scores AS (
-      SELECT
-        a.id AS album_id,
-        a.artist_id,
-        a.cover_art AS "coverArt",
-        SUM(sr.rating) AS "ratingSum",
-        COUNT(sr.rating) AS "ratedSongs"
-      FROM albums a
-      JOIN songs s ON s.album_id = a.id
-      LEFT JOIN song_ratings sr
-        ON sr.song_id = s.id AND sr.user_id = $1
-      GROUP BY a.id
-      HAVING COUNT(sr.rating) > 0
-    )
-    SELECT
+    `SELECT
       ar.id,
       ar.name,
       ar.image,
-      COUNT(album_scores.album_id) AS "albumCount",
-      SUM(("ratingSum" * "ratingSum")::float / "ratedSongs") AS "totalScore"
+      a.id AS album_id,
+      COALESCE(SUM(sr.rating), 0) AS "ratingSum",
+      COUNT(sr.rating) AS "ratedSongs"
     FROM artists ar
-    JOIN album_scores ON album_scores.artist_id = ar.id
-    GROUP BY ar.id
-    ORDER BY "totalScore" DESC
-    `,
+    JOIN albums a ON a.artist_id = ar.id
+    JOIN songs s ON s.album_id = a.id
+    LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
+    GROUP BY ar.id, a.id
+    HAVING COUNT(sr.rating) > 0`,
     [userId]
   );
 
-  return res.rows;
+  // Group by artist
+  const artistMap = new Map();
+  for (const row of res.rows) {
+    if (!artistMap.has(row.id)) {
+      artistMap.set(row.id, { id: row.id, name: row.name, image: row.image, albums: [] });
+    }
+    const rating = row.ratedSongs > 0 ? Math.pow(row.ratingSum, 2) / row.ratedSongs : 0;
+    artistMap.get(row.id).albums.push(rating);
+  }
+
+  // Apply decay per artist
+  return Array.from(artistMap.values()).map(artist => {
+    const sorted = artist.albums.slice().sort((a, b) => b - a);
+    const totalScore = sorted.reduce((sum, rating, i) => sum + rating * Math.pow(0.9, i), 0);
+    return {
+      id: artist.id,
+      name: artist.name,
+      image: artist.image,
+      albumCount: artist.albums.length,
+      totalScore
+    };
+  }).sort((a, b) => b.totalScore - a.totalScore);
 }
