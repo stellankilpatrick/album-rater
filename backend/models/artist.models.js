@@ -173,14 +173,18 @@ export async function getUserRatedAlbumsByArtist(userId, artistId) {
     [userId, artistId]
   );
 
-  return res.rows.map(a => ({
-    ...a,
-    rating: a.ratedSongs > 0 ? Math.pow(a.totalValue, 2) / a.ratedSongs : 0,
-    rate: `${a.ratedSongs}/${a.numSongs}`,
-  }));
+  return res.rows.map((a, index) => {
+    const decay = Math.pow(0.9, index);
+    const rating = a.ratedSongs > 0 ? Math.pow(a.totalValue, 2) / a.ratedSongs : 0;
+    return {
+      ...a,
+      rating: rating * decay,
+      rate: `${a.ratedSongs}/${a.numSongs}`,
+    };
+  });
 }
 
-export async function attachUserAlbumStats(albums, userId, power=0.6) {
+export async function attachUserAlbumStats(albums, userId, power = 0.6) {
   // Step 1: get ALL rated albums for this user to compute global percentiles
   const allRes = await pool.query(
     `SELECT
@@ -229,12 +233,10 @@ export async function attachUserAlbumStats(albums, userId, power=0.6) {
 
     const stats = statsRes.rows[0];
     const ratedSongs = Number(stats.ratedSongs);
-    const totalRating = Number(stats.totalRating);
     const nonSkips = Number(stats.nonSkips);
 
     result.push({
       ...a,
-      rating: ratedSongs > 0 ? Math.pow(totalRating, 2) / ratedSongs : 0,
       rate: `${nonSkips}/${ratedSongs}`,
       score10: scoreMap.get(a.id) ?? null,
     });
