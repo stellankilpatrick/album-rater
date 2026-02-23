@@ -193,118 +193,185 @@ export default function AlbumDetailPublic({ user }) {
   return (
     <div>
       {/* ===== Album Header ===== */}
-      <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
-        {/* Cover */}
-        <div>
-          {album.coverArt && !isEditing && (
-            <img
-              src={album.coverArt}
-              alt={`${album.title} cover`}
-              style={{
-                width: "200px",
-                height: "200px",
-                objectFit: "cover",
-                borderRadius: "6px",
-                flexShrink: 0
-              }}
-            />
-          )}
+      <div
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          marginBottom: "20px",
+          width: "calc(100% + 32px)",
+          marginLeft: "-16px",
+          marginRight: "-16px",
+          marginTop: "-10px",
+          color: "white"
+        }}
+      >
+        {/* blurred background */}
+        {album.coverArt && (
+          <img
+            src={album.coverArt}
+            alt=""
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              filter: "blur(40px)",
+              transform: "scale(1.2)",
+              opacity: 0.95
+            }}
+          />
+        )}
 
-          {isEditing && (
-            <div style={{ marginTop: "8px" }}>
-              <input
-                type="text"
-                placeholder="Cover image URL"
-                value={editCover}
-                onChange={e => setEditCover(e.target.value)}
-                onBlur={saveCover}
-                style={{ width: "200px" }}
-              />
-            </div>
-          )}
-        </div>
+        {/* dark overlay */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4))"
+          }}
+        />
 
-        {/* Right side info */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          <h1 style={{ margin: 0 }}>
-            {isEditing ? (
-              <>
-                <input
-                  value={editTitle}
-                  onChange={e => setEditTitle(e.target.value)}
-                  onBlur={saveAlbumTitle}
-                  onKeyDown={e => e.key === "Enter" && e.target.blur()}
-                  style={{ fontStyle: "italic", marginRight: "6px" }}
-                />
-                {" "}by{" "}
-                <input
-                  value={editArtist}
-                  onChange={e => setEditArtist(e.target.value)}
-                  onBlur={saveAlbumArtist}
-                  onKeyDown={e => e.key === "Enter" && e.target.blur()}
-                  style={{ marginLeft: "6px" }}
-                />
-              </>
-            ) : (
-              <>
-                <i>{album.title}</i> by {album.artist}
-              </>
-            )}
-          </h1>
-
-          <h4 style={{ margin: 0 }}>
-            Released{" "}
-            {isEditing ? (
-              <input
-                type="date"
-                value={editReleaseDate}
-                onChange={e => setEditReleaseDate(e.target.value)}
-                onBlur={saveAlbumReleaseDate}
-                style={{ marginLeft: "4px" }}
-              />
-            ) : (
-              new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
-                "en-US",
-                {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric"
-                }
-              )
-            )}
-          </h4>
-
-          <p style={{ margin: 0 }}>
-            Average Score: {album.avgScore?.toFixed(1) || "0.0"} |{" "}
-            {album.ratingCount ?? 0} rating
-            {album.ratingCount !== 1 ? "s" : ""}
-          </p>
-
-          <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
-            <button
-              onClick={() => {
-                setIsEditing(e => !e);
-                setEditingSongId(null);
-              }}
-            >
-              {isEditing ? "Done editing" : "Edit album"}
-            </button>
-
-            {user && !isEditing && (
-              <button onClick={handleRateClick}>Rate album</button>
-            )}
-
-            {user && !isEditing && (
-              <button
-                onClick={() =>
-                  api.post(
-                    `/users/${effectiveUsername}/listen-list/${album.id}`
-                  )
-                }
+        {/* content */}
+        <div
+          style={{
+            position: "relative",
+            zIndex: 2,
+            display: "flex",
+            gap: "20px",
+            alignItems: "flex-start",
+            padding: "24px"
+          }}
+        >
+          {/* Cover */}
+          <div>
+            {album.coverArt && !isEditing && (
+              <div
+                style={{
+                  position: "relative",
+                  width: "200px",
+                  height: "200px",
+                  overflow: "hidden",
+                  borderRadius: "12px"
+                }}
               >
-                Add to Listen List
-              </button>
+                <img
+                  src={album.coverArt}
+                  alt=""
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    filter: "blur(24px)",
+                    transform: "scale(1.15)",
+                    opacity: 0.7
+                  }}
+                />
+                <img
+                  src={album.coverArt}
+                  alt={`${album.title} cover`}
+                  style={{
+                    position: "relative",
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain"
+                  }}
+                />
+              </div>
             )}
+
+            {isEditing && (
+              <div style={{ marginTop: "8px" }}>
+                <input
+                  type="text"
+                  placeholder="Cover image URL"
+                  value={editCover}
+                  onChange={e => setEditCover(e.target.value)}
+                  onBlur={saveCover}
+                  style={{ width: "200px" }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Right side info */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <h1 style={{ margin: 0 }}>
+              {isEditing ? (
+                <>
+                  <input
+                    value={editTitle}
+                    onChange={e => setEditTitle(e.target.value)}
+                    onBlur={saveAlbumTitle}
+                    onKeyDown={e => e.key === "Enter" && e.target.blur()}
+                    style={{ fontStyle: "italic", marginRight: "6px" }}
+                  />
+                  {" "}by{" "}
+                  <input
+                    value={editArtist}
+                    onChange={e => setEditArtist(e.target.value)}
+                    onBlur={saveAlbumArtist}
+                    onKeyDown={e => e.key === "Enter" && e.target.blur()}
+                    style={{ marginLeft: "6px" }}
+                  />
+                </>
+              ) : (
+                <>
+                  <i>{album.title}</i> by {album.artist}
+                </>
+              )}
+            </h1>
+
+            <h4 style={{ margin: 0 }}>
+              Released{" "}
+              {isEditing ? (
+                <input
+                  type="date"
+                  value={editReleaseDate}
+                  onChange={e => setEditReleaseDate(e.target.value)}
+                  onBlur={saveAlbumReleaseDate}
+                  style={{ marginLeft: "4px" }}
+                />
+              ) : (
+                new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
+                  "en-US",
+                  { year: "numeric", month: "short", day: "numeric" }
+                )
+              )}
+            </h4>
+
+            <p style={{ margin: 0 }}>
+              Average Score: {album.avgScore?.toFixed(1) || "0.0"} |{" "}
+              {album.ratingCount ?? 0} rating
+              {album.ratingCount !== 1 ? "s" : ""}
+            </p>
+
+            <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+              <button
+                onClick={() => {
+                  setIsEditing(e => !e);
+                  setEditingSongId(null);
+                }}
+              >
+                {isEditing ? "Done editing" : "Edit album"}
+              </button>
+
+              {user && !isEditing && (
+                <button onClick={handleRateClick}>Rate album</button>
+              )}
+
+              {user && !isEditing && (
+                <button
+                  onClick={() =>
+                    api.post(`/users/${effectiveUsername}/listen-list/${album.id}`)
+                  }
+                >
+                  Add to Listen List
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -385,10 +452,7 @@ export default function AlbumDetailPublic({ user }) {
 
                 <td>
                   {isEditing && (
-                    <button
-                      className="danger"
-                      onClick={() => deleteSong(song.id)}
-                    >
+                    <button className="danger" onClick={() => deleteSong(song.id)}>
                       Delete
                     </button>
                   )}

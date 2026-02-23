@@ -133,14 +133,14 @@ export default function AlbumList({ user }) {
             ) : (
                 <>
                     {/* Filters */}
-                    <div style={{ marginBottom: "20px", padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }}>
-                        <h3>Filters</h3>
-                        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "flex-start" }}>
+                    <div style={{ marginBottom: "15px", padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }}>
+                        <h3 style={{ margin: "2px 0 8px 0" }}>Filters</h3>
+                        <div style={{ display: "flex", gap: "5px", flexWrap: "wrap", alignItems: "flex-start" }}>
                             {/* Artist Multi-Select Dropdown */}
                             <div style={{ position: "relative" }}>
                                 <button
                                     onClick={() => setShowDropdown(!showDropdown)}
-                                    style={{ padding: "5px 10px", cursor: "pointer" }}
+                                    style={{ padding: "3px 5px", cursor: "pointer" }}
                                 >
                                     Artists ({filters.artists.length})
                                 </button>
@@ -184,13 +184,13 @@ export default function AlbumList({ user }) {
                             </div>
 
                             {/* Year Range */}
-                            <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+                            <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
                                 <input
                                     type="number"
                                     placeholder="Min year"
                                     value={filters.minYear}
                                     onChange={(e) => handleYearChange("minYear", e.target.value)}
-                                    style={{ padding: "5px", width: "90px" }}
+                                    style={{ padding: "3px", width: "70px" }}
                                 />
                                 <span>to</span>
                                 <input
@@ -198,15 +198,15 @@ export default function AlbumList({ user }) {
                                     placeholder="Max year"
                                     value={filters.maxYear}
                                     onChange={(e) => handleYearChange("maxYear", e.target.value)}
-                                    style={{ padding: "5px", width: "90px" }}
+                                    style={{ padding: "3px", width: "70px" }}
                                 />
                             </div>
 
-                            <button onClick={clearFilters} style={{ padding: "5px 10px" }}>
+                            <button onClick={clearFilters} style={{ padding: "3px 5px" }}>
                                 Clear Filters
                             </button>
                         </div>
-                        <p style={{ marginTop: "10px", fontSize: "14px", color: "#666" }}>
+                        <p style={{ marginTop: "4px", fontSize: "14px", color: "#666" }}>
                             Showing {sortedAlbums.length} of {albums.length} albums
                         </p>
                     </div>
@@ -215,7 +215,7 @@ export default function AlbumList({ user }) {
                         onClick={() =>
                             setViewMode(prev => (prev === "list" ? "grid" : "list"))
                         }
-                        style={{ marginBottom: "15px" }}
+                        style={{ marginBottom: "10px" }}
                     >
                         {viewMode === "list" ? "Grid View" : "List View"}
                     </button>

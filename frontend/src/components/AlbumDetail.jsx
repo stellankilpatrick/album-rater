@@ -71,15 +71,13 @@ export default function AlbumDetail({ user }) {
           position: "relative",
           overflow: "hidden",
           marginBottom: "20px",
-
           width: "100vw",
           marginLeft: "calc(50% - 50vw)",
           marginRight: "calc(50% - 50vw)",
-          marginTop: "-10px", // offsets padding from App.jsx
+          marginTop: "-10px",
           color: "white"
         }}
       >
-        {/* blurred background */}
         {album.coverArt && (
           <img
             src={album.coverArt}
@@ -90,24 +88,21 @@ export default function AlbumDetail({ user }) {
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              filter: "blur(60px)",
+              filter: "blur(40px)",
               transform: "scale(1.2)",
-              opacity: 0.45
+              opacity: 0.95
             }}
           />
         )}
 
-        {/* dark overlay (IMPORTANT for readability) */}
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background:
-              "linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.85))"
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4))"
           }}
         />
 
-        {/* ===== YOUR ORIGINAL FLEX ROW ===== */}
         <div
           style={{
             position: "relative",
@@ -118,7 +113,6 @@ export default function AlbumDetail({ user }) {
             padding: "24px"
           }}
         >
-          {/* LEFT: cover */}
           {album.coverArt && (
             <div
               style={{
@@ -126,10 +120,10 @@ export default function AlbumDetail({ user }) {
                 width: "200px",
                 height: "200px",
                 overflow: "hidden",
-                borderRadius: "12px"
+                borderRadius: "12px",
+                flexShrink: 0
               }}
             >
-              {/* blurred background */}
               <img
                 src={album.coverArt}
                 alt=""
@@ -144,8 +138,6 @@ export default function AlbumDetail({ user }) {
                   opacity: 0.7
                 }}
               />
-
-              {/* foreground cover */}
               <img
                 src={album.coverArt}
                 alt={`${album.title} cover`}
@@ -159,33 +151,29 @@ export default function AlbumDetail({ user }) {
             </div>
           )}
 
-          {/* RIGHT: text */}
-          <div>
-            <h1 style={{ marginTop: "0px" }}>
+          {/* RIGHT: text — tighter spacing */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <h1 style={{ margin: 0 }}>
               <i>{album.title} </i>
-              <Link to={`/artists/${album.artistId}/users/${effectiveUsername}`}>
+              <Link to={`/artists/${album.artistId}/users/${effectiveUsername}`} style={{ color: "white" }}>
                 by {album.artist}
               </Link>
             </h1>
 
-            <h4 style={{ marginTop: "4px" }}>
-              {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
+            <h4 style={{ margin: 0 }}>
+              Released {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
                 "en-US",
-                {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric"
-                }
+                { year: "numeric", month: "short", day: "numeric" }
               )}
             </h4>
 
             {album.score10 != null && (
-              <h1 style={{ marginTop: "12px" }}>
+              <h1 style={{ margin: 0, fontSize: "4rem" }}>
                 {album.score10.toFixed(1)}
               </h1>
             )}
 
-            <h4>
+            <h4 style={{ margin: 0 }}>
               {effectiveUsername === user?.username
                 ? `Your likes: ${goodSongs} of ${ratedSongs} tracks`
                 : `${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`
@@ -195,66 +183,61 @@ export default function AlbumDetail({ user }) {
         </div>
       </div>
 
-      <ul>
-        {songs.map(song => (
-          <div key={song.id}>
-            {song.num}. {song.title} —{" "}
-            <select
-              value={song.localRating ?? ""}
-              disabled={!isOwner}
-              onChange={
-                isOwner
-                  ? e => {
-                    const value =
-                      e.target.value === "" ? null : Number(e.target.value);
-                    handleRatingChange(song.id, value);
-                  }
-                  : undefined
-              }
+      {/* ===== TRACKLIST + SIDEBAR ===== */}
+      <div style={{ display: "flex", gap: "32px", alignItems: "flex-start" }}>
+
+        {/* Tracklist */}
+        <ul style={{ flex: 1, margin: 0, padding: "0 0 0 10px", listStyle: "none" }}>
+          {songs.map(song => (
+            <div key={song.id}>
+              {song.num}. {song.title} —{" "}
+              <select
+                value={song.localRating ?? ""}
+                disabled={!isOwner}
+                onChange={
+                  isOwner
+                    ? e => {
+                        const value = e.target.value === "" ? null : Number(e.target.value);
+                        handleRatingChange(song.id, value);
+                      }
+                    : undefined
+                }
+              >
+                <option value="">Interlude</option>
+                <option value={0}>Skip</option>
+                <option value={1}>Good</option>
+                <option value={2}>Great</option>
+              </select>
+            </div>
+          ))}
+        </ul>
+
+        {/* Sidebar: links + delete */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px", marginTop: "4px" }}>
+          <Link to={`/albums/${album.id}`} style={{ textDecoration: "none" }}>
+            All ratings of {album.title}
+          </Link>
+          <Link to={`/artists/${album.artistId}/users/${effectiveUsername}`} style={{ textDecoration: "none" }}>
+            All albums by {album.artist}
+          </Link>
+          {isOwner && (
+            <button
+              onClick={handleDeleteAlbum}
+              style={{
+                backgroundColor: "red",
+                color: "white",
+                padding: "0.3rem 0.5rem",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                width: "fit-content"
+              }}
             >
-              <option value="">Interlude</option>
-              <option value={0}>Skip</option>
-              <option value={1}>Good</option>
-              <option value={2}>Great</option>
-            </select>
-          </div>
-        ))}
-      </ul>
-
-      {isOwner && (
-        <button
-          onClick={handleDeleteAlbum}
-          style={{
-            marginTop: "1rem",
-            backgroundColor: "red",
-            color: "white",
-            padding: "0.3rem 0.5rem",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer"
-          }}
-        >
-          Delete Album Rating
-        </button>
-      )}
-
-      <div style = {{ display: "flex", gap: "16px", marginBotton: "1rem", marginTop: "0.5rem" }}>
-        <Link
-          to={`/albums/${album.id}`}
-          style={{ display: "inline-block", marginBottom: "1rem", textDecoration: "none" }}
-        >
-          All ratings of {album.title}
-        </Link>
-
-        <Link
-          to={`/artists/${album.artistId}/users/${effectiveUsername}`}
-          style={{ display: "inline-block", marginBottom: "1rem", textDecoration: "none" }}
-        >
-          All albums by {album.artist}
-        </Link>
-
+              Delete Album Rating
+            </button>
+          )}
+        </div>
       </div>
-
     </div>
   );
 }
