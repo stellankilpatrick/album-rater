@@ -89,8 +89,8 @@ export default function ArtistsPublic({ user }) {
                                             src={artist.image}
                                             alt={artist.name}
                                             style={{
-                                                width: 22,
-                                                height: 22,
+                                                width: 25,
+                                                height: 25,
                                                 objectFit: "cover",
                                                 borderRadius: "50%"
                                             }}

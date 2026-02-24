@@ -70,8 +70,8 @@ export default function ArtistList({ user }) {
                                             src={a.image}
                                             alt={a.name}
                                             style={{
-                                                width: 22,
-                                                height: 22,
+                                                width: 25,
+                                                height: 25,
                                                 objectFit: "cover",
                                                 borderRadius: "50%"
                                             }}
@@ -97,7 +97,7 @@ export default function ArtistList({ user }) {
                 <div
                     style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
                         gap: "20px"
                     }}
                 >
@@ -114,8 +114,8 @@ export default function ArtistList({ user }) {
                                     src={a.image}
                                     alt={a.name}
                                     style={{
-                                        width: "140px",
-                                        height: "140px",
+                                        width: "100%",
+                                        aspectRatio: "1 / 1",
                                         objectFit: "cover",
                                         borderRadius: "50%",
                                         marginBottom: "8px"

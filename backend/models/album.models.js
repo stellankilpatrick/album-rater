@@ -476,7 +476,7 @@ export async function getUserAlbumScores(userId, power = 0.6) {
   return albums.map((album, index) => {
     const percentile = n === 1 ? 1 : index / (n - 1);
     const adjusted = Math.pow(percentile, power);
-    const score10 = Math.round(adjusted * 9 + 1);
+    const score10 = adjusted * 9 + 1;
     return { ...album, percentile, score10 };
   });
 }
@@ -531,7 +531,7 @@ export async function getUserAlbumScoreSingle(userId, albumId, power = 0.6) {
   const below = sortedRatings.filter(r => r < rating).length;
   const percentile = sortedRatings.length === 1 ? 1 : below / (sortedRatings.length - 1);
   const adjusted = Math.pow(percentile, power);
-  const score10 = Math.round(adjusted * 9 + 1);
+  const score10 = adjusted * 9 + 1;
 
   return { rawRating: rating, percentile, score10 };
 }

@@ -227,7 +227,7 @@ export default function AlbumsPublic({ user }) {
                     <img
                       src={album.coverArt}
                       alt={album.title}
-                      style={{ width: 22, height: 22, objectFit: "cover" }}
+                      style={{ width: 25, height: 25, objectFit: "cover" }}
                     />
                   )}
                 </td>

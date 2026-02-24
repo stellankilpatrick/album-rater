@@ -234,7 +234,7 @@ export default function AlbumList({ user }) {
                                     <th onClick={() => handleSort("releaseDate")}>Released{getSortArrow("releaseDate")}</th>
                                     <th onClick={() => handleSort("score10")}>Rating{getSortArrow("score10")}</th>
                                     <th onClick={() => handleSort("rating")}>Points{getSortArrow("rating")}</th>
-                                    <th>Songs</th>
+                                    <th>Tracks</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -279,7 +279,7 @@ export default function AlbumList({ user }) {
                         <div
                             style={{
                                 display: "grid",
-                                gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+                                gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
                                 gap: "16px"
                             }}
                         >
