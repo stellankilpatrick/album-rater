@@ -246,7 +246,7 @@ export default function AlbumList({ user }) {
                                                 <img
                                                     src={album.coverArt}
                                                     alt={album.title}
-                                                    style={{ width: 25, height: 25 }}
+                                                    style={{ width: 25, height: 25, borderRadius: "3px" }}
                                                 />
                                             )}
                                         </td>
