@@ -22,11 +22,11 @@ export default function ArtistDetailPublic({ user }) {
 
   // checks if link to albums rated by you would work
   useEffect(() => {
-  if (!user || !artistId) return;
-  api.get(`/artists/${artistId}/users/${effectiveUsername}`)
-    .then(res => setHasRatedArtist(res.data.albums?.length > 0))
-    .catch(() => setHasRatedArtist(false));
-}, [artistId, effectiveUsername]);
+    if (!user || !artistId) return;
+    api.get(`/artists/${artistId}/users/${effectiveUsername}`)
+      .then(res => setHasRatedArtist(res.data.albums?.length > 0))
+      .catch(() => setHasRatedArtist(false));
+  }, [artistId, effectiveUsername]);
 
 
   const fetchArtist = async () => {
@@ -62,6 +62,16 @@ export default function ArtistDetailPublic({ user }) {
     } catch (err) {
       console.error("Failed to update artist image", err);
       alert("Failed to save image.");
+    }
+  };
+
+  const deleteArtist = async () => {
+    if (!window.confirm("Delete this artist?")) return;
+    try {
+      await api.delete(`/artists/${artistId}`);
+      navigate("/artists");
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to delete artist");
     }
   };
 
@@ -111,7 +121,24 @@ export default function ArtistDetailPublic({ user }) {
       </div>
 
       {albums.length === 0 ? (
-        <p>No albums for this artist.</p>
+        <div>
+          <p>No albums for this artist.</p>
+          {user && (
+            <button
+              onClick={deleteArtist}
+              style={{
+                backgroundColor: "red",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "0.3rem 0.6rem",
+                cursor: "pointer"
+              }}
+            >
+              Delete artist
+            </button>
+          )}
+        </div>
       ) : (
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
@@ -160,8 +187,8 @@ export default function ArtistDetailPublic({ user }) {
 
       {hasRatedArtist && (
         <Link to={`/artists/${artist.id}/users/${effectiveUsername}`} style={{}}>
-        Your favorite albums by {artist.name}
-      </Link>
+          Your favorite albums by {artist.name}
+        </Link>
       )}
     </div>
   );

@@ -210,7 +210,7 @@ export default function AlbumDetail({ user }) {
                   >
                     <option value="">Interlude</option>
                     <option value={0}>Skip</option>
-                    <option value={1}>Good</option>
+                    <option value={1}>Play</option>
                     <option value={2}>Special</option>
                   </select>
                 </td>

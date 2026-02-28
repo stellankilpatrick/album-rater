@@ -131,4 +131,15 @@ router.get("/:artistId/users/:username", requireAuth, async (req, res) => {
   }
 });
 
+router.delete("/:artistId", async (req, res) => {
+  try {
+    const { artistId } = req.params;
+    await pool.query("DELETE FROM artists WHERE id = $1", [artistId]);
+    res.json({ message: "Artist deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete artist" });
+  }
+});
+
 export default router;

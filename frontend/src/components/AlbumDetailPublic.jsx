@@ -49,7 +49,7 @@ export default function AlbumDetailPublic({ user }) {
 
       setEditTitle(album.title);
       setEditArtist(album.artist);
-      setEditCover(album.coverArt || "");
+      setEditCover(prev => prev || album.coverArt || "");
     }
   }, [album]);
 
@@ -91,6 +91,7 @@ export default function AlbumDetailPublic({ user }) {
   const saveCover = async () => {
     const trimmedCover = editCover.trim();
     if (!trimmedCover) return;
+    if (trimmedCover === album.coverArt) return; // don't re-save same value
 
     try {
       const res = await api.patch(`/albums/${albumId}/cover`, {
