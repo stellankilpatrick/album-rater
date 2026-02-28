@@ -152,33 +152,28 @@ export default function AlbumDetail({ user }) {
           )}
 
           {/* RIGHT: text — tighter spacing */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            <h1 style={{ margin: 0 }}>
-              <i>{album.title} </i>
+          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+            <h1 style={{ margin: 0 }}><i>{album.title}</i></h1>
+
+            <h2 style={{ margin: 0 }}>
               <Link to={`/artists/${album.artistId}/users/${effectiveUsername}`} style={{ color: "white" }}>
-                by {album.artist}
+                {album.artist}
               </Link>
-            </h1>
+            </h2>
 
             <h4 style={{ margin: 0 }}>
-              Released {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
-                "en-US",
-                { year: "numeric", month: "short", day: "numeric" }
-              )}
+              Released {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
             </h4>
-
-            {album.score10 != null && (
-              <h1 style={{ margin: 0, fontSize: "4rem" }}>
-                {album.score10.toFixed(1)}
-              </h1>
-            )}
 
             <h4 style={{ margin: 0 }}>
               {effectiveUsername === user?.username
                 ? `Your likes: ${goodSongs} of ${ratedSongs} tracks`
-                : `${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`
-              }
+                : `${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`}
             </h4>
+
+            {album.score10 != null && (
+              <h1 style={{ margin: 0, fontSize: "3.5rem" }}>{album.score10.toFixed(1)}</h1>
+            )}
           </div>
         </div>
       </div>

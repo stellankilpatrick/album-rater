@@ -447,7 +447,7 @@ export default function AlbumDetailPublic({ user }) {
                 <td>
                   {song.totalRatings > 0
                     ? `${song.notSkippedPercent}%`
-                    : "No ratings yet"}
+                    : "No ratings"}
                 </td>
 
                 <td>
