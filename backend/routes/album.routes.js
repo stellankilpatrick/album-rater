@@ -289,7 +289,7 @@ router.post("/new", requireAuth, async (req, res) => {
 // ===============================
 router.get("/users/:username", requireAuth, async (req, res) => {
   try {
-    const power = req.query.power ? Number(req.query.power) : 0.6;
+    const power = req.query.power ? Number(req.query.power) : 0.5;
     const userId = req.profileUser.id;
 
     const albums = await getUserRatedAlbums(userId);

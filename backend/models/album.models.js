@@ -442,7 +442,7 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
  * into score10s
  */
 // Get all user album scores dynamically
-export async function getUserAlbumScores(userId, power = 0.6) {
+export async function getUserAlbumScores(userId, power = 0.5) {
   // Pull all albums the user has rated
   const res = await pool.query(
     `
@@ -482,7 +482,7 @@ export async function getUserAlbumScores(userId, power = 0.6) {
 }
 
 // Get a single album score dynamically
-export async function getUserAlbumScoreSingle(userId, albumId, power = 0.6) {
+export async function getUserAlbumScoreSingle(userId, albumId, power = 0.5) {
   // Get rating for target album
   const targetRes = await pool.query(
     `SELECT

@@ -377,13 +377,13 @@ export default function AlbumDetailPublic({ user }) {
       </div>
 
       {/* ===== Tracks ===== */}
-      <h2>Tracks</h2>
+      <h2>Tracklist</h2>
 
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
             <th>#</th>
-            <th>Track</th>
+            <th>Title</th>
             <th>Rating</th>
           </tr>
         </thead>

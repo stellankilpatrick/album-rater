@@ -180,7 +180,7 @@ export async function getUserRatedAlbumsByArtist(userId, artistId) {
   }));
 }
 
-export async function attachUserAlbumStats(albums, userId, power=0.6) {
+export async function attachUserAlbumStats(albums, userId, power=0.5) {
   // Step 1: get ALL rated albums for this user to compute global percentiles
   const allRes = await pool.query(
     `SELECT
@@ -207,7 +207,7 @@ export async function attachUserAlbumStats(albums, userId, power=0.6) {
   const scoreMap = new Map(
     sorted.map((a, index) => {
       const percentile = n === 1 ? 1 : index / (n - 1);
-      const score10 = Math.round(Math.pow(percentile, power) * 9 + 1);
+      const score10 = (Math.pow(percentile, power) * 9 + 1);
       return [a.id, score10];
     })
   );
