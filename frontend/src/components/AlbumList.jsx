@@ -241,7 +241,7 @@ export default function AlbumList({ user }) {
                                 {sortedAlbums.map((album, i) => (
                                     <tr key={album.id}>
                                         <td>{i + 1}</td>
-                                        <td style = {{ padding: 0 }}>
+                                        <td style={{ padding: 0 }}>
                                             {album.coverArt && (
                                                 <img
                                                     src={album.coverArt}
@@ -302,8 +302,8 @@ export default function AlbumList({ user }) {
                                         }}
                                     />
 
-                                    <div style={{ fontWeight: 500 }}>
-                                        <i>{album.title}</i>
+                                    <div style={{ fontSize: "14px", fontWeight: 500 }}>
+                                        <i>{album.title}</i> · {album.score10.toFixed(1)}
                                     </div>
                                     <div style={{ fontSize: "13px", color: "#666" }}>
                                         {album.artist}

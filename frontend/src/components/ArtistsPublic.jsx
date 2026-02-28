@@ -18,9 +18,9 @@ export default function ArtistsPublic({ user }) {
                 const res = await api.get("/artists"); // Backend route that returns artists with albums rated by anyone
                 const normalized = res.data.map(a => ({
                     ...a,
-                    avgRating: a.avgRating ?? 0,
-                    albumCount: a.albumCount ?? 0,
-                    ratingCount: a.ratingCount ?? 0,
+                    avgRating: Number(a.avgRating ?? 0),
+                    albumCount: Number(a.albumCount ?? 0),
+                    ratingCount: Number(a.ratingCount ?? 0),
                 }));
                 setArtists(normalized);
             } catch (err) {
