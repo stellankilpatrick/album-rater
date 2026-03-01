@@ -6,31 +6,45 @@ const DEFAULT_PFP = "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default
  * For user profile page - top 5 artists by total album score
  */
 export async function getTopArtists(userId) {
-  const { rows } = await pool.query(`
-    SELECT
+  const res = await pool.query(
+    `SELECT
       ar.id,
       ar.name,
       ar.image,
-      SUM(albumScores.albumScore) AS totalRating,
-      COUNT(albumScores.albumId) AS ratingCount
-    FROM (
-      SELECT
-        a.id AS albumId,
-        a.artist_id,
-        a.cover_art AS coverArt,
-        (SUM(r.rating) * SUM(r.rating)) / COUNT(r.rating) AS albumScore
-      FROM song_ratings r
-      JOIN songs s ON s.id = r.song_id
-      JOIN albums a ON a.id = s.album_id
-      WHERE r.user_id = $1
-      GROUP BY a.id
-    ) AS albumScores
-    JOIN artists ar ON ar.id = albumScores.artist_id
-    GROUP BY ar.id
-    ORDER BY totalRating DESC
-    LIMIT 5
-  `, [userId]);
-  return rows;
+      a.id AS album_id,
+      COALESCE(SUM(sr.rating), 0) AS "ratingSum",
+      COUNT(sr.rating) AS "ratedSongs"
+    FROM artists ar
+    JOIN albums a ON a.artist_id = ar.id
+    JOIN songs s ON s.album_id = a.id
+    LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
+    GROUP BY ar.id, a.id
+    HAVING COUNT(sr.rating) > 0`,
+    [userId]
+  );
+
+  const artistMap = new Map();
+  for (const row of res.rows) {
+    if (!artistMap.has(row.id)) {
+      artistMap.set(row.id, { id: row.id, name: row.name, image: row.image, albums: [] });
+    }
+    const rating = row.ratedSongs > 0 ? Math.pow(row.ratingSum, 2) / row.ratedSongs : 0;
+    artistMap.get(row.id).albums.push(rating);
+  }
+
+  return Array.from(artistMap.values()).map(artist => {
+    const sorted = artist.albums.slice().sort((a, b) => b - a);
+    const totalScore = sorted.reduce((sum, rating, i) => sum + rating * Math.pow(0.85, i), 0);
+    return {
+      id: artist.id,
+      name: artist.name,
+      image: artist.image,
+      ratingCount: artist.albums.length,
+      totalRating: totalScore
+    };
+  })
+  .sort((a, b) => b.totalRating - a.totalRating)
+  .slice(0, 5);
 }
 
 /**
