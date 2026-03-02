@@ -638,11 +638,12 @@ export async function getAllGenres() {
 }
 
 export async function addGenreToAlbum(albumId, genreName) {
-  normalized = genreName.trim().charAt(0).toUpperCase() + genreName.trim().slice(1).toLowerCase();
 
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
+
+    const normalized = genreName.trim().charAt(0).toUpperCase() + genreName.trim().slice(1).toLowerCase();
 
     // Find or create genre
     const genreRes = await client.query(
