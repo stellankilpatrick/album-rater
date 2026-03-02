@@ -9,17 +9,13 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
     await client.query("BEGIN");
 
     // 1. Insert or get artist
-    let artistRes = await client.query("SELECT * FROM artists WHERE name = $1", [artist]);
-    let artistId;
-    if (artistRes.rows.length) {
-      artistId = artistRes.rows[0].id;
-    } else {
-      const insertArtist = await client.query(
-        "INSERT INTO artists (name) VALUES ($1) RETURNING id",
-        [artist]
-      );
-      artistId = insertArtist.rows[0].id;
-    }
+    const artistRes = await client.query(
+      `INSERT INTO artists (name) VALUES ($1)
+      ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+      RETURNING id`,
+      [artist]
+    );
+    const artistId = artistRes.rows[0].id;
 
     // 2. Insert album
     const albumRes = await client.query(
