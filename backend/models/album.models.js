@@ -638,6 +638,8 @@ export async function getAllGenres() {
 }
 
 export async function addGenreToAlbum(albumId, genreName) {
+  normalized = genreName.trim().charAt(0).toUpperCase() + genreName.trim().slice(1).toLowerCase();
+
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -645,9 +647,9 @@ export async function addGenreToAlbum(albumId, genreName) {
     // Find or create genre
     const genreRes = await client.query(
       `INSERT INTO genres (name) VALUES ($1)
-       ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+       ON CONFLICT (LOWER(name)) DO UPDATE SET name = EXCLUDED.name
        RETURNING id`,
-      [genreName.trim()]
+      [normalized]
     );
     const genreId = genreRes.rows[0].id;
 
