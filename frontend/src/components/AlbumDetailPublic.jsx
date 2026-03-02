@@ -320,7 +320,10 @@ export default function AlbumDetailPublic({ user }) {
                 </>
               ) : (
                 <>
-                  <i>{album.title}</i> by {album.artist}
+                  <i>{album.title}</i> by{" "}
+                  <Link to={`/artists/${album.artistId}`}>
+                    {album.artist}
+                  </Link>
                 </>
               )}
             </h1>

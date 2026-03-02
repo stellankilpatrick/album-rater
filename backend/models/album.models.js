@@ -473,8 +473,9 @@ export async function getUserAlbumScores(userId, power = 0.5) {
   // Sort by rating ascending to compute percentiles
   albums.sort((a, b) => a.rating - b.rating);
 
-  return albums.map((album, index) => {
-    const percentile = n === 1 ? 1 : index / (n - 1);
+  return albums.map((album) => {
+    const below = albums.filter(a => a.rating < album.rating).length;
+    const percentile = n === 1 ? 1 : below / (n - 1);
     const adjusted = Math.pow(percentile, power);
     const score10 = adjusted * 9 + 1;
     return { ...album, percentile, score10 };

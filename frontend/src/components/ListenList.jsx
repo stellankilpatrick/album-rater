@@ -59,19 +59,29 @@ export default function ListenList({ user }) {
                 <p>Your listen list is empty.</p>
             ) : (
                 <div style={{
-                    display: "flex",
-                    gap: "12px",
-                    overflowX: "auto",
-                    padding: "8px 0"
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                    gap: "16px"
                 }}>
                     {listenList.map(album => (
-                        <div key={album.id} style={{ textAlign: "center", minWidth: "80px" }}>
-                            <Link to={`/albums/${album.id}/users/${user.username}`}>
+                        <div key={album.id} style={{ textAlign: "center" }}>
+                            <Link to={`/albums/${album.id}`} style={{ textDecoration: "none", color: "inherit" }}>
                                 <img
                                     src={album.cover_art}
                                     alt={album.title}
-                                    style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "6px" }}
+                                    style={{
+                                        width: "100%",
+                                        aspectRatio: "1 / 1",
+                                        objectFit: "cover",
+                                        borderRadius: "6px"
+                                    }}
                                 />
+                                <div style={{ fontSize: "14px", fontWeight: 500 }}>
+                                    <i>{album.title}</i>
+                                </div>
+                                <div style={{ fontSize: "13px", color: "#666" }}>
+                                    {album.artist}
+                                </div>
                             </Link>
                             {isEditing && (
                                 <button
