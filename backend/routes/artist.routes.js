@@ -2,7 +2,7 @@ import { requireAuth } from "../auth/auth.middleware.js";
 import { Router } from "express";
 import {
   getArtistAlbumsWithTotal, getAllRatedArtists, getUserArtistStats,
-  getUserRatedAlbumsByArtist, attachUserAlbumStats
+  getUserRatedAlbumsByArtist, attachUserAlbumStats, updateArtistName
 } from "../models/artist.models.js";
 import pool from "../db/database.js";
 
@@ -139,6 +139,23 @@ router.delete("/:artistId", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to delete artist" });
+  }
+});
+
+router.patch("/:id/name", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  if (!name || !name.trim())
+    return res.status(400).json({ error: "Name is required" });
+
+  try {
+    const updated = await updateArtistName(id, name);
+    if (!updated) return res.status(404).json({ error: "Artist not found" });
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update artist name" });
   }
 });
 

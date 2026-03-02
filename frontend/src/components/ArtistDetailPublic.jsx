@@ -12,6 +12,8 @@ export default function ArtistDetailPublic({ user }) {
   const [editImage, setEditImage] = useState("");
   const [isEditingImage, setIsEditingImage] = useState(false);
   const [hasRatedArtist, setHasRatedArtist] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editName, setEditName] = useState("");
 
   const { username } = useParams();
   const effectiveUsername = username ?? user?.username;
@@ -65,6 +67,18 @@ export default function ArtistDetailPublic({ user }) {
     }
   };
 
+  const saveArtistName = async () => {
+    if (!editName.trim()) return;
+    try {
+      const res = await api.patch(`/artists/${artistId}/name`, { name: editName.trim() });
+      setArtist(res.data);
+      setIsEditingName(false);
+    } catch (err) {
+      console.error("Failed to update artist name", err);
+      alert("Failed to save name.");
+    }
+  };
+
   const deleteArtist = async () => {
     if (!window.confirm("Delete this artist?")) return;
     try {
@@ -98,7 +112,26 @@ export default function ArtistDetailPublic({ user }) {
             />
           )}
 
-          <h1 style={{ margin: 0 }}>Albums by {artist.name}</h1>
+          {isEditingName ? (
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <input
+                type="text"
+                value={editName}
+                onChange={e => setEditName(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && saveArtistName()}
+                style={{ fontSize: "1.5rem", borderRadius: "3px" }}
+              />
+              <button onClick={saveArtistName}>Save</button>
+              <button onClick={() => setIsEditingName(false)}>Cancel</button>
+            </div>
+          ) : (
+            <h1
+              style={{ margin: 0, cursor: "pointer" }}
+              onClick={() => { setEditName(artist.name); setIsEditingName(true); }}
+            >
+              Albums by {artist.name}
+            </h1>
+          )}
 
           {isEditingImage && (
             <div>

@@ -8,12 +8,14 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
   try {
     await client.query("BEGIN");
 
+    const normalizedArtist = artist.trim();
+
     // 1. Insert or get artist
     const artistRes = await client.query(
       `INSERT INTO artists (name) VALUES ($1)
       ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
       RETURNING id`,
-      [artist]
+      [normalizedArtist]
     );
     const artistId = artistRes.rows[0].id;
 
@@ -42,7 +44,7 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
     return {
       id: albumId,
       title,
-      artist,
+      artist: normalizedArtist,
       artistId,
       releaseDate,
       cover_art,

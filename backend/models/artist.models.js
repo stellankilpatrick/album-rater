@@ -284,3 +284,11 @@ export async function getUserArtistStats(userId) {
     };
   }).sort((a, b) => b.totalScore - a.totalScore);
 }
+
+export async function updateArtistName(artistId, name) {
+  const res = await pool.query(
+    `UPDATE artists SET name = $1 WHERE id = $2 RETURNING *`,
+    [name.trim(), artistId]
+  );
+  return res.rows[0];
+}
