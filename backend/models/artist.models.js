@@ -81,9 +81,10 @@ export async function getAllRatedArtists() {
       ar.image,
       ROUND(AVG(album_scores.albumScore)::numeric, 2)::float AS "avgRating",
       SUM(album_scores.ratingCount) AS "ratingCount",
-      COUNT(album_scores.album_id) AS "albumCount"
+      COUNT(a.id) AS "albumCount"
     FROM artists ar
-    JOIN album_scores ON album_scores.artist_id = ar.id
+    JOIN albums a ON a.artist_id = ar.id
+    LEFT JOIN album_scores ON album_scores.album_id = a.id
     GROUP BY ar.id, ar.name, ar.image
     ORDER BY "avgRating" DESC
   `);
