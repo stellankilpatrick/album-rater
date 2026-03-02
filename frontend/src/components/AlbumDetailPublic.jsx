@@ -210,7 +210,7 @@ export default function AlbumDetailPublic({ user }) {
       <div
         style={{
           position: "relative",
-          overflow: "visible",
+          overflow: "hidden",
           marginBottom: "20px",
           width: "calc(100% + 32px)",
           marginLeft: "-16px",
@@ -219,32 +219,32 @@ export default function AlbumDetailPublic({ user }) {
           color: "white"
         }}
       >
-        {/* blurred background layers */}
-        <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-          {album.coverArt && (
-            <img
-              src={album.coverArt}
-              alt=""
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                filter: "blur(40px)",
-                transform: "scale(1.2)",
-                opacity: 0.95
-              }}
-            />
-          )}
-          <div
+        {/* blurred background */}
+        {album.coverArt && (
+          <img
+            src={album.coverArt}
+            alt=""
             style={{
               position: "absolute",
               inset: 0,
-              background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4))"
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              filter: "blur(40px)",
+              transform: "scale(1.2)",
+              opacity: 0.95
             }}
           />
-        </div>
+        )}
+
+        {/* dark overlay */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4))"
+          }}
+        />
 
         {/* content */}
         <div
@@ -295,6 +295,7 @@ export default function AlbumDetailPublic({ user }) {
                 />
               </div>
             )}
+
             {isEditing && (
               <div style={{ marginTop: "8px" }}>
                 <input
@@ -333,7 +334,9 @@ export default function AlbumDetailPublic({ user }) {
               ) : (
                 <>
                   <i>{album.title}</i> by{" "}
-                  <Link to={`/artists/${album.artistId}`}>{album.artist}</Link>
+                  <Link to={`/artists/${album.artistId}`}>
+                    {album.artist}
+                  </Link>
                 </>
               )}
             </h1>
@@ -357,7 +360,7 @@ export default function AlbumDetailPublic({ user }) {
             </h4>
 
             {/* Genres */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center", maxWidth: "400px" }}>
               {genres.map(g => (
                 <span
                   key={g.id}
@@ -394,10 +397,18 @@ export default function AlbumDetailPublic({ user }) {
                     value={genreInput}
                     onChange={e => { setGenreInput(e.target.value); setShowGenreDropdown(true); }}
                     onFocus={() => setShowGenreDropdown(true)}
-                    onBlur={() => setTimeout(() => setShowGenreDropdown(false), 150)}
+                    onBlur={() => setTimeout(() => setShowGenreDropdown(false), 300)}
+                    onKeyDown={async e => {
+                      if (e.key === "Enter" && genreInput.trim()) {
+                        const res = await api.post(`/albums/${albumId}/genres`, { name: genreInput.trim() });
+                        setGenres(res.data);
+                        setGenreInput("");
+                        setShowGenreDropdown(false);
+                      }
+                    }}
                     style={{ fontSize: "0.8rem", padding: "2px 6px", borderRadius: "8px", width: "110px" }}
                   />
-                  {showGenreDropdown && (
+                  {showGenreDropdown && genreInput.trim() && (
                     <div style={{
                       position: "absolute",
                       top: "100%",
@@ -410,29 +421,26 @@ export default function AlbumDetailPublic({ user }) {
                       overflowY: "auto",
                       minWidth: "140px"
                     }}>
-                      {[
-                        ...allGenres.filter(g =>
+                      {allGenres
+                        .filter(g =>
                           g.name.toLowerCase().includes(genreInput.toLowerCase()) &&
                           !genres.find(existing => existing.id === g.id)
-                        ),
-                        ...(genreInput.trim() && !allGenres.find(g => g.name.toLowerCase() === genreInput.toLowerCase())
-                          ? [{ id: "new", name: `Add "${genreInput}"` }]
-                          : [])
-                      ].map(g => (
-                        <div
-                          key={g.id}
-                          onClick={async () => {
-                            const name = g.id === "new" ? genreInput : g.name;
-                            const res = await api.post(`/albums/${albumId}/genres`, { name });
-                            setGenres(res.data);
-                            setGenreInput("");
-                            setShowGenreDropdown(false);
-                          }}
-                          style={{ padding: "6px 10px", cursor: "pointer", fontSize: "0.85rem" }}
-                        >
-                          {g.name}
-                        </div>
-                      ))}
+                        )
+                        .map(g => (
+                          <div
+                            key={g.id}
+                            onClick={async () => {
+                              const res = await api.post(`/albums/${albumId}/genres`, { name: g.name });
+                              setGenres(res.data);
+                              setGenreInput("");
+                              setShowGenreDropdown(false);
+                            }}
+                            style={{ padding: "6px 10px", cursor: "pointer", fontSize: "0.85rem" }}
+                          >
+                            {g.name}
+                          </div>
+                        ))
+                      }
                     </div>
                   )}
                 </div>
@@ -441,18 +449,30 @@ export default function AlbumDetailPublic({ user }) {
 
             <p style={{ margin: 0 }}>
               Average Score: {album.avgScore?.toFixed(1) || "0.0"} |{" "}
-              {album.ratingCount ?? 0} rating{album.ratingCount !== 1 ? "s" : ""}
+              {album.ratingCount ?? 0} rating
+              {album.ratingCount !== 1 ? "s" : ""}
             </p>
 
             <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
-              <button onClick={() => { setIsEditing(e => !e); setEditingSongId(null); }}>
+              <button
+                onClick={() => {
+                  setIsEditing(e => !e);
+                  setEditingSongId(null);
+                }}
+              >
                 {isEditing ? "Done editing" : "Edit album"}
               </button>
+
               {user && !isEditing && (
                 <button onClick={handleRateClick}>Rate album</button>
               )}
+
               {user && !isEditing && (
-                <button onClick={() => api.post(`/users/${effectiveUsername}/listen-list/${album.id}`)}>
+                <button
+                  onClick={() =>
+                    api.post(`/users/${effectiveUsername}/listen-list/${album.id}`)
+                  }
+                >
                   Add to Listen List
                 </button>
               )}
@@ -463,6 +483,7 @@ export default function AlbumDetailPublic({ user }) {
 
       {/* ===== Tracks ===== */}
       <h2>Tracklist</h2>
+
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
@@ -471,6 +492,7 @@ export default function AlbumDetailPublic({ user }) {
             <th>Rating</th>
           </tr>
         </thead>
+
         <tbody>
           {songs
             .slice()
@@ -486,7 +508,11 @@ export default function AlbumDetailPublic({ user }) {
                       style={{ width: "3rem" }}
                       onChange={e =>
                         setSongs(prev =>
-                          prev.map(s => s.id === song.id ? { ...s, num: Number(e.target.value) } : s)
+                          prev.map(s =>
+                            s.id === song.id
+                              ? { ...s, num: Number(e.target.value) }
+                              : s
+                          )
                         )
                       }
                       onBlur={() => saveTrackNum(song)}
@@ -495,6 +521,7 @@ export default function AlbumDetailPublic({ user }) {
                     song.num
                   )}
                 </td>
+
                 <td>
                   {isEditing ? (
                     <input
@@ -503,7 +530,11 @@ export default function AlbumDetailPublic({ user }) {
                       autoFocus={editingSongId === song.id}
                       onChange={e =>
                         setSongs(prev =>
-                          prev.map(s => s.id === song.id ? { ...s, title: e.target.value } : s)
+                          prev.map(s =>
+                            s.id === song.id
+                              ? { ...s, title: e.target.value }
+                              : s
+                          )
                         )
                       }
                       onBlur={() => saveSongTitle(song)}
@@ -517,12 +548,18 @@ export default function AlbumDetailPublic({ user }) {
                     <span>{song.title}</span>
                   )}
                 </td>
+
                 <td>
-                  {song.totalRatings > 0 ? `${song.notSkippedPercent}%` : "No ratings"}
+                  {song.totalRatings > 0
+                    ? `${song.notSkippedPercent}%`
+                    : "No ratings"}
                 </td>
+
                 <td>
                   {isEditing && (
-                    <button className="danger" onClick={() => deleteSong(song.id)}>Delete</button>
+                    <button className="danger" onClick={() => deleteSong(song.id)}>
+                      Delete
+                    </button>
                   )}
                 </td>
               </tr>
@@ -539,7 +576,9 @@ export default function AlbumDetailPublic({ user }) {
       )}
 
       {isEditing && Number(album.ratingCount) === 0 && (
-        <button className="danger" onClick={deleteAlbum}>Delete album</button>
+        <button className="danger" onClick={deleteAlbum}>
+          Delete album
+        </button>
       )}
 
       {user && followingReviews.length > 0 && (
@@ -548,7 +587,9 @@ export default function AlbumDetailPublic({ user }) {
           <ul>
             {followingReviews.map(r => (
               <li key={r.id}>
-                <Link to={`/albums/${albumId}/users/${r.username}`}>{r.username}</Link>{" "}
+                <Link to={`/albums/${albumId}/users/${r.username}`}>
+                  {r.username}
+                </Link>{" "}
                 — {Math.round(r.rating)}
               </li>
             ))}
