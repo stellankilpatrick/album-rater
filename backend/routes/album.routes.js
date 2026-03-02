@@ -4,8 +4,9 @@ import { requireAuth } from "../auth/auth.middleware.js";
 import {
   getAlbumDetailsPublic, createAlbum,
   getAllAlbumsPublic, updateAlbumTitle, updateAlbumArtist, updateAlbumCover,
-  getUserRatedAlbums, updateAlbumRatingForUser, getUserAlbumScoreSingle, getAlbumDetailsPrivate, 
-  getUserAlbumScores, updateAlbumReleaseDate, deleteUserAlbumRating
+  getUserRatedAlbums, updateAlbumRatingForUser, getUserAlbumScoreSingle, getAlbumDetailsPrivate,
+  getUserAlbumScores, updateAlbumReleaseDate, deleteUserAlbumRating,
+  getAlbumGenres, getAllGenres, addGenreToAlbum, removeGenreFromAlbum
 } from "../models/album.models.js";
 import { addSongsToAlbum } from "../models/song.models.js";
 
@@ -275,6 +276,43 @@ router.post("/new", requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to create album" });
+  }
+});
+
+// Get all available genres
+router.get("/genres/all", async (req, res) => {
+  try {
+    const genres = await getAllGenres();
+    res.json(genres);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch genres" });
+  }
+});
+
+// Add genre to album
+router.post("/:id/genres", requireAuth, async (req, res) => {
+  const { name } = req.body;
+  if (!name?.trim()) return res.status(400).json({ error: "Genre name required" });
+
+  try {
+    await addGenreToAlbum(req.params.id, name);
+    const genres = await getAlbumGenres(req.params.id);
+    res.json(genres);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to add genre" });
+  }
+});
+
+// Remove genre from album
+router.delete("/:id/genres/:genreId", requireAuth, async (req, res) => {
+  try {
+    await removeGenreFromAlbum(req.params.id, req.params.genreId);
+    const genres = await getAlbumGenres(req.params.id);
+    res.json(genres);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to remove genre" });
   }
 });
 

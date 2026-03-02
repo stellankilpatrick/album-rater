@@ -242,6 +242,13 @@ export async function getAlbumDetailsPublic(albumId) {
   const album = albumRes.rows[0];
   if (!album) return null;
 
+  const genresRes = await pool.query(
+    `SELECT g.id, g.name FROM genres g
+   JOIN album_genres ag ON ag.genre_id = g.id
+   WHERE ag.album_id = $1 ORDER BY g.name`,
+    [albumId]
+  );
+
   // Calculate album-level rating per user
   const albumScoreRes = await pool.query(
     `SELECT
@@ -284,7 +291,8 @@ export async function getAlbumDetailsPublic(albumId) {
     ...album,
     avgScore: parseFloat(albumScoreRes.rows[0].avgScore) || 0,
     ratingCount: parseInt(albumScoreRes.rows[0].ratingCount) || 0,
-    tracks
+    tracks,
+    genres: genresRes.rows
   };
 }
 
@@ -611,4 +619,58 @@ export async function deleteUserAlbumRating(userId, albumId) {
     console.error("Failed to delete album rating:", err);
     throw err;
   }
+}
+
+export async function getAlbumGenres(albumId) {
+  const res = await pool.query(
+    `SELECT g.id, g.name FROM genres g
+     JOIN album_genres ag ON ag.genre_id = g.id
+     WHERE ag.album_id = $1
+     ORDER BY g.name`,
+    [albumId]
+  );
+  return res.rows;
+}
+
+export async function getAllGenres() {
+  const res = await pool.query(`SELECT id, name FROM genres ORDER BY name`);
+  return res.rows;
+}
+
+export async function addGenreToAlbum(albumId, genreName) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // Find or create genre
+    const genreRes = await client.query(
+      `INSERT INTO genres (name) VALUES ($1)
+       ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+       RETURNING id`,
+      [genreName.trim()]
+    );
+    const genreId = genreRes.rows[0].id;
+
+    // Link to album
+    await client.query(
+      `INSERT INTO album_genres (album_id, genre_id) VALUES ($1, $2)
+       ON CONFLICT DO NOTHING`,
+      [albumId, genreId]
+    );
+
+    await client.query("COMMIT");
+    return genreId;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+export async function removeGenreFromAlbum(albumId, genreId) {
+  await pool.query(
+    `DELETE FROM album_genres WHERE album_id = $1 AND genre_id = $2`,
+    [albumId, genreId]
+  );
 }

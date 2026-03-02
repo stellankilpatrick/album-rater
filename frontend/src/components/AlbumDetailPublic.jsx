@@ -21,6 +21,11 @@ export default function AlbumDetailPublic({ user }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editingSongId, setEditingSongId] = useState(null);
 
+  const [genres, setGenres] = useState([]);
+  const [allGenres, setAllGenres] = useState([]);
+  const [genreInput, setGenreInput] = useState("");
+  const [showGenreDropdown, setShowGenreDropdown] = useState(false);
+
   const [followingReviews, setFollowingReviews] = useState([]);
 
   useEffect(() => {
@@ -29,6 +34,7 @@ export default function AlbumDetailPublic({ user }) {
         const res = await api.get(`/albums/${albumId}`);
         setAlbum(res.data);
         setSongs(res.data.tracks || []);
+        setGenres(res.data.genres || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -61,6 +67,13 @@ export default function AlbumDetailPublic({ user }) {
       .then(res => setFollowingReviews(res.data))
       .catch(err => console.error(err));
   }, [albumId, user]);
+
+  // fetch genres
+  useEffect(() => {
+    if (isEditing && allGenres.length === 0) {
+      api.get("/albums/genres/all").then(res => setAllGenres(res.data));
+    }
+  }, [isEditing]);
 
   const saveAlbumTitle = async () => {
     if (!editTitle.trim()) return;
@@ -345,6 +358,88 @@ export default function AlbumDetailPublic({ user }) {
                 )
               )}
             </h4>
+
+            {/* Genres */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center" }}>
+              {genres.map(g => (
+                <span
+                  key={g.id}
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.2)",
+                    borderRadius: "12px",
+                    padding: "2px 10px",
+                    fontSize: "0.8rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px"
+                  }}
+                >
+                  {g.name}
+                  {isEditing && (
+                    <button
+                      onClick={async () => {
+                        const res = await api.delete(`/albums/${albumId}/genres/${g.id}`);
+                        setGenres(res.data);
+                      }}
+                      style={{ background: "none", border: "none", color: "white", cursor: "pointer", padding: 0, fontSize: "0.75rem" }}
+                    >
+                      ×
+                    </button>
+                  )}
+                </span>
+              ))}
+
+              {isEditing && (
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="text"
+                    placeholder="Add genre..."
+                    value={genreInput}
+                    onChange={e => { setGenreInput(e.target.value); setShowGenreDropdown(true); }}
+                    onFocus={() => setShowGenreDropdown(true)}
+                    style={{ fontSize: "0.8rem", padding: "2px 6px", borderRadius: "8px", width: "110px" }}
+                  />
+                  {showGenreDropdown && (
+                    <div style={{
+                      position: "absolute",
+                      top: "100%",
+                      left: 0,
+                      background: "#222",
+                      border: "1px solid #444",
+                      borderRadius: "6px",
+                      zIndex: 10,
+                      maxHeight: "160px",
+                      overflowY: "auto",
+                      minWidth: "140px"
+                    }}>
+                      {[
+                        ...allGenres.filter(g =>
+                          g.name.toLowerCase().includes(genreInput.toLowerCase()) &&
+                          !genres.find(existing => existing.id === g.id)
+                        ),
+                        ...(genreInput.trim() && !allGenres.find(g => g.name.toLowerCase() === genreInput.toLowerCase())
+                          ? [{ id: "new", name: `Add "${genreInput}"` }]
+                          : [])
+                      ].map(g => (
+                        <div
+                          key={g.id}
+                          onClick={async () => {
+                            const name = g.id === "new" ? genreInput : g.name;
+                            const res = await api.post(`/albums/${albumId}/genres`, { name });
+                            setGenres(res.data);
+                            setGenreInput("");
+                            setShowGenreDropdown(false);
+                          }}
+                          style={{ padding: "6px 10px", cursor: "pointer", fontSize: "0.85rem" }}
+                        >
+                          {g.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             <p style={{ margin: 0 }}>
               Average Score: {album.avgScore?.toFixed(1) || "0.0"} |{" "}
