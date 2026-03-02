@@ -400,7 +400,12 @@ export default function AlbumDetailPublic({ user }) {
                     onBlur={() => setTimeout(() => setShowGenreDropdown(false), 300)}
                     onKeyDown={async e => {
                       if (e.key === "Enter" && genreInput.trim()) {
-                        const res = await api.post(`/albums/${albumId}/genres`, { name: genreInput.trim() });
+                        const matches = allGenres.filter(g =>
+                          g.name.toLowerCase().includes(genreInput.toLowerCase()) &&
+                          !genres.find(existing => existing.id === g.id)
+                        );
+                        const name = matches.length === 1 ? matches[0].name : genreInput.trim();
+                        const res = await api.post(`/albums/${albumId}/genres`, { name });
                         setGenres(res.data);
                         setGenreInput("");
                         setShowGenreDropdown(false);
@@ -441,6 +446,19 @@ export default function AlbumDetailPublic({ user }) {
                           </div>
                         ))
                       }
+                      {!allGenres.find(g => g.name.toLowerCase() === genreInput.toLowerCase()) && (
+                        <div
+                          onClick={async () => {
+                            const res = await api.post(`/albums/${albumId}/genres`, { name: genreInput.trim() });
+                            setGenres(res.data);
+                            setGenreInput("");
+                            setShowGenreDropdown(false);
+                          }}
+                          style={{ padding: "6px 10px", cursor: "pointer", fontSize: "0.85rem", borderTop: "1px solid #444", color: "#aaa" }}
+                        >
+                          Create "{genreInput}"
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

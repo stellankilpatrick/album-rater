@@ -643,8 +643,8 @@ export async function addGenreToAlbum(albumId, genreName) {
   try {
     await client.query("BEGIN");
 
-    const normalized = genreName.trim().charAt(0).toUpperCase() + genreName.trim().slice(1).toLowerCase();
-
+    const normalized = genreName.trim().charAt(0).toUpperCase() + genreName.trim().slice(1);
+    
     // Find or create genre
     const genreRes = await client.query(
       `INSERT INTO genres (name) VALUES ($1)
