@@ -72,24 +72,35 @@ export default function Community() {
             {anniversaryAlbums.length > 0 && (
                 <div className="anniversary">
                     <h3>Released This Week</h3>
-                    <div className="anniversary-grid">
+                    <div
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+                            gap: "16px"
+                        }}
+                    >
                         {anniversaryAlbums.map(album => (
-                            <div key={album.id} className="anniversary-card">
+                            <div
+                                key={album.id}
+                                style={{ textAlign: "center" }}
+                            >
                                 <Link to={`/albums/${album.id}/me`}>
                                     <img
                                         src={album.coverArt}
                                         alt={album.title}
-                                        style={{ maxWidth: "150px", width: "100%", height: "auto" }}
+                                        style={{
+                                            width: "100%",
+                                            aspectRatio: "1 / 1",
+                                            objectFit: "cover",
+                                            borderRadius: "6px"
+                                        }}
                                     />
                                 </Link>
-
-                                <div className="anniversary-info">
-                                    <strong>{album.title}</strong>
-                                    <div className="muted">{album.artist}</div>
-
-                                    <div className="muted">
-                                        Released this week in {album.releaseDate.slice(0, 4)}
-                                    </div>
+                                <div style={{ fontSize: "14px", fontWeight: 500 }}>
+                                    <i>{album.title}</i> ({album.releaseDate.slice(0, 4)})
+                                </div>
+                                <div style={{ fontSize: "13px", color: "#666" }}>
+                                    {album.artist}
                                 </div>
                             </div>
                         ))}

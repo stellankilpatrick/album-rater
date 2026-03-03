@@ -6,7 +6,8 @@ import {
   getAllAlbumsPublic, updateAlbumTitle, updateAlbumArtist, updateAlbumCover,
   getUserRatedAlbums, updateAlbumRatingForUser, getUserAlbumScoreSingle, getAlbumDetailsPrivate,
   getUserAlbumScores, updateAlbumReleaseDate, deleteUserAlbumRating,
-  getAlbumGenres, getAllGenres, addGenreToAlbum, removeGenreFromAlbum
+  getAlbumGenres, getAllGenres, addGenreToAlbum, removeGenreFromAlbum,
+  getAlbumGenreRank, getAlbumYearRank, getAlbumDecadeRank, getAlbumArtistRank
 } from "../models/album.models.js";
 import { addSongsToAlbum } from "../models/song.models.js";
 
@@ -490,6 +491,46 @@ router.get("/:albumId/following-reviews", requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to get following reviews" });
+  }
+});
+
+router.get("/:id/rank/genre/:genre", requireAuth, async (req, res) => {
+  try {
+    const rank = await getAlbumGenreRank(req.params.id, req.params.genre);
+    res.json({ rank });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch genre rank" });
+  }
+});
+
+router.get("/:id/rank/year", requireAuth, async (req, res) => {
+  try {
+    const rank = await getAlbumYearRank(req.params.id);
+    res.json({ rank });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch year rank" });
+  }
+});
+
+router.get("/:id/rank/decade", requireAuth, async (req, res) => {
+  try {
+    const rank = await getAlbumDecadeRank(req.params.id);
+    res.json({ rank });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch decade rank" });
+  }
+});
+
+router.get("/:id/rank/artist", requireAuth, async (req, res) => {
+  try {
+    const rank = await getAlbumArtistRank(req.params.id);
+    res.json({ rank });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch artist rank" });
   }
 });
 

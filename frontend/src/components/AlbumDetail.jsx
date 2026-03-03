@@ -14,6 +14,9 @@ export default function AlbumDetail({ user }) {
   const [album, setAlbum] = useState(null);
   const [songs, setSongs] = useState([]);
 
+  const [ranks, setRanks] = useState({});
+  const [genres, setGenres] = useState([]);
+
   /* ---------------- fetch album ------------ */
   useEffect(() => {
     if (!effectiveUsername) return;
@@ -57,6 +60,27 @@ export default function AlbumDetail({ user }) {
       console.error("Failed to delete album:", err);
     }
   }
+
+  // get genres
+  useEffect(() => {
+    if (!albumId) return;
+    api.get(`/albums/${albumId}/genres`)
+      .then(res => setGenres(res.data))
+      .catch(err => console.error(err));
+  }, [albumId]);
+
+  // fetch ranks
+  useEffect(() => {
+    if (!album) return;
+    api.get(`/albums/${albumId}/rank/year`).then(r => setRanks(p => ({ ...p, year: r.data.rank })));
+    api.get(`/albums/${albumId}/rank/decade`).then(r => setRanks(p => ({ ...p, decade: r.data.rank })));
+    api.get(`/albums/${albumId}/rank/artist`).then(r => setRanks(p => ({ ...p, artist: r.data.rank })));
+    genres.forEach(g => {
+      api.get(`/albums/${albumId}/rank/genre/${encodeURIComponent(g.name)}`)
+        .then(r => setRanks(p => ({ ...p, [`genre_${g.name}`]: r.data.rank })));
+    });
+  }, [album, genres]);
+
 
   if (!album) return <div>Loading...</div>
 
@@ -181,6 +205,34 @@ export default function AlbumDetail({ user }) {
       {/* ===== TRACKLIST + SIDEBAR ===== */}
       <div style={{ display: "flex", gap: "32px", alignItems: "flex-start", paddingLeft: "10px" }}>
 
+        {/* RANKS */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "8px" }}>
+          {ranks.year != null && (
+            <div style={{ fontSize: "13px" }}>
+              <span style={{ color: "#666" }}>Year rank: </span>
+              <strong>#{ranks.year}</strong>
+            </div>
+          )}
+          {ranks.decade != null && (
+            <div style={{ fontSize: "13px" }}>
+              <span style={{ color: "#666" }}>Decade rank: </span>
+              <strong>#{ranks.decade}</strong>
+            </div>
+          )}
+          {ranks.artist != null && (
+            <div style={{ fontSize: "13px" }}>
+              <span style={{ color: "#666" }}>Artist rank: </span>
+              <strong>#{ranks.artist}</strong>
+            </div>
+          )}
+          {(genres).map(g => ranks[`genre_${g.name}`] != null && (
+            <div key={g.name} style={{ fontSize: "13px" }}>
+              <span style={{ color: "#666" }}>{g.name} rank: </span>
+              <strong>#{ranks[`genre_${g.name}`]}</strong>
+            </div>
+          ))}
+        </div>
+
         {/* Tracklist */}
         <table style={{ borderCollapse: "collapse", flex: "0 0 auto" }}>
           <thead>
@@ -209,9 +261,9 @@ export default function AlbumDetail({ user }) {
                     }
                   >
                     <option value="">Interlude</option>
-                    <option value={0}>Skip</option>
-                    <option value={1}>Play</option>
-                    <option value={2}>Special</option>
+                    <option value={0}>- Skip</option>
+                    <option value={1}>+ Play</option>
+                    <option value={2}>++ Special</option>
                   </select>
                 </td>
               </tr>

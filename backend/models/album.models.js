@@ -644,7 +644,7 @@ export async function addGenreToAlbum(albumId, genreName) {
     await client.query("BEGIN");
 
     const normalized = genreName.trim().charAt(0).toUpperCase() + genreName.trim().slice(1);
-    
+
     // Find or create genre
     const genreRes = await client.query(
       `INSERT INTO genres (name) VALUES ($1)
@@ -676,4 +676,119 @@ export async function removeGenreFromAlbum(albumId, genreId) {
     `DELETE FROM album_genres WHERE album_id = $1 AND genre_id = $2`,
     [albumId, genreId]
   );
+}
+
+export async function getAlbumGenres(albumId) {
+  const result = await pool.query(`
+    SELECT g.id, g.name
+    FROM genres g
+    JOIN album_genres ag ON ag.genre_id = g.id
+    WHERE ag.album_id = $1
+  `, [albumId]);
+  return result.rows;
+}
+
+export async function getAlbumGenreRank(albumId, genre) {
+  const result = await pool.query(`
+    WITH scores AS (
+      SELECT
+        a.id,
+        POWER(SUM(sr.rating), 2.0) / NULLIF(COUNT(sr.song_id), 0) AS score
+      FROM albums a
+      JOIN album_genres ag ON ag.album_id = a.id
+      JOIN genres g ON g.id = ag.genre_id
+      JOIN songs s ON s.album_id = a.id
+      JOIN song_ratings sr ON sr.song_id = s.id
+      WHERE LOWER(g.name) = LOWER($1)
+      GROUP BY a.id
+    ),
+    ranked AS (
+      SELECT id, RANK() OVER (ORDER BY score DESC NULLS LAST) AS rank
+      FROM scores
+    )
+    SELECT rank FROM ranked WHERE id = $2;
+  `, [genre, albumId]);
+
+  return result.rows[0]?.rank ?? null;
+}
+
+export async function getAlbumYearRank(albumId) {
+  const result = await pool.query(`
+    WITH scores AS (
+      SELECT
+        a.id,
+        EXTRACT(YEAR FROM a.release_date) AS year,
+        POWER(SUM(sr.rating), 2.0) / NULLIF(COUNT(sr.song_id), 0) AS score
+      FROM albums a
+      JOIN songs s ON s.album_id = a.id
+      JOIN song_ratings sr ON sr.song_id = s.id
+      GROUP BY a.id
+    ),
+    ranked AS (
+      SELECT
+        id,
+        RANK() OVER (
+          PARTITION BY year
+          ORDER BY score DESC NULLS LAST
+        ) AS rank
+      FROM scores
+    )
+    SELECT rank FROM ranked WHERE id = $1;
+  `, [albumId]);
+
+  return result.rows[0]?.rank ?? null;
+}
+
+export async function getAlbumDecadeRank(albumId) {
+  const result = await pool.query(`
+    WITH scores AS (
+      SELECT
+        a.id,
+        FLOOR(EXTRACT(YEAR FROM a.release_date) / 10) * 10 AS decade,
+        POWER(SUM(sr.rating), 2.0) / NULLIF(COUNT(sr.song_id), 0) AS score
+      FROM albums a
+      JOIN songs s ON s.album_id = a.id
+      JOIN song_ratings sr ON sr.song_id = s.id
+      GROUP BY a.id
+    ),
+    ranked AS (
+      SELECT
+        id,
+        RANK() OVER (
+          PARTITION BY decade
+          ORDER BY score DESC NULLS LAST
+        ) AS rank
+      FROM scores
+    )
+    SELECT rank FROM ranked WHERE id = $1;
+  `, [albumId]);
+
+  return result.rows[0]?.rank ?? null;
+}
+
+export async function getAlbumArtistRank(albumId) {
+  const result = await pool.query(`
+    WITH scores AS (
+      SELECT
+        a.id,
+        a.artist_id,
+        POWER(SUM(sr.rating), 2.0) / NULLIF(COUNT(sr.song_id), 0) AS score
+      FROM albums a
+      JOIN songs s ON s.album_id = a.id
+      JOIN song_ratings sr ON sr.song_id = s.id
+      GROUP BY a.id
+    ),
+    ranked AS (
+      SELECT
+        id,
+        RANK() OVER (
+          PARTITION BY artist_id
+          ORDER BY score DESC NULLS LAST
+        ) AS rank
+      FROM scores
+    )
+    SELECT rank FROM ranked WHERE id = $1;
+  `, [albumId]);
+
+  return result.rows[0]?.rank ?? null;
 }

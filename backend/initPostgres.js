@@ -99,6 +99,21 @@ async function init() {
       );
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS genres (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL
+      );
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS album_genres (
+        album_id INTEGER REFERENCES albums(id) ON DELETE CASCADE,
+        genre_id INTEGER REFERENCES genres(id) ON DELETE CASCADE,
+        PRIMARY KEY (album_id, genre_id)
+      );
+    `);
+
     // Indexes
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_song_ratings_song ON song_ratings(song_id);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_album_ratings_album ON album_ratings(album_id);`);
@@ -106,6 +121,8 @@ async function init() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_song_ratings_user_updated ON song_ratings(user_id, updated_at DESC);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_follows_follower ON follows(follower_id);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_follows_following ON follows(following_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_album_genres_album ON album_genres(album_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_album_genres_genre ON album_genres(genre_id);`);
 
     console.log("Postgres database initialized successfully!");
     process.exit();
