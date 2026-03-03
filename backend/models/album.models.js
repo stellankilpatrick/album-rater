@@ -678,16 +678,6 @@ export async function removeGenreFromAlbum(albumId, genreId) {
   );
 }
 
-export async function getAlbumGenres(albumId) {
-  const result = await pool.query(`
-    SELECT g.id, g.name
-    FROM genres g
-    JOIN album_genres ag ON ag.genre_id = g.id
-    WHERE ag.album_id = $1
-  `, [albumId]);
-  return result.rows;
-}
-
 export async function getAlbumGenreRank(albumId, genre) {
   const result = await pool.query(`
     WITH scores AS (
