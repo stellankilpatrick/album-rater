@@ -290,6 +290,16 @@ router.get("/genres/all", async (req, res) => {
   }
 });
 
+router.get("/:id/genres", requireAuth, async (req, res) => {
+  try {
+    const genres = await getAlbumGenres(req.params.id);
+    res.json(genres);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch genres" });
+  }
+});
+
 // Add genre to album
 router.post("/:id/genres", requireAuth, async (req, res) => {
   const { name } = req.body;
