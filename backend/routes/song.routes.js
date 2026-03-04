@@ -162,7 +162,7 @@ router.delete("/:songId", requireAuth, async (req, res) => {
 });
 
 // update song comment
-router.patch("/songs/:songId/comment", requireAuth, async (req, res) => {
+router.patch("/:songId/comment", requireAuth, async (req, res) => {
   try {
     const { comment } = req.body;
     const result = await updateSongComment(req.user.id, req.params.songId, comment);
