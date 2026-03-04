@@ -17,6 +17,8 @@ export default function AlbumDetail({ user }) {
   const [ranks, setRanks] = useState({});
   const [genres, setGenres] = useState([]);
 
+  const [focusedSongId, setFocusedSongId] = useState(null);
+
   const ordinal = n => {
     const s = ["th", "st", "nd", "rd"];
     const v = n % 100;
@@ -261,12 +263,13 @@ export default function AlbumDetail({ user }) {
                         type="text"
                         value={song.comment ?? ""}
                         onChange={e => handleCommentChange(song.id, e.target.value)}
-                        onBlur={e => handleCommentBlur(song.id, e.target.value)}
+                        onBlur={e => { handleCommentBlur(song.id, e.target.value); setFocusedSongId(null); }}
+                        onFocus={() => setFocusedSongId(song.id)}
                         placeholder="Add a note..."
                         maxLength={75}
                         style={{ border: "none", background: "transparent", width: "100%" }}
                       />
-                      {song.comment?.length > 0 && (
+                      {focusedSongId === song.id && song.comment?.length > 0 && (
                         <span style={{ fontSize: "11px", color: song.comment?.length >= 75 ? "red" : "#999" }}>
                           {song.comment?.length}/75
                         </span>
@@ -284,6 +287,12 @@ export default function AlbumDetail({ user }) {
         {/* RANKS */}
         <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px", marginTop: "4px" }}>
           <h3 style={{ margin: 0 }}>Ranks</h3>
+          {ranks.overall?.rank != null && (
+            <div style={{ fontSize: "13px" }}>
+              <strong style={{ fontSize: "18px" }}>{ordinal(ranks.overall.rank)} </strong>
+              <span style={{ color: "#666" }}>of {ranks.overall.total} <strong style={{ fontSize: "15px" }}>overall</strong> albums</span>
+            </div>
+          )}
           {ranks.year?.rank != null && (
             <div style={{ fontSize: "13px" }}>
               <strong style={{ fontSize: "18px" }}>{ordinal(ranks.year.rank)} </strong>

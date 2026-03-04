@@ -7,7 +7,7 @@ import {
   getUserRatedAlbums, updateAlbumRatingForUser, getUserAlbumScoreSingle, getAlbumDetailsPrivate,
   getUserAlbumScores, updateAlbumReleaseDate, deleteUserAlbumRating,
   getAlbumGenres, getAllGenres, addGenreToAlbum, removeGenreFromAlbum,
-  getAlbumGenreRank, getAlbumYearRank, getAlbumDecadeRank, getAlbumArtistRank
+  getAlbumGenreRank, getAlbumYearRank, getAlbumDecadeRank, getAlbumArtistRank, getAlbumOverallRank
 } from "../models/album.models.js";
 import { addSongsToAlbum } from "../models/song.models.js";
 
@@ -541,6 +541,16 @@ router.get("/:id/rank/artist/users/:username", requireAuth, async (req, res) => 
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch artist rank" });
+  }
+});
+
+router.get("/:id/rank/overall/users/:username", requireAuth, async (req, res) => {
+  try {
+    const result = await getAlbumOverallRank(req.params.id, req.profileUser.id);
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch overall rank" });
   }
 });
 

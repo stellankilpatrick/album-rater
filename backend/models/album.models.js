@@ -778,3 +778,25 @@ export async function getAlbumArtistRank(albumId, userId) {
 
   return { rank: result.rows[0]?.rank ?? null, total: result.rows[0]?.total ?? null };
 }
+
+export async function getAlbumOverallRank(albumId, userId) {
+  const result = await pool.query(`
+    WITH scores AS (
+      SELECT
+        a.id,
+        POWER(SUM(sr.rating), 2.0) / NULLIF(COUNT(sr.song_id), 0) AS score
+      FROM albums a
+      JOIN songs s ON s.album_id = a.id
+      JOIN song_ratings sr ON sr.song_id = s.id
+      WHERE sr.user_id = $2
+      GROUP BY a.id
+    ),
+    ranked AS (
+      SELECT id, RANK() OVER (ORDER BY score DESC NULLS LAST) AS rank, COUNT(*) OVER () AS total
+      FROM scores
+    )
+    SELECT rank, total FROM ranked WHERE id = $1;
+  `, [albumId, userId]);
+
+  return { rank: result.rows[0]?.rank ?? null, total: result.rows[0]?.total ?? null };
+}
