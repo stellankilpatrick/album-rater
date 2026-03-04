@@ -78,11 +78,11 @@ export default function AlbumDetail({ user }) {
   // fetch ranks
   useEffect(() => {
     if (!album) return;
-    api.get(`/albums/${albumId}/rank/year`).then(r => setRanks(p => ({ ...p, year: r.data })));
-    api.get(`/albums/${albumId}/rank/decade`).then(r => setRanks(p => ({ ...p, decade: r.data })));
-    api.get(`/albums/${albumId}/rank/artist`).then(r => setRanks(p => ({ ...p, artist: r.data })));
+    api.get(`/albums/${albumId}/rank/year/users/${effectiveUsername}`).then(r => setRanks(p => ({ ...p, year: r.data })));
+    api.get(`/albums/${albumId}/rank/decade/users/${effectiveUsername}`).then(r => setRanks(p => ({ ...p, decade: r.data })));
+    api.get(`/albums/${albumId}/rank/artist/users/${effectiveUsername}`).then(r => setRanks(p => ({ ...p, artist: r.data })));
     genres.forEach(g => {
-      api.get(`/albums/${albumId}/rank/genre/${encodeURIComponent(g.name)}`)
+      api.get(`/albums/${albumId}/rank/genre/${encodeURIComponent(g.name)}/users/${effectiveUsername}`)
         .then(r => setRanks(p => ({ ...p, [`genre_${g.name}`]: r.data })));
     });
   }, [album, genres]);
@@ -254,26 +254,26 @@ export default function AlbumDetail({ user }) {
           <h3 style={{ margin: 0 }}>Ranks</h3>
           {ranks.year?.rank != null && (
             <div style={{ fontSize: "13px" }}>
-              <strong>{ordinal(ranks.year.rank)} of {ranks.year.total} </strong>
-              <span style={{ color: "#666" }}>{album.releaseDate?.slice(0, 4)} albums</span>
+              <strong style={{ fontSize: "18px" }}>{ordinal(ranks.year.rank)} </strong>
+              <span style={{ color: "#666" }}>of {ranks.year.total} <strong style={{ fontSize: "15px" }}>{album.releaseDate?.slice(0, 4)}</strong> albums</span>
             </div>
           )}
           {ranks.decade?.rank != null && (
             <div style={{ fontSize: "13px" }}>
-              <strong>{ordinal(ranks.decade.rank)} of {ranks.decade.total} </strong>
-              <span style={{ color: "#666" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s albums</span>
+              <strong style={{ fontSize: "18px" }}>{ordinal(ranks.decade.rank)} </strong>
+              <span style={{ color: "#666" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> albums</span>
             </div>
           )}
           {ranks.artist?.rank != null && (
             <div style={{ fontSize: "13px" }}>
-              <strong>{ordinal(ranks.artist.rank)} of {ranks.artist.total} </strong>
-              <span style={{ color: "#666" }}>{album.artist} albums</span>
+              <strong style={{ fontSize: "18px" }}>{ordinal(ranks.artist.rank)} </strong>
+              <span style={{ color: "#666" }}>of {ranks.artist.total} <strong style={{ fontSize: "15px" }}>{album.artist}</strong> albums</span>
             </div>
           )}
           {genres.map(g => ranks[`genre_${g.name}`]?.rank != null && (
             <div key={g.name} style={{ fontSize: "13px" }}>
-              <strong>{ordinal(ranks[`genre_${g.name}`].rank)} of {ranks[`genre_${g.name}`].total} </strong>
-              <span style={{ color: "#666" }}>{g.name} albums</span>
+              <strong style={{ fontSize: "18px" }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
+              <span style={{ color: "#666" }}>of {ranks[`genre_${g.name}`].total} <strong style={{ fontSize: "15px" }}>{g.name}</strong> albums</span>
             </div>
           ))}
         </div>

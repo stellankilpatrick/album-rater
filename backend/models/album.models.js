@@ -678,7 +678,7 @@ export async function removeGenreFromAlbum(albumId, genreId) {
   );
 }
 
-export async function getAlbumGenreRank(albumId, genre) {
+export async function getAlbumGenreRank(albumId, genre, userId) {
   const result = await pool.query(`
     WITH scores AS (
       SELECT
@@ -689,7 +689,7 @@ export async function getAlbumGenreRank(albumId, genre) {
       JOIN genres g ON g.id = ag.genre_id
       JOIN songs s ON s.album_id = a.id
       JOIN song_ratings sr ON sr.song_id = s.id
-      WHERE LOWER(g.name) = LOWER($1)
+      WHERE LOWER(g.name) = LOWER($1) AND sr.user_id = $3
       GROUP BY a.id
     ),
     ranked AS (
@@ -697,12 +697,12 @@ export async function getAlbumGenreRank(albumId, genre) {
       FROM scores
     )
     SELECT rank, total FROM ranked WHERE id = $2;
-  `, [genre, albumId]);
+  `, [genre, albumId, userId]);
 
   return { rank: result.rows[0]?.rank ?? null, total: result.rows[0]?.total ?? null };
 }
 
-export async function getAlbumYearRank(albumId) {
+export async function getAlbumYearRank(albumId, userId) {
   const result = await pool.query(`
     WITH scores AS (
       SELECT
@@ -712,6 +712,7 @@ export async function getAlbumYearRank(albumId) {
       FROM albums a
       JOIN songs s ON s.album_id = a.id
       JOIN song_ratings sr ON sr.song_id = s.id
+      WHERE sr.user_id = $2
       GROUP BY a.id
     ),
     ranked AS (
@@ -722,12 +723,12 @@ export async function getAlbumYearRank(albumId) {
       FROM scores
     )
     SELECT rank, total FROM ranked WHERE id = $1;
-  `, [albumId]);
+  `, [albumId, userId]);
 
   return { rank: result.rows[0]?.rank ?? null, total: result.rows[0]?.total ?? null };
 }
 
-export async function getAlbumDecadeRank(albumId) {
+export async function getAlbumDecadeRank(albumId, userId) {
   const result = await pool.query(`
     WITH scores AS (
       SELECT
@@ -737,6 +738,7 @@ export async function getAlbumDecadeRank(albumId) {
       FROM albums a
       JOIN songs s ON s.album_id = a.id
       JOIN song_ratings sr ON sr.song_id = s.id
+      WHERE sr.user_id = $2
       GROUP BY a.id
     ),
     ranked AS (
@@ -747,12 +749,12 @@ export async function getAlbumDecadeRank(albumId) {
       FROM scores
     )
     SELECT rank, total FROM ranked WHERE id = $1;
-  `, [albumId]);
+  `, [albumId, userId]);
 
   return { rank: result.rows[0]?.rank ?? null, total: result.rows[0]?.total ?? null };
 }
 
-export async function getAlbumArtistRank(albumId) {
+export async function getAlbumArtistRank(albumId, userId) {
   const result = await pool.query(`
     WITH scores AS (
       SELECT
@@ -762,6 +764,7 @@ export async function getAlbumArtistRank(albumId) {
       FROM albums a
       JOIN songs s ON s.album_id = a.id
       JOIN song_ratings sr ON sr.song_id = s.id
+      WHERE sr.user_id = $2
       GROUP BY a.id
     ),
     ranked AS (
@@ -772,7 +775,7 @@ export async function getAlbumArtistRank(albumId) {
       FROM scores
     )
     SELECT rank, total FROM ranked WHERE id = $1;
-  `, [albumId]);
+  `, [albumId, userId]);
 
   return { rank: result.rows[0]?.rank ?? null, total: result.rows[0]?.total ?? null };
 }
