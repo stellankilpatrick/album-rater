@@ -506,7 +506,7 @@ router.get("/:albumId/following-reviews", requireAuth, async (req, res) => {
 
 router.get("/:id/rank/genre/:genre", requireAuth, async (req, res) => {
   try {
-    const rank = await getAlbumGenreRank(req.params.id, req.params.genre);
+    const result = await getAlbumGenreRank(req.params.id, req.params.genre);
     res.json(result);
   } catch (err) {
     console.error(err);
@@ -516,7 +516,7 @@ router.get("/:id/rank/genre/:genre", requireAuth, async (req, res) => {
 
 router.get("/:id/rank/year", requireAuth, async (req, res) => {
   try {
-    const rank = await getAlbumYearRank(req.params.id);
+    const result = await getAlbumYearRank(req.params.id);
     res.json(result);
   } catch (err) {
     console.error(err);
@@ -526,7 +526,7 @@ router.get("/:id/rank/year", requireAuth, async (req, res) => {
 
 router.get("/:id/rank/decade", requireAuth, async (req, res) => {
   try {
-    const rank = await getAlbumDecadeRank(req.params.id);
+    const result = await getAlbumDecadeRank(req.params.id);
     res.json(result);
   } catch (err) {
     console.error(err);
@@ -536,7 +536,7 @@ router.get("/:id/rank/decade", requireAuth, async (req, res) => {
 
 router.get("/:id/rank/artist", requireAuth, async (req, res) => {
   try {
-    const rank = await getAlbumArtistRank(req.params.id);
+    const result = await getAlbumArtistRank(req.params.id);
     res.json(result);
   } catch (err) {
     console.error(err);

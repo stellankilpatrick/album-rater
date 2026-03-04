@@ -252,27 +252,27 @@ export default function AlbumDetail({ user }) {
         {/* RANKS */}
         <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px", marginTop: "4px" }}>
           <h3 style={{ margin: 0 }}>Ranks</h3>
-          {ranks.year != null && (
+          {ranks.year?.rank != null && (
             <div style={{ fontSize: "13px" }}>
-              <strong>{ordinal(ranks.year)} </strong>
+              <strong>{ordinal(ranks.year.rank)} of {ranks.year.total} </strong>
               <span style={{ color: "#666" }}>{album.releaseDate?.slice(0, 4)} albums</span>
             </div>
           )}
-          {ranks.decade != null && (
+          {ranks.decade?.rank != null && (
             <div style={{ fontSize: "13px" }}>
-              <strong>{ordinal(ranks.decade)} </strong>
+              <strong>{ordinal(ranks.decade.rank)} of {ranks.decade.total} </strong>
               <span style={{ color: "#666" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s albums</span>
             </div>
           )}
-          {ranks.artist != null && (
+          {ranks.artist?.rank != null && (
             <div style={{ fontSize: "13px" }}>
-              <strong>{ordinal(ranks.artist)} </strong>
+              <strong>{ordinal(ranks.artist.rank)} of {ranks.artist.total} </strong>
               <span style={{ color: "#666" }}>{album.artist} albums</span>
             </div>
           )}
-          {(genres).map(g => ranks[`genre_${g.name}`] != null && (
+          {genres.map(g => ranks[`genre_${g.name}`]?.rank != null && (
             <div key={g.name} style={{ fontSize: "13px" }}>
-              <strong>{ordinal(ranks[`genre_${g.name}`])} </strong>
+              <strong>{ordinal(ranks[`genre_${g.name}`].rank)} of {ranks[`genre_${g.name}`].total} </strong>
               <span style={{ color: "#666" }}>{g.name} albums</span>
             </div>
           ))}
