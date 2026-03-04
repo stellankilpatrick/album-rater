@@ -2,7 +2,7 @@ import express from "express";
 import pool from "../db/database.js";
 import { requireAuth } from "../auth/auth.middleware.js";
 import { getAlbumById } from "../models/album.models.js";
-import {updateSongComment} from "../models/song.routes.js";
+import { updateSongComment } from "../models/song.models.js";
 
 const router = express.Router();
 
