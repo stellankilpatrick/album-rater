@@ -89,6 +89,7 @@ export default function AlbumDetail({ user }) {
   // fetch ranks
   useEffect(() => {
     if (!album) return;
+    api.get(`/albums/${albumId}/rank/overall/users/${effectiveUsername}`).then(r => setRanks(p => ({ ...p, overall: r.data })));
     api.get(`/albums/${albumId}/rank/year/users/${effectiveUsername}`).then(r => setRanks(p => ({ ...p, year: r.data })));
     api.get(`/albums/${albumId}/rank/decade/users/${effectiveUsername}`).then(r => setRanks(p => ({ ...p, decade: r.data })));
     api.get(`/albums/${albumId}/rank/artist/users/${effectiveUsername}`).then(r => setRanks(p => ({ ...p, artist: r.data })));
@@ -213,7 +214,14 @@ export default function AlbumDetail({ user }) {
             </h4>
 
             {album.score10 != null && (
-              <h1 style={{ margin: 0, fontSize: "3.5rem" }}>{album.score10.toFixed(1)}</h1>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
+                <h1 style={{ margin: 0, fontSize: "3.5rem" }}>{album.score10.toFixed(1)}</h1>
+                {ranks.overall?.rank != null && (
+                  <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "14px" }}>
+                    <strong style={{ fontSize: "25px" }}>{ordinal(ranks.overall.rank)}</strong> of {ranks.overall.total} albums
+                  </span>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -287,12 +295,6 @@ export default function AlbumDetail({ user }) {
         {/* RANKS */}
         <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px", marginTop: "4px" }}>
           <h3 style={{ margin: 0 }}>Ranks</h3>
-          {ranks.overall?.rank != null && (
-            <div style={{ fontSize: "13px" }}>
-              <strong style={{ fontSize: "18px" }}>{ordinal(ranks.overall.rank)} </strong>
-              <span style={{ color: "#666" }}>of {ranks.overall.total} <strong style={{ fontSize: "15px" }}>overall</strong> albums</span>
-            </div>
-          )}
           {ranks.year?.rank != null && (
             <div style={{ fontSize: "13px" }}>
               <strong style={{ fontSize: "18px" }}>{ordinal(ranks.year.rank)} </strong>
