@@ -161,4 +161,16 @@ router.delete("/:songId", requireAuth, async (req, res) => {
   }
 });
 
+// update song comment
+router.patch("/songs/:songId/comment", requireAuth, async (req, res) => {
+  try {
+    const { comment } = req.body;
+    const result = await updateSongComment(req.user.id, req.params.songId, comment);
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update comment" });
+  }
+});
+
 export default router;

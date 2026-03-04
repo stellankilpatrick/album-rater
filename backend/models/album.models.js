@@ -423,19 +423,18 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
   if (!album) return null;
 
   const tracksRes = await pool.query(
-    `
-    SELECT
+    `SELECT
       s.id, s.track_number AS num, s.title,
       ROUND(AVG(sr.rating)::numeric,2) AS "avgScore",
-      ur.rating AS rating
+      ur.rating AS rating,
+      ur.comment AS comment
     FROM songs s
     LEFT JOIN song_ratings sr ON sr.song_id = s.id
     LEFT JOIN song_ratings ur
       ON ur.song_id = s.id AND ur.user_id = $1
     WHERE s.album_id = $2
-    GROUP BY s.id, ur.rating
-    ORDER BY s.track_number ASC
-    `,
+    GROUP BY s.id, ur.rating, ur.comment
+    ORDER BY s.track_number ASC`,
     [userId, albumId]
   );
 

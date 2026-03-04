@@ -67,6 +67,15 @@ export default function AlbumDetail({ user }) {
     }
   }
 
+  const handleCommentChange = (songId, comment) => {
+    setSongs(prev => prev.map(s => s.id === songId ? { ...s, comment } : s));
+  };
+
+  const handleCommentBlur = (songId, comment) => {
+    api.patch(`/songs/${songId}/comment`, { comment })
+      .catch(err => console.error("Failed to update comment:", err));
+  };
+
   // get genres
   useEffect(() => {
     if (!albumId) return;
@@ -218,6 +227,7 @@ export default function AlbumDetail({ user }) {
               <th style={{ textAlign: "left", paddingRight: "12px", width: "30px" }}>#</th>
               <th style={{ textAlign: "left", paddingRight: "12px" }}>Title</th>
               <th style={{ textAlign: "left" }}>Rating</th>
+              <th style={{ textAlign: "left" }}>Comment</th>
             </tr>
           </thead>
           <tbody>
@@ -225,7 +235,7 @@ export default function AlbumDetail({ user }) {
               <tr key={song.id}>
                 <td style={{ paddingRight: "12px", width: "30px" }}>{song.num}</td>
                 <td style={{ paddingRight: "12px" }}>{song.title}</td>
-                <td>
+                <td style={{ paddingRight: "24px" }}>
                   <select
                     value={song.localRating ?? ""}
                     disabled={!isOwner}
@@ -243,6 +253,28 @@ export default function AlbumDetail({ user }) {
                     <option value={1}>+ Play</option>
                     <option value={2}>++ Special</option>
                   </select>
+                </td>
+                <td>
+                  {isOwner ? (
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      <input
+                        type="text"
+                        value={song.comment ?? ""}
+                        onChange={e => handleCommentChange(song.id, e.target.value)}
+                        onBlur={e => handleCommentBlur(song.id, e.target.value)}
+                        placeholder="Add a note..."
+                        maxLength={75}
+                        style={{ border: "none", background: "transparent", width: "100%" }}
+                      />
+                      {song.comment?.length > 0 && (
+                        <span style={{ fontSize: "11px", color: song.comment?.length >= 75 ? "red" : "#999" }}>
+                          {song.comment?.length}/75
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span style={{ color: "#666", fontSize: "13px" }}>{song.comment ?? ""}</span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -304,6 +336,6 @@ export default function AlbumDetail({ user }) {
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 }

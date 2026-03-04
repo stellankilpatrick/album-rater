@@ -118,3 +118,18 @@ export async function updateSong(songId, data) {
 export async function deleteSong(songId) {
   await pool.query("DELETE FROM songs WHERE id = $1", [songId]);
 }
+
+// update song comment
+export async function updateSongComment(userId, songId, comment) {
+  if (comment && comment.length > 75) {
+    throw new Error("Comment exceeds 75 character limit");
+  }
+  const result = await pool.query(`
+    INSERT INTO song_ratings (user_id, song_id, comment, updated_at)
+    VALUES ($1, $2, $3, NOW())
+    ON CONFLICT (user_id, song_id)
+    DO UPDATE SET comment = EXCLUDED.comment, updated_at = NOW()
+    RETURNING *
+  `, [userId, songId, comment]);
+  return result.rows[0];
+}
