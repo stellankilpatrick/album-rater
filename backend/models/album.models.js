@@ -801,12 +801,11 @@ export async function getAlbumOverallRank(albumId, userId) {
 }
 
 export async function updateAlbumReview(userId, albumId, review) {
-  if (review && review.length > 500) throw new Error("Review exceeds 500 character limit");
+  if (review && review.length > 1000) throw new Error("Review exceeds 1000 character limit");
   const result = await pool.query(`
-    INSERT INTO album_ratings (user_id, album_id, review, updated_at)
-    VALUES ($1, $2, $3, NOW())
-    ON CONFLICT (user_id, album_id)
-    DO UPDATE SET review = EXCLUDED.review, updated_at = NOW()
+    UPDATE album_ratings
+    SET review = $3, updated_at = NOW()
+    WHERE user_id = $1 AND album_id = $2
     RETURNING *
   `, [userId, albumId, review]);
   return result.rows[0];
