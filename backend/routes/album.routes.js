@@ -376,7 +376,8 @@ router.get("/:id/users/:username", requireAuth, async (req, res) => {
       id: t.id,
       num: t.num,
       title: t.title,
-      localRating: t.rating
+      localRating: t.rating,
+      comment: t.comment
     }));
 
     delete album.tracks;
