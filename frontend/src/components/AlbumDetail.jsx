@@ -19,6 +19,9 @@ export default function AlbumDetail({ user }) {
 
   const [focusedSongId, setFocusedSongId] = useState(null);
 
+  const [review, setReview] = useState("");
+  const [reviewFocused, setReviewFocused] = useState(false);
+
   const ordinal = n => {
     const s = ["th", "st", "nd", "rd"];
     const v = n % 100;
@@ -41,6 +44,12 @@ export default function AlbumDetail({ user }) {
     setAlbum(null);
     setSongs([]);
   }, [albumId]);
+
+  // set review when album loads
+  useEffect(() => {
+    if (album?.review) setReview(album.review);
+  }, [album]);
+
 
   // update song rating
   const handleRatingChange = (songId, newRating) => {
@@ -78,6 +87,12 @@ export default function AlbumDetail({ user }) {
       .catch(err => console.error("Failed to update comment:", err));
   };
 
+  const handleReviewBlur = () => {
+    setReviewFocused(false);
+    api.patch(`/albums/${albumId}/review/users/${effectiveUsername}`, { review })
+      .catch(err => console.error("Failed to update review:", err));
+  };
+
   // get genres
   useEffect(() => {
     if (!albumId) return;
@@ -111,6 +126,8 @@ export default function AlbumDetail({ user }) {
       <div
         style={{
           position: "relative",
+          zIndex: 2,
+          display: "flex",
           overflow: "hidden",
           marginBottom: "20px",
           width: "100vw",
@@ -193,7 +210,7 @@ export default function AlbumDetail({ user }) {
             </div>
           )}
 
-          {/* RIGHT: text — tighter spacing */}
+          {/* MIDDLE: text — tighter spacing */}
           <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
             <h1 style={{ margin: 0 }}><i>{album.title}</i></h1>
 
@@ -224,6 +241,46 @@ export default function AlbumDetail({ user }) {
               </div>
             )}
           </div>
+        </div>
+
+        {/* RIGHT: review */}
+        <div style={{ marginLeft: "auto", flexShrink: 0, width: "500px", display: "flex", flexDirection: "column", gap: "4px", zIndex: 3 }}>
+          <strong style={{ color: "white", fontSize: "20px", marginTop: "20px" }}>Review</strong>
+          {isOwner ? (
+            <>
+              <textarea
+                value={review}
+                onChange={e => setReview(e.target.value)}
+                onFocus={() => setReviewFocused(true)}
+                onBlur={handleReviewBlur}
+                placeholder="Write a review..."
+                maxLength={500}
+                style={{
+                  background: "rgba(0,0,0,0.2)",
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  borderRadius: "8px",
+                  color: "white",
+                  padding: "8px",
+                  resize: "none",
+                  width: "400px",
+                  height: "150px",
+                  fontSize: "13px",
+                  marginRight: "25px"
+                }}
+              />
+              {reviewFocused && (
+                <span style={{ fontSize: "11px", color: review.length >= 500 ? "red" : "rgba(255,255,255,0.6)" }}>
+                  {review.length}/500
+                </span>
+              )}
+            </>
+          ) : (
+            album?.review && (
+              <p style={{ margin: 0, fontSize: "13px", color: "rgba(255,255,255,0.85)", fontStyle: "italic" }}>
+                "{album.review}"
+              </p>
+            )
+          )}
         </div>
       </div>
 

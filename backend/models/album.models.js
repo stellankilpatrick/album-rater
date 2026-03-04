@@ -400,8 +400,7 @@ export async function getUserRatedAlbums(userId) {
  */
 export async function getAlbumDetailsPrivate(albumId, userId) {
   const albumRes = await pool.query(
-    `
-    SELECT
+    `SELECT
       a.id, 
       a.title, 
       a.release_date AS "releaseDate", 
@@ -409,13 +408,13 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
       ar.id AS "artistId", 
       ar.name AS artist,
       alr.rating AS "userRating", 
-      alr.rated_songs
+      alr.rated_songs,
+      alr.review AS review
     FROM albums a
     JOIN artists ar ON a.artist_id = ar.id
     LEFT JOIN album_ratings alr
       ON alr.album_id = a.id AND alr.user_id = $1
-    WHERE a.id = $2
-    `,
+    WHERE a.id = $2`,
     [userId, albumId]
   );
 
@@ -799,4 +798,16 @@ export async function getAlbumOverallRank(albumId, userId) {
   `, [albumId, userId]);
 
   return { rank: result.rows[0]?.rank ?? null, total: result.rows[0]?.total ?? null };
+}
+
+export async function updateAlbumReview(userId, albumId, review) {
+  if (review && review.length > 500) throw new Error("Review exceeds 500 character limit");
+  const result = await pool.query(`
+    INSERT INTO album_ratings (user_id, album_id, review, updated_at)
+    VALUES ($1, $2, $3, NOW())
+    ON CONFLICT (user_id, album_id)
+    DO UPDATE SET review = EXCLUDED.review, updated_at = NOW()
+    RETURNING *
+  `, [userId, albumId, review]);
+  return result.rows[0];
 }

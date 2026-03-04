@@ -7,7 +7,8 @@ import {
   getUserRatedAlbums, updateAlbumRatingForUser, getUserAlbumScoreSingle, getAlbumDetailsPrivate,
   getUserAlbumScores, updateAlbumReleaseDate, deleteUserAlbumRating,
   getAlbumGenres, getAllGenres, addGenreToAlbum, removeGenreFromAlbum,
-  getAlbumGenreRank, getAlbumYearRank, getAlbumDecadeRank, getAlbumArtistRank, getAlbumOverallRank
+  getAlbumGenreRank, getAlbumYearRank, getAlbumDecadeRank, getAlbumArtistRank, 
+  getAlbumOverallRank, updateAlbumReview
 } from "../models/album.models.js";
 import { addSongsToAlbum } from "../models/song.models.js";
 
@@ -552,6 +553,21 @@ router.get("/:id/rank/overall/users/:username", requireAuth, async (req, res) =>
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch overall rank" });
+  }
+});
+
+// album review
+router.patch("/:id/review/users/:username", requireAuth, async (req, res) => {
+  try {
+    if (req.user.username !== req.params.username) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    const { review } = req.body;
+    const result = await updateAlbumReview(req.user.id, req.params.id, review);
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update review" });
   }
 });
 
