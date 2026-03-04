@@ -264,7 +264,7 @@ export default function AlbumDetail({ user }) {
                     <option value={2}>++ Special</option>
                   </select>
                 </td>
-                <td>
+                <td style={{ wordBreak: "break-word" }}>
                   {isOwner ? (
                     <div style={{ display: "flex", flexDirection: "column" }}>
                       <input
@@ -275,7 +275,7 @@ export default function AlbumDetail({ user }) {
                         onFocus={() => setFocusedSongId(song.id)}
                         placeholder="Add a note..."
                         maxLength={75}
-                        style={{ border: "none", background: "transparent", width: "100%" }}
+                        style={{ border: "none", background: "transparent", width: "520px" }}
                       />
                       {focusedSongId === song.id && song.comment?.length > 0 && (
                         <span style={{ fontSize: "11px", color: song.comment?.length >= 75 ? "red" : "#999" }}>
@@ -293,7 +293,7 @@ export default function AlbumDetail({ user }) {
         </table>
 
         {/* RANKS */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px", marginTop: "4px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px", marginTop: "4px", flexShrink: 0 }}>
           <h3 style={{ margin: 0 }}>Ranks</h3>
           {ranks.year?.rank != null && (
             <div style={{ fontSize: "13px" }}>
@@ -322,7 +322,7 @@ export default function AlbumDetail({ user }) {
         </div>
 
         {/* Sidebar: links + delete */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px", marginTop: "4px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px", marginTop: "4px", flexShrink: 0 }}>
           <Link to={`/albums/${album.id}`} style={{ textDecoration: "none" }}>
             All ratings of {album.title}
           </Link>
