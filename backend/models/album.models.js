@@ -577,16 +577,14 @@ export async function updateAlbumRatingForUser(userId, albumId) {
     } else {
       // Upsert into album_ratings
       await client.query(
-        `
-        INSERT INTO album_ratings (user_id, album_id, rating, non_skips, rated_songs, updated_at)
+        `INSERT INTO album_ratings (user_id, album_id, rating, non_skips, rated_songs, updated_at)
         VALUES ($1, $2, $3, $4, $5, NOW())
         ON CONFLICT (user_id, album_id)
         DO UPDATE SET 
           rating = EXCLUDED.rating,
           non_skips = EXCLUDED.non_skips,
           rated_songs = EXCLUDED.rated_songs,
-          updated_at = NOW()
-        `,
+          updated_at = NOW()`,
         [userId, albumId, totalRating, nonSkips, ratedSongs]
       );
     }

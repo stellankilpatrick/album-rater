@@ -93,7 +93,7 @@ router.post("/:id/rate", requireAuth, async (req, res) => {
       }
 
       // Keep album_ratings in sync
-      await updateAlbumRatingForUser(req.user.id, req.params.id);
+      await updateAlbumRatingForUser(req.user.id, Number(req.params.id));
 
       await client.query("COMMIT");
     } catch (err) {
@@ -423,7 +423,7 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
       }
 
       // update album_ratings table
-      await updateAlbumRatingForUser(req.user.id, req.params.id);
+      await updateAlbumRatingForUser(req.user.id, Number(req.params.id));
 
       await client.query("COMMIT");
     } catch (err) {
