@@ -693,13 +693,13 @@ export async function getAlbumGenreRank(albumId, genre) {
       GROUP BY a.id
     ),
     ranked AS (
-      SELECT id, RANK() OVER (ORDER BY score DESC NULLS LAST) AS rank
+      SELECT id, RANK() OVER (ORDER BY score DESC NULLS LAST) AS rank, COUNT(*) OVER () AS total
       FROM scores
     )
-    SELECT rank FROM ranked WHERE id = $2;
+    SELECT rank, total FROM ranked WHERE id = $2;
   `, [genre, albumId]);
 
-  return result.rows[0]?.rank ?? null;
+  return { rank: result.rows[0]?.rank ?? null, total: result.rows[0]?.total ?? null };
 }
 
 export async function getAlbumYearRank(albumId) {
@@ -717,16 +717,14 @@ export async function getAlbumYearRank(albumId) {
     ranked AS (
       SELECT
         id,
-        RANK() OVER (
-          PARTITION BY year
-          ORDER BY score DESC NULLS LAST
-        ) AS rank
+        RANK() OVER (PARTITION BY year ORDER BY score DESC NULLS LAST) AS rank,
+        COUNT(*) OVER (PARTITION BY year) AS total
       FROM scores
     )
-    SELECT rank FROM ranked WHERE id = $1;
+    SELECT rank, total FROM ranked WHERE id = $1;
   `, [albumId]);
 
-  return result.rows[0]?.rank ?? null;
+  return { rank: result.rows[0]?.rank ?? null, total: result.rows[0]?.total ?? null };
 }
 
 export async function getAlbumDecadeRank(albumId) {
@@ -744,16 +742,14 @@ export async function getAlbumDecadeRank(albumId) {
     ranked AS (
       SELECT
         id,
-        RANK() OVER (
-          PARTITION BY decade
-          ORDER BY score DESC NULLS LAST
-        ) AS rank
+        RANK() OVER (PARTITION BY decade ORDER BY score DESC NULLS LAST) AS rank,
+        COUNT(*) OVER (PARTITION BY decade) AS total
       FROM scores
     )
-    SELECT rank FROM ranked WHERE id = $1;
+    SELECT rank, total FROM ranked WHERE id = $1;
   `, [albumId]);
 
-  return result.rows[0]?.rank ?? null;
+  return { rank: result.rows[0]?.rank ?? null, total: result.rows[0]?.total ?? null };
 }
 
 export async function getAlbumArtistRank(albumId) {
@@ -771,14 +767,12 @@ export async function getAlbumArtistRank(albumId) {
     ranked AS (
       SELECT
         id,
-        RANK() OVER (
-          PARTITION BY artist_id
-          ORDER BY score DESC NULLS LAST
-        ) AS rank
+        RANK() OVER (PARTITION BY artist_id ORDER BY score DESC NULLS LAST) AS rank,
+        COUNT(*) OVER (PARTITION BY artist_id) AS total
       FROM scores
     )
-    SELECT rank FROM ranked WHERE id = $1;
+    SELECT rank, total FROM ranked WHERE id = $1;
   `, [albumId]);
 
-  return result.rows[0]?.rank ?? null;
+  return { rank: result.rows[0]?.rank ?? null, total: result.rows[0]?.total ?? null };
 }

@@ -17,6 +17,12 @@ export default function AlbumDetail({ user }) {
   const [ranks, setRanks] = useState({});
   const [genres, setGenres] = useState([]);
 
+  const ordinal = n => {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  };
+
   /* ---------------- fetch album ------------ */
   useEffect(() => {
     if (!effectiveUsername) return;
@@ -72,12 +78,12 @@ export default function AlbumDetail({ user }) {
   // fetch ranks
   useEffect(() => {
     if (!album) return;
-    api.get(`/albums/${albumId}/rank/year`).then(r => setRanks(p => ({ ...p, year: r.data.rank })));
-    api.get(`/albums/${albumId}/rank/decade`).then(r => setRanks(p => ({ ...p, decade: r.data.rank })));
-    api.get(`/albums/${albumId}/rank/artist`).then(r => setRanks(p => ({ ...p, artist: r.data.rank })));
+    api.get(`/albums/${albumId}/rank/year`).then(r => setRanks(p => ({ ...p, year: r.data })));
+    api.get(`/albums/${albumId}/rank/decade`).then(r => setRanks(p => ({ ...p, decade: r.data })));
+    api.get(`/albums/${albumId}/rank/artist`).then(r => setRanks(p => ({ ...p, artist: r.data })));
     genres.forEach(g => {
       api.get(`/albums/${albumId}/rank/genre/${encodeURIComponent(g.name)}`)
-        .then(r => setRanks(p => ({ ...p, [`genre_${g.name}`]: r.data.rank })));
+        .then(r => setRanks(p => ({ ...p, [`genre_${g.name}`]: r.data })));
     });
   }, [album, genres]);
 
@@ -205,34 +211,6 @@ export default function AlbumDetail({ user }) {
       {/* ===== TRACKLIST + SIDEBAR ===== */}
       <div style={{ display: "flex", gap: "32px", alignItems: "flex-start", paddingLeft: "10px" }}>
 
-        {/* RANKS */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "8px" }}>
-          {ranks.year != null && (
-            <div style={{ fontSize: "13px" }}>
-              <span style={{ color: "#666" }}>Year rank: </span>
-              <strong>#{ranks.year}</strong>
-            </div>
-          )}
-          {ranks.decade != null && (
-            <div style={{ fontSize: "13px" }}>
-              <span style={{ color: "#666" }}>Decade rank: </span>
-              <strong>#{ranks.decade}</strong>
-            </div>
-          )}
-          {ranks.artist != null && (
-            <div style={{ fontSize: "13px" }}>
-              <span style={{ color: "#666" }}>Artist rank: </span>
-              <strong>#{ranks.artist}</strong>
-            </div>
-          )}
-          {(genres).map(g => ranks[`genre_${g.name}`] != null && (
-            <div key={g.name} style={{ fontSize: "13px" }}>
-              <span style={{ color: "#666" }}>{g.name} rank: </span>
-              <strong>#{ranks[`genre_${g.name}`]}</strong>
-            </div>
-          ))}
-        </div>
-
         {/* Tracklist */}
         <table style={{ borderCollapse: "collapse", flex: "0 0 auto" }}>
           <thead>
@@ -270,6 +248,35 @@ export default function AlbumDetail({ user }) {
             ))}
           </tbody>
         </table>
+
+        {/* RANKS */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px", marginTop: "4px" }}>
+          <h3 style={{ margin: 0 }}>Ranks</h3>
+          {ranks.year != null && (
+            <div style={{ fontSize: "13px" }}>
+              <strong>{ordinal(ranks.year)} </strong>
+              <span style={{ color: "#666" }}>{album.releaseDate?.slice(0, 4)} albums</span>
+            </div>
+          )}
+          {ranks.decade != null && (
+            <div style={{ fontSize: "13px" }}>
+              <strong>{ordinal(ranks.decade)} </strong>
+              <span style={{ color: "#666" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s albums</span>
+            </div>
+          )}
+          {ranks.artist != null && (
+            <div style={{ fontSize: "13px" }}>
+              <strong>{ordinal(ranks.artist)} </strong>
+              <span style={{ color: "#666" }}>{album.artist} albums</span>
+            </div>
+          )}
+          {(genres).map(g => ranks[`genre_${g.name}`] != null && (
+            <div key={g.name} style={{ fontSize: "13px" }}>
+              <strong>{ordinal(ranks[`genre_${g.name}`])} </strong>
+              <span style={{ color: "#666" }}>{g.name} albums</span>
+            </div>
+          ))}
+        </div>
 
         {/* Sidebar: links + delete */}
         <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px", marginTop: "4px" }}>
