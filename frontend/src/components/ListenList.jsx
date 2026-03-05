@@ -3,17 +3,19 @@ import { Link } from "react-router-dom";
 import api from "../api/api";
 
 export default function ListenList({ user }) {
+    const { username } = useParams();
+    const effectiveUsername = username ?? user?.username;
     const [listenList, setListenList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isEditing, setEditing] = useState(false);
 
     useEffect(() => {
-        if (!user) return;
+        if (!effectiveUsername) return;
 
         const fetchListenList = async () => {
             setLoading(true);
             try {
-                const res = await api.get(`/users/${user.username}/listen-list`);
+                const res = await api.get(`/users/${effectiveUsername}/listen-list`);
                 setListenList(res.data);
             } catch (err) {
                 console.error("Failed to fetch listen list", err);
@@ -23,11 +25,11 @@ export default function ListenList({ user }) {
         };
 
         fetchListenList();
-    }, [user]);
+    }, [effectiveUsername]);
 
     const removeFromList = async (albumId) => {
         try {
-            await api.delete(`/users/${user.username}/listen-list/${albumId}`);
+            await api.delete(`/users/${effectiveUsername}/listen-list/${albumId}`);
             setListenList(prev => prev.filter(a => a.id !== albumId));
         } catch (err) {
             console.error("Failed to remove album from listen list", err);
@@ -38,22 +40,24 @@ export default function ListenList({ user }) {
 
     return (
         <div>
-            <h2>{user.username}'s Listen List</h2>
+            <h2>{effectiveUsername}'s Listen List</h2>
 
-            <button
-                onClick={() => setEditing(prev => !prev)}
-                style={{
-                    marginBottom: "8px",
-                    padding: "4px 8px",
-                    borderRadius: "4px",
-                    border: "1px solid #333",
-                    cursor: "pointer",
-                    backgroundColor: "Gray",
-                    color: "#fff"
-                }}
-            >
-                {isEditing ? "Done Editing" : "Edit List"}
-            </button>
+            {user?.username === effectiveUsername && (
+                <button
+                    onClick={() => setEditing(prev => !prev)}
+                    style={{
+                        marginBottom: "8px",
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        border: "1px solid #333",
+                        cursor: "pointer",
+                        backgroundColor: "Gray",
+                        color: "#fff"
+                    }}
+                >
+                    {isEditing ? "Done Editing" : "Edit List"}
+                </button>
+            )}
 
             {listenList.length === 0 ? (
                 <p>Your listen list is empty.</p>
