@@ -371,8 +371,8 @@ export default function AlbumDetail({ user }) {
               </div>
             )}
             {Array.isArray(ranks.artist) && ranks.artist.map(a => a.rank != null && (
-              <div key={a.name} style={{ fontSize: "15px" }}>
-                <strong style={{ fontSize: "18px" }}>{ordinal(a.rank)} </strong>
+              <div key={a.name} style={{ fontSize: "16px" }}>
+                <strong style={{ fontSize: "22px" }}>{ordinal(a.rank)} </strong>
                 <span style={{ color: "#666" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> albums</span>
               </div>
             ))}
