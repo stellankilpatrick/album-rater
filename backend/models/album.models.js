@@ -393,14 +393,22 @@ export async function getUserRatedAlbums(userId) {
       a.title,
       a.release_date AS "releaseDate",
       a.cover_art AS "coverArt",
-      ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
-      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
+      (
+        SELECT STRING_AGG(ar2.name, ' & ' ORDER BY ar2.name)
+        FROM album_artists aa2
+        JOIN artists ar2 ON ar2.id = aa2.artist_id
+        WHERE aa2.album_id = a.id
+      ) AS artist,
+      (
+        SELECT ARRAY_AGG(ar2.id ORDER BY ar2.name)
+        FROM album_artists aa2
+        JOIN artists ar2 ON ar2.id = aa2.artist_id
+        WHERE aa2.album_id = a.id
+      ) AS "artistIds",
       COUNT(sr.rating) AS "ratedSongs",
       COALESCE(SUM(sr.rating), 0) AS "totalRating",
       COUNT(sr.rating) FILTER (WHERE sr.rating > 0) AS "nonSkips"
     FROM albums a
-    JOIN album_artists aa ON aa.album_id = a.id
-    JOIN artists ar ON ar.id = aa.artist_id
     JOIN songs s ON s.album_id = a.id
     LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
     GROUP BY a.id
