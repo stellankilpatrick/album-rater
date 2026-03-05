@@ -564,7 +564,9 @@ router.patch("/:id/review/users/:username", requireAuth, async (req, res) => {
       return res.status(403).json({ error: "Forbidden" });
     }
     const { review } = req.body;
+    console.log("review route hit, albumId:", req.params.id, "userId:", req.user.id, "review:", review);
     const result = await updateAlbumReview(req.user.id, req.params.id, review);
+    console.log("updateAlbumReview result:", result);
     res.json(result);
   } catch (err) {
     console.error(err);
