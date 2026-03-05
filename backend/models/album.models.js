@@ -545,37 +545,37 @@ export async function getUserAlbumScoreSingle(userId, albumId, power = 0.5) {
  * Calculate and upsert album rating for a specific user
  */
 export async function updateAlbumRatingForUser(userId, albumId) {
+  console.log("updateAlbumRatingForUser called with:", userId, albumId);
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
 
-    // Get aggregate data from song_ratings
     const res = await client.query(
-      `
-      SELECT 
+      `SELECT 
         COUNT(*) AS rated_songs,
         SUM(CASE WHEN rating > 0 THEN 1 ELSE 0 END) AS non_skips,
         COALESCE(SUM(rating), 0) AS total_rating
       FROM song_ratings sr
       JOIN songs s ON s.id = sr.song_id
-      WHERE sr.user_id = $1 AND s.album_id = $2
-      `,
+      WHERE sr.user_id = $1 AND s.album_id = $2`,
       [userId, albumId]
     );
 
     const stats = res.rows[0];
+    console.log("stats:", stats);
     const ratedSongs = Number(stats.rated_songs);
     const nonSkips = Number(stats.non_skips);
     const totalRating = Number(stats.total_rating);
+    console.log("ratedSongs:", ratedSongs, "nonSkips:", nonSkips, "totalRating:", totalRating);
 
     if (ratedSongs === 0) {
-      // Remove album rating if no songs are rated
+      console.log("No rated songs, deleting album rating");
       await client.query(
         `DELETE FROM album_ratings WHERE user_id = $1 AND album_id = $2`,
         [userId, albumId]
       );
     } else {
-      // Upsert into album_ratings
+      console.log("Upserting album rating");
       await client.query(
         `INSERT INTO album_ratings (user_id, album_id, rating, non_skips, rated_songs, updated_at)
         VALUES ($1, $2, $3, $4, $5, NOW())
@@ -587,11 +587,14 @@ export async function updateAlbumRatingForUser(userId, albumId) {
           updated_at = NOW()`,
         [userId, albumId, totalRating, nonSkips, ratedSongs]
       );
+      console.log("Upsert done");
     }
 
     await client.query("COMMIT");
+    console.log("COMMIT done");
   } catch (err) {
     await client.query("ROLLBACK");
+    console.error("updateAlbumRatingForUser error:", err);
     throw err;
   } finally {
     client.release();
