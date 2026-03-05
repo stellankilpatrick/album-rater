@@ -11,10 +11,12 @@ router.get("/", async (req, res) => {
     const like = `%${q}%`;
 
     const albumsPromise = pool.query(`
-      SELECT a.id, a.title, ar.name AS artist
+      SELECT a.id, a.title, STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist
       FROM albums a
-      JOIN artists ar ON a.artist_id = ar.id
+      JOIN album_artists aa ON aa.album_id = a.id
+      JOIN artists ar ON ar.id = aa.artist_id
       WHERE a.title ILIKE $1
+      GROUP BY a.id
       LIMIT 10
     `, [like]);
 

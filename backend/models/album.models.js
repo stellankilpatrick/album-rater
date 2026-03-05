@@ -111,38 +111,37 @@ export async function getAllAlbumsPublic() {
  */
 export async function getAlbumById(id) {
   const albumRes = await pool.query(
-    `
-    SELECT
+    `SELECT
       a.id, a.title, a.release_date AS "releaseDate",
-      ar.id AS "artistId", ar.name AS artist
+      ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
+      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist
     FROM albums a
-    JOIN artists ar ON ar.id = a.artist_id
+    JOIN album_artists aa ON aa.album_id = a.id
+    JOIN artists ar ON ar.id = aa.artist_id
     WHERE a.id = $1
-    `,
+    GROUP BY a.id`,
     [id]
   );
   const album = albumRes.rows[0];
   if (!album) return null;
 
+  album.artistId = album.artistIds[0];
+
   const songsRes = await pool.query(
-    `
-    SELECT
+    `SELECT
       s.id, s.track_number AS num, s.title,
       COALESCE(sr.rating,0) AS rating
     FROM songs s
     LEFT JOIN song_ratings sr ON sr.song_id = s.id
     WHERE s.album_id = $1
-    ORDER BY s.track_number
-    `,
+    ORDER BY s.track_number`,
     [id]
   );
 
   const albumRatingRes = await pool.query(
-    `
-    SELECT COUNT(*) AS "ratingCount", AVG(rating) AS "avgScore"
+    `SELECT COUNT(*) AS "ratingCount", AVG(rating) AS "avgScore"
     FROM album_ratings
-    WHERE album_id = $1
-    `,
+    WHERE album_id = $1`,
     [id]
   );
 

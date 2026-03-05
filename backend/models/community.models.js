@@ -47,20 +47,21 @@ export async function getAnniversaryAlbums(userId) {
       a.title,
       a.release_date AS "releaseDate",
       a.cover_art AS "coverArt",
-      ar.name AS artist,
-      ar.id AS "artistId",
+      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
+      ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
       uas.rating,
       uas."lastRatedAt"
     FROM albums a
-    JOIN artists ar ON ar.id = a.artist_id
-    JOIN user_album_scores uas
-      ON uas.album_id = a.id
+    JOIN album_artists aa ON aa.album_id = a.id
+    JOIN artists ar ON ar.id = aa.artist_id
+    JOIN user_album_scores uas ON uas.album_id = a.id
     WHERE a.release_date IS NOT NULL
       AND EXTRACT(WEEK FROM a.release_date::date)
           = EXTRACT(WEEK FROM CURRENT_DATE)
+    GROUP BY a.id, uas.rating, uas."lastRatedAt"
     ORDER BY a.release_date ASC`,
     [userId]
   );
 
-  return res.rows;
+  return res.rows.map(a => ({ ...a, artistId: a.artistIds[0] }));
 }

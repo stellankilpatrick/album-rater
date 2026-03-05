@@ -153,15 +153,19 @@ router.get("/:username/listen-list", requireAuth, async (req, res) => {
 
   try {
     const { rows: albums } = await pool.query(
-      `SELECT a.id, a.title, a.cover_art, ar.id AS "artistId", ar.name AS artist
+      `SELECT a.id, a.title, a.cover_art,
+        ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
+        STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist
        FROM listen_list ll
        JOIN albums a ON a.id = ll.album_id
-       JOIN artists ar ON ar.id = a.artist_id
+       JOIN album_artists aa ON aa.album_id = a.id
+       JOIN artists ar ON ar.id = aa.artist_id
        WHERE ll.user_id = $1
+       GROUP BY a.id
        ORDER BY ll.added_at DESC`,
       [userId]
     );
-    res.json(albums);
+    res.json(albums.map(a => ({ ...a, artistId: a.artistIds[0] })));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch listen list" });

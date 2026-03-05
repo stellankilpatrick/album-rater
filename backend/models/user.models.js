@@ -15,7 +15,8 @@ export async function getTopArtists(userId) {
       COALESCE(SUM(sr.rating), 0) AS "ratingSum",
       COUNT(sr.rating) AS "ratedSongs"
     FROM artists ar
-    JOIN albums a ON a.artist_id = ar.id
+    JOIN album_artists aa ON aa.artist_id = ar.id
+    JOIN albums a ON a.id = aa.album_id
     JOIN songs s ON s.album_id = a.id
     LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
     GROUP BY ar.id, a.id
@@ -79,7 +80,8 @@ export async function getUserRatedArtists(userId) {
     FROM song_ratings sr
     JOIN songs s ON s.id = sr.song_id
     JOIN albums a ON a.id = s.album_id
-    JOIN artists ar ON ar.id = a.artist_id
+    JOIN album_artists aa ON aa.album_id = a.id
+    JOIN artists ar ON ar.id = aa.artist_id
     WHERE sr.user_id = $1
     ORDER BY ar.name
   `, [userId]);
@@ -194,7 +196,8 @@ export async function getRatingCounts(userId) {
     FROM song_ratings r
     JOIN songs s ON s.id = r.song_id
     JOIN albums a ON a.id = s.album_id
-    JOIN artists ar ON ar.id = a.artist_id
+    JOIN album_artists aa ON aa.album_id = a.id
+    JOIN artists ar ON ar.id = aa.artist_id
     WHERE r.user_id = $1
   `, [userId]);
   return rows[0];
