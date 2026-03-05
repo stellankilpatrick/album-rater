@@ -365,12 +365,12 @@ export default function AlbumDetail({ user }) {
                 <span style={{ color: "#666" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> albums</span>
               </div>
             )}
-            {ranks.artist?.rank != null && (
-              <div style={{ fontSize: "16px" }}>
-                <strong style={{ fontSize: "22px" }}>{ordinal(ranks.artist.rank)} </strong>
-                <span style={{ color: "#666" }}>of {ranks.artist.total} <strong style={{ fontSize: "15px" }}>{album.artist}</strong> albums</span>
+            {Array.isArray(ranks.artist) && ranks.artist.map(a => a.rank != null && (
+              <div key={a.name} style={{ fontSize: "15px" }}>
+                <strong style={{ fontSize: "18px" }}>{ordinal(a.rank)} </strong>
+                <span style={{ color: "#666" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> albums</span>
               </div>
-            )}
+            ))}
             {genres.map(g => ranks[`genre_${g.name}`]?.rank != null && (
               <div key={g.name} style={{ fontSize: "16px" }}>
                 <strong style={{ fontSize: "22px" }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>

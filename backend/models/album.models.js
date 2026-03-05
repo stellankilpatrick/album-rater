@@ -8,32 +8,39 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
   try {
     await client.query("BEGIN");
 
-    const normalizedArtist = artist.trim();
+    // Support multiple artists split by ' & '
+    const artistNames = artist.split(' & ').map(a => a.trim());
+    const artistIds = [];
 
-    // 1. Insert or get artist
-    const artistRes = await client.query(
-      `INSERT INTO artists (name) VALUES ($1)
-      ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
-      RETURNING id`,
-      [normalizedArtist]
-    );
-    const artistId = artistRes.rows[0].id;
+    for (const name of artistNames) {
+      const artistRes = await client.query(
+        `INSERT INTO artists (name) VALUES ($1)
+        ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+        RETURNING id`,
+        [name]
+      );
+      artistIds.push(artistRes.rows[0].id);
+    }
 
-    // 2. Insert album
     const albumRes = await client.query(
-      `INSERT INTO albums (title, artist_id, release_date, cover_art)
-       VALUES ($1, $2, $3, $4) RETURNING id`,
-      [title, artistId, releaseDate, cover_art]
+      `INSERT INTO albums (title, release_date, cover_art)
+       VALUES ($1, $2, $3) RETURNING id`,
+      [title, releaseDate, cover_art]
     );
     const albumId = albumRes.rows[0].id;
 
-    // 3. Insert songs
+    for (const artistId of artistIds) {
+      await client.query(
+        `INSERT INTO album_artists (album_id, artist_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [albumId, artistId]
+      );
+    }
+
     const songObjects = [];
     for (const [i, song] of songs.entries()) {
       const trackNumber = song.track_number ?? i + 1;
       const songRes = await client.query(
-        `INSERT INTO songs (album_id, track_number, title)
-         VALUES ($1, $2, $3) RETURNING id`,
+        `INSERT INTO songs (album_id, track_number, title) VALUES ($1, $2, $3) RETURNING id`,
         [albumId, trackNumber, song.title]
       );
       songObjects.push({ ...song, id: songRes.rows[0].id, num: trackNumber });
@@ -44,8 +51,9 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
     return {
       id: albumId,
       title,
-      artist: normalizedArtist,
-      artistId,
+      artist: artistNames.join(' & '),
+      artistId: artistIds[0],
+      artistIds,
       releaseDate,
       cover_art,
       songs: songObjects
@@ -83,17 +91,19 @@ export async function getAllAlbumsPublic() {
       a.title,
       a.release_date AS "releaseDate",
       a.cover_art AS "coverArt",
-      ar.id AS "artistId",
-      ar.name AS artist,
+      ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
+      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
       ROUND(COALESCE(album_scores.albumScore, 0)::numeric, 2)::float AS "avgScore",
       COALESCE(album_scores.ratingCount, 0) AS "ratingCount"
     FROM albums a
-    JOIN artists ar ON ar.id = a.artist_id
+    JOIN album_artists aa ON aa.album_id = a.id
+    JOIN artists ar ON ar.id = aa.artist_id
     LEFT JOIN album_scores ON album_scores.album_id = a.id
+    GROUP BY a.id, album_scores.albumScore, album_scores.ratingCount
     ORDER BY a.title
   `);
 
-  return res.rows;
+  return res.rows.map(a => ({ ...a, artistId: a.artistIds[0] }));
 }
 
 /**
@@ -229,27 +239,31 @@ export async function getAllAlbumsWithAggregates() {
  * Get public album details (with track stats)
  */
 export async function getAlbumDetailsPublic(albumId) {
-  // Album info
   const albumRes = await pool.query(
     `SELECT
       a.id, a.title, a.release_date AS "releaseDate", a.cover_art AS "coverArt",
-      ar.id AS "artistId", ar.name AS artist
+      ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
+      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist
     FROM albums a
-    JOIN artists ar ON a.artist_id = ar.id
-    WHERE a.id = $1`,
+    JOIN album_artists aa ON aa.album_id = a.id
+    JOIN artists ar ON ar.id = aa.artist_id
+    WHERE a.id = $1
+    GROUP BY a.id`,
     [albumId]
   );
   const album = albumRes.rows[0];
   if (!album) return null;
 
+  // keep backwards compat — single artistId for existing code
+  album.artistId = album.artistIds[0];
+
   const genresRes = await pool.query(
     `SELECT g.id, g.name FROM genres g
-   JOIN album_genres ag ON ag.genre_id = g.id
-   WHERE ag.album_id = $1 ORDER BY g.name`,
+     JOIN album_genres ag ON ag.genre_id = g.id
+     WHERE ag.album_id = $1 ORDER BY g.name`,
     [albumId]
   );
 
-  // Calculate album-level rating per user
   const albumScoreRes = await pool.query(
     `SELECT
       COUNT(*) AS "ratingCount",
@@ -311,23 +325,40 @@ export async function updateAlbumTitle(albumId, title) {
  * Update album artist
  */
 export async function updateAlbumArtist(albumId, artistName) {
-  let artistRes = await pool.query("SELECT id FROM artists WHERE name = $1", [artistName]);
-  let artistId;
-  if (artistRes.rows.length) {
-    artistId = artistRes.rows[0].id;
-  } else {
-    const insertArtist = await pool.query(
-      "INSERT INTO artists (name) VALUES ($1) RETURNING id",
-      [artistName]
-    );
-    artistId = insertArtist.rows[0].id;
-  }
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
 
-  const res = await pool.query(
-    `UPDATE albums SET artist_id = $1 WHERE id = $2`,
-    [artistId, albumId]
-  );
-  return res.rowCount > 0;
+    const artistNames = artistName.split(' & ').map(a => a.trim());
+    const artistIds = [];
+
+    for (const name of artistNames) {
+      const artistRes = await client.query(
+        `INSERT INTO artists (name) VALUES ($1)
+        ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+        RETURNING id`,
+        [name]
+      );
+      artistIds.push(artistRes.rows[0].id);
+    }
+
+    await client.query(`DELETE FROM album_artists WHERE album_id = $1`, [albumId]);
+
+    for (const artistId of artistIds) {
+      await client.query(
+        `INSERT INTO album_artists (album_id, artist_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [albumId, artistId]
+      );
+    }
+
+    await client.query("COMMIT");
+    return true;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 /**
@@ -357,24 +388,23 @@ export async function updateAlbumReleaseDate(albumId, releaseDate) {
  * Get all albums rated by a user (with viewer stats)
  */
 export async function getUserRatedAlbums(userId) {
-
   const res = await pool.query(
     `SELECT
       a.id,
       a.title,
       a.release_date AS "releaseDate",
       a.cover_art AS "coverArt",
-      ar.id AS "artistId",
-      ar.name AS artist,
+      ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
+      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
       COUNT(sr.rating) AS "ratedSongs",
       COALESCE(SUM(sr.rating), 0) AS "totalRating",
       COUNT(sr.rating) FILTER (WHERE sr.rating > 0) AS "nonSkips"
     FROM albums a
-    JOIN artists ar ON ar.id = a.artist_id
+    JOIN album_artists aa ON aa.album_id = a.id
+    JOIN artists ar ON ar.id = aa.artist_id
     JOIN songs s ON s.album_id = a.id
-    LEFT JOIN song_ratings sr
-      ON sr.song_id = s.id AND sr.user_id = $1
-    GROUP BY a.id, ar.id
+    LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
+    GROUP BY a.id
     HAVING COUNT(sr.rating) > 0
     ORDER BY "totalRating" DESC`,
     [userId]
@@ -383,15 +413,8 @@ export async function getUserRatedAlbums(userId) {
     const ratedSongs = Number(a.ratedSongs);
     const totalRating = Number(a.totalRating);
     const nonSkips = Number(a.nonSkips);
-
-    const rating =
-      ratedSongs > 0 ? (totalRating * totalRating) / ratedSongs : 0;
-
-    return {
-      ...a,
-      rating,
-      rate: `${nonSkips}/${ratedSongs}`,
-    };
+    const rating = ratedSongs > 0 ? (totalRating * totalRating) / ratedSongs : 0;
+    return { ...a, artistId: a.artistIds[0], rating, rate: `${nonSkips}/${ratedSongs}` };
   });
 }
 
@@ -405,21 +428,24 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
       a.title, 
       a.release_date AS "releaseDate", 
       a.cover_art AS "coverArt",
-      ar.id AS "artistId", 
-      ar.name AS artist,
+      ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
+      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
       alr.rating AS "userRating", 
       alr.rated_songs,
       alr.review AS review
     FROM albums a
-    JOIN artists ar ON a.artist_id = ar.id
-    LEFT JOIN album_ratings alr
-      ON alr.album_id = a.id AND alr.user_id = $1
-    WHERE a.id = $2`,
+    JOIN album_artists aa ON aa.album_id = a.id
+    JOIN artists ar ON ar.id = aa.artist_id
+    LEFT JOIN album_ratings alr ON alr.album_id = a.id AND alr.user_id = $1
+    WHERE a.id = $2
+    GROUP BY a.id, alr.rating, alr.rated_songs, alr.review`,
     [userId, albumId]
   );
 
   const album = albumRes.rows[0];
   if (!album) return null;
+
+  album.artistId = album.artistIds[0];
 
   const tracksRes = await pool.query(
     `SELECT
@@ -429,8 +455,7 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
       ur.comment AS comment
     FROM songs s
     LEFT JOIN song_ratings sr ON sr.song_id = s.id
-    LEFT JOIN song_ratings ur
-      ON ur.song_id = s.id AND ur.user_id = $1
+    LEFT JOIN song_ratings ur ON ur.song_id = s.id AND ur.user_id = $1
     WHERE s.album_id = $2
     GROUP BY s.id, ur.rating, ur.comment
     ORDER BY s.track_number ASC`,
@@ -751,25 +776,30 @@ export async function getAlbumArtistRank(albumId, userId) {
     WITH scores AS (
       SELECT
         a.id,
-        a.artist_id,
+        aa.artist_id,
         POWER(SUM(sr.rating), 2.0) / NULLIF(COUNT(sr.song_id), 0) AS score
       FROM albums a
+      JOIN album_artists aa ON aa.album_id = a.id
       JOIN songs s ON s.album_id = a.id
       JOIN song_ratings sr ON sr.song_id = s.id
       WHERE sr.user_id = $2
-      GROUP BY a.id
+      GROUP BY a.id, aa.artist_id
     ),
     ranked AS (
       SELECT
         id,
+        artist_id,
         RANK() OVER (PARTITION BY artist_id ORDER BY score DESC NULLS LAST) AS rank,
         COUNT(*) OVER (PARTITION BY artist_id) AS total
       FROM scores
     )
-    SELECT rank, total FROM ranked WHERE id = $1;
+    SELECT ar.name, ranked.rank, ranked.total
+    FROM ranked
+    JOIN artists ar ON ar.id = ranked.artist_id
+    WHERE ranked.id = $1;
   `, [albumId, userId]);
 
-  return { rank: result.rows[0]?.rank ?? null, total: result.rows[0]?.total ?? null };
+  return result.rows; // returns array e.g. [{name: 'Drake', rank: 1, total: 5}, {name: 'PARTYNEXTDOOR', rank: 2, total: 3}]
 }
 
 export async function getAlbumOverallRank(albumId, userId) {
