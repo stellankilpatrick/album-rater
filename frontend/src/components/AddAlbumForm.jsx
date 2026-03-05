@@ -33,7 +33,7 @@ export default function AddAlbumForm({ onAdd }) {
                 type="text"
                 value={artist}
                 onChange={e => setArtist(e.target.value)}
-                placeholder="Artist (use ' & ' for collabs e.g. Artist1 & Artist2)"
+                placeholder="Artist (use ', ' for collabs e.g. Artist1, Artist2)"
                 required
             />
             <input

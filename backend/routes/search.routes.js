@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
     const like = `%${q}%`;
 
     const albumsPromise = pool.query(`
-      SELECT a.id, a.title, STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist
+      SELECT a.id, a.title, STRING_AGG(ar.name, ', ' ORDER BY ar.name) AS artist
       FROM albums a
       JOIN album_artists aa ON aa.album_id = a.id
       JOIN artists ar ON ar.id = aa.artist_id

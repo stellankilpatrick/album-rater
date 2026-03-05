@@ -8,8 +8,8 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
   try {
     await client.query("BEGIN");
 
-    // Support multiple artists split by ' & '
-    const artistNames = artist.split(' & ').map(a => a.trim());
+    // Support multiple artists split by ', '
+    const artistNames = artist.split(', ').map(a => a.trim());
     const artistIds = [];
 
     for (const name of artistNames) {
@@ -51,7 +51,7 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
     return {
       id: albumId,
       title,
-      artist: artistNames.join(' & '),
+      artist: artistNames.join(', '),
       artistId: artistIds[0],
       artistIds,
       releaseDate,
@@ -92,7 +92,7 @@ export async function getAllAlbumsPublic() {
       a.release_date AS "releaseDate",
       a.cover_art AS "coverArt",
       ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
-      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
+      STRING_AGG(ar.name, ', ' ORDER BY ar.name) AS artist,
       ROUND(COALESCE(album_scores.albumScore, 0)::numeric, 2)::float AS "avgScore",
       COALESCE(album_scores.ratingCount, 0) AS "ratingCount"
     FROM albums a
@@ -114,7 +114,7 @@ export async function getAlbumById(id) {
     `SELECT
       a.id, a.title, a.release_date AS "releaseDate",
       ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
-      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist
+      STRING_AGG(ar.name, ', ' ORDER BY ar.name) AS artist
     FROM albums a
     JOIN album_artists aa ON aa.album_id = a.id
     JOIN artists ar ON ar.id = aa.artist_id
@@ -242,7 +242,7 @@ export async function getAlbumDetailsPublic(albumId) {
     `SELECT
       a.id, a.title, a.release_date AS "releaseDate", a.cover_art AS "coverArt",
       ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
-      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist
+      STRING_AGG(ar.name, ', ' ORDER BY ar.name) AS artist
     FROM albums a
     JOIN album_artists aa ON aa.album_id = a.id
     JOIN artists ar ON ar.id = aa.artist_id
@@ -328,7 +328,7 @@ export async function updateAlbumArtist(albumId, artistName) {
   try {
     await client.query("BEGIN");
 
-    const artistNames = artistName.split(' & ').map(a => a.trim());
+    const artistNames = artistName.split(', ').map(a => a.trim());
     const artistIds = [];
 
     for (const name of artistNames) {
@@ -394,7 +394,7 @@ export async function getUserRatedAlbums(userId) {
       a.release_date AS "releaseDate",
       a.cover_art AS "coverArt",
       (
-        SELECT STRING_AGG(ar2.name, ' & ' ORDER BY ar2.name)
+        SELECT STRING_AGG(ar2.name, ', ' ORDER BY ar2.name)
         FROM album_artists aa2
         JOIN artists ar2 ON ar2.id = aa2.artist_id
         WHERE aa2.album_id = a.id
@@ -436,7 +436,7 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
       a.release_date AS "releaseDate", 
       a.cover_art AS "coverArt",
       ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
-      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
+      STRING_AGG(ar.name, ', ' ORDER BY ar.name) AS artist,
       alr.rating AS "userRating", 
       alr.rated_songs,
       alr.review AS review

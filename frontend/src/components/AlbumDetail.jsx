@@ -218,7 +218,7 @@ export default function AlbumDetail({ user }) {
               {album.artistIds?.map((id, i) => (
                 <span key={id}>
                   <Link to={`/artists/${id}/users/${effectiveUsername}`} style={{ color: "white" }}>
-                    {album.artist?.split(' & ')[i]}
+                    {album.artist?.split(', ')[i]}
                   </Link>
                   {i < album.artistIds.length - 1 && " & "}
                 </span>
@@ -390,7 +390,7 @@ export default function AlbumDetail({ user }) {
               All ratings of {album.title}
             </Link>
             {album.artistIds?.map(id => {
-              const name = album.artist?.split(' & ').find((_, i) => album.artistIds[i] === id);
+              const name = album.artist?.split(', ').find((_, i) => album.artistIds[i] === id);
               return (
                 <Link key={id} to={`/artists/${id}/users/${effectiveUsername}`} style={{ textDecoration: "none" }}>
                   All albums by {name}
