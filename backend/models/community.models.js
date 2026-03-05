@@ -47,7 +47,7 @@ export async function getAnniversaryAlbums(userId) {
       a.title,
       a.release_date AS "releaseDate",
       a.cover_art AS "coverArt",
-      STRING_AGG(ar.name, ', ' ORDER BY ar.name) AS artist,
+      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
       ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
       uas.rating,
       uas."lastRatedAt"

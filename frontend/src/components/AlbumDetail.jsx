@@ -218,9 +218,9 @@ export default function AlbumDetail({ user }) {
               {album.artistIds?.map((id, i) => (
                 <span key={id}>
                   <Link to={`/artists/${id}/users/${effectiveUsername}`} style={{ color: "white" }}>
-                    {album.artist?.split(', ')[i]}
+                    {album.artist?.split(' & ')[i]}
                   </Link>
-                  {i < album.artistIds.length - 1 && " & "}
+                  {i < album.artistIds.length - 1 && ", "}
                 </span>
               ))}
             </h2>

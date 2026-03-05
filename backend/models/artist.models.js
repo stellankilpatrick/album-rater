@@ -113,7 +113,7 @@ export async function getArtistAlbumsWithTotal(artistId) {
       a.release_date AS "releaseDate",
       a.cover_art AS "albumCoverArt",
       (
-        SELECT STRING_AGG(ar2.name, ', ' ORDER BY ar2.name)
+        SELECT STRING_AGG(ar2.name, ' & ' ORDER BY ar2.name)
         FROM album_artists aa2
         JOIN artists ar2 ON ar2.id = aa2.artist_id
         WHERE aa2.album_id = a.id
@@ -161,7 +161,7 @@ export async function getUserRatedAlbumsByArtist(userId, artistId) {
       a.release_date AS "releaseDate",
       a.cover_art AS "coverArt",
       (
-        SELECT STRING_AGG(ar2.name, ', ' ORDER BY ar2.name)
+        SELECT STRING_AGG(ar2.name, ' & ' ORDER BY ar2.name)
         FROM album_artists aa2
         JOIN artists ar2 ON ar2.id = aa2.artist_id
         WHERE aa2.album_id = a.id

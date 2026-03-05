@@ -155,7 +155,7 @@ router.get("/:username/listen-list", requireAuth, async (req, res) => {
     const { rows: albums } = await pool.query(
       `SELECT a.id, a.title, a.cover_art,
         ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
-        STRING_AGG(ar.name, ', ' ORDER BY ar.name) AS artist
+        STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist
        FROM listen_list ll
        JOIN albums a ON a.id = ll.album_id
        JOIN album_artists aa ON aa.album_id = a.id
