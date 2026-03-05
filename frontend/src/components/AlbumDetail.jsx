@@ -244,7 +244,7 @@ export default function AlbumDetail({ user }) {
         </div>
 
         {/* RIGHT: review */}
-        <div style={{ marginLeft: "auto", flexShrink: 0, width: "500px", display: "flex", flexDirection: "column", gap: "4px", zIndex: 3 }}>
+        <div style={{ marginLeft: "auto", flexShrink: 0, width: "575px", display: "flex", flexDirection: "column", gap: "4px", zIndex: 3 }}>
           <strong style={{ color: "white", fontSize: "20px", marginTop: "20px" }}>Review</strong>
           {isOwner ? (
             <>
@@ -262,10 +262,9 @@ export default function AlbumDetail({ user }) {
                   color: "white",
                   padding: "8px",
                   resize: "none",
-                  width: "400px",
+                  width: "500px",
                   height: "150px",
                   fontSize: "13px",
-                  marginRight: "25px"
                 }}
               />
               {reviewFocused && (
@@ -349,59 +348,63 @@ export default function AlbumDetail({ user }) {
           </tbody>
         </table>
 
-        {/* RANKS */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px", marginTop: "4px", flexShrink: 0 }}>
-          <h3 style={{ margin: 0 }}>Ranks</h3>
-          {ranks.year?.rank != null && (
-            <div style={{ fontSize: "13px" }}>
-              <strong style={{ fontSize: "18px" }}>{ordinal(ranks.year.rank)} </strong>
-              <span style={{ color: "#666" }}>of {ranks.year.total} <strong style={{ fontSize: "15px" }}>{album.releaseDate?.slice(0, 4)}</strong> albums</span>
-            </div>
-          )}
-          {ranks.decade?.rank != null && (
-            <div style={{ fontSize: "13px" }}>
-              <strong style={{ fontSize: "18px" }}>{ordinal(ranks.decade.rank)} </strong>
-              <span style={{ color: "#666" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> albums</span>
-            </div>
-          )}
-          {ranks.artist?.rank != null && (
-            <div style={{ fontSize: "13px" }}>
-              <strong style={{ fontSize: "18px" }}>{ordinal(ranks.artist.rank)} </strong>
-              <span style={{ color: "#666" }}>of {ranks.artist.total} <strong style={{ fontSize: "15px" }}>{album.artist}</strong> albums</span>
-            </div>
-          )}
-          {genres.map(g => ranks[`genre_${g.name}`]?.rank != null && (
-            <div key={g.name} style={{ fontSize: "13px" }}>
-              <strong style={{ fontSize: "18px" }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
-              <span style={{ color: "#666" }}>of {ranks[`genre_${g.name}`].total} <strong style={{ fontSize: "15px" }}>{g.name}</strong> albums</span>
-            </div>
-          ))}
-        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0 }}>
 
-        {/* Sidebar: links + delete */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px", marginTop: "4px", flexShrink: 0 }}>
-          <Link to={`/albums/${album.id}`} style={{ textDecoration: "none" }}>
-            All ratings of {album.title}
-          </Link>
-          <Link to={`/artists/${album.artistId}/users/${effectiveUsername}`} style={{ textDecoration: "none" }}>
-            All albums by {album.artist}
-          </Link>
-          {isOwner && (
-            <button
-              onClick={handleDeleteAlbum}
-              style={{
-                backgroundColor: "red",
-                color: "white",
-                padding: "0.3rem 0.5rem",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                width: "fit-content"
-              }}
-            >
-              Delete Album Rating
-            </button>
-          )}
+          {/* RANKS */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
+            <h3 style={{ margin: 0 }}>Ranks</h3>
+            {ranks.year?.rank != null && (
+              <div style={{ fontSize: "16px" }}>
+                <strong style={{ fontSize: "22px" }}>{ordinal(ranks.year.rank)} </strong>
+                <span style={{ color: "#666" }}>of {ranks.year.total} <strong style={{ fontSize: "15px" }}>{album.releaseDate?.slice(0, 4)}</strong> albums</span>
+              </div>
+            )}
+            {ranks.decade?.rank != null && (
+              <div style={{ fontSize: "16px" }}>
+                <strong style={{ fontSize: "22px" }}>{ordinal(ranks.decade.rank)} </strong>
+                <span style={{ color: "#666" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> albums</span>
+              </div>
+            )}
+            {ranks.artist?.rank != null && (
+              <div style={{ fontSize: "16px" }}>
+                <strong style={{ fontSize: "22px" }}>{ordinal(ranks.artist.rank)} </strong>
+                <span style={{ color: "#666" }}>of {ranks.artist.total} <strong style={{ fontSize: "15px" }}>{album.artist}</strong> albums</span>
+              </div>
+            )}
+            {genres.map(g => ranks[`genre_${g.name}`]?.rank != null && (
+              <div key={g.name} style={{ fontSize: "16px" }}>
+                <strong style={{ fontSize: "22px" }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
+                <span style={{ color: "#666" }}>of {ranks[`genre_${g.name}`].total} <strong style={{ fontSize: "15px" }}>{g.name}</strong> albums</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Sidebar: links + delete */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
+            <Link to={`/albums/${album.id}`} style={{ textDecoration: "none" }}>
+              All ratings of {album.title}
+            </Link>
+            <Link to={`/artists/${album.artistId}/users/${effectiveUsername}`} style={{ textDecoration: "none" }}>
+              All albums by {album.artist}
+            </Link>
+            {isOwner && (
+              <button
+                onClick={handleDeleteAlbum}
+                style={{
+                  backgroundColor: "red",
+                  color: "white",
+                  padding: "0.3rem 0.5rem",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  width: "fit-content"
+                }}
+              >
+                Delete Album Rating
+              </button>
+            )}
+          </div>
+
         </div>
       </div>
     </div >

@@ -545,7 +545,6 @@ export async function getUserAlbumScoreSingle(userId, albumId, power = 0.5) {
  * Calculate and upsert album rating for a specific user
  */
 export async function updateAlbumRatingForUser(userId, albumId) {
-  console.log("updateAlbumRatingForUser called with:", userId, albumId);
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -562,20 +561,16 @@ export async function updateAlbumRatingForUser(userId, albumId) {
     );
 
     const stats = res.rows[0];
-    console.log("stats:", stats);
     const ratedSongs = Number(stats.rated_songs);
     const nonSkips = Number(stats.non_skips);
-    const totalRating = Number(stats.total_rating);
-    console.log("ratedSongs:", ratedSongs, "nonSkips:", nonSkips, "totalRating:", totalRating);
+    const totalRating = Number(stats.total_rating)*Number(stats.total_rating)/ratedSongs;
 
     if (ratedSongs === 0) {
-      console.log("No rated songs, deleting album rating");
       await client.query(
         `DELETE FROM album_ratings WHERE user_id = $1 AND album_id = $2`,
         [userId, albumId]
       );
     } else {
-      console.log("Upserting album rating");
       await client.query(
         `INSERT INTO album_ratings (user_id, album_id, rating, non_skips, rated_songs, updated_at)
         VALUES ($1, $2, $3, $4, $5, NOW())
@@ -587,11 +582,9 @@ export async function updateAlbumRatingForUser(userId, albumId) {
           updated_at = NOW()`,
         [userId, albumId, totalRating, nonSkips, ratedSongs]
       );
-      console.log("Upsert done");
     }
 
     await client.query("COMMIT");
-    console.log("COMMIT done");
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("updateAlbumRatingForUser error:", err);
