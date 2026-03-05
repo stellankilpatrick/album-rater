@@ -67,7 +67,7 @@ export default function ListenList({ user }) {
                         <div key={album.id} style={{ textAlign: "center" }}>
                             <Link to={`/albums/${album.id}`} style={{ textDecoration: "none", color: "inherit" }}>
                                 <img
-                                    src={album.cover_art}
+                                    src={album.coverArt}
                                     alt={album.title}
                                     style={{
                                         width: "100%",

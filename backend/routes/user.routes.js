@@ -153,16 +153,17 @@ router.get("/:username/listen-list", requireAuth, async (req, res) => {
 
   try {
     const { rows: albums } = await pool.query(
-      `SELECT a.id, a.title, a.cover_art,
+      `SELECT a.id, a.title, a.cover_art AS "coverArt",
         ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
-        STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist
+        STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
+        MAX(ll.added_at) AS "addedAt"
        FROM listen_list ll
        JOIN albums a ON a.id = ll.album_id
        JOIN album_artists aa ON aa.album_id = a.id
        JOIN artists ar ON ar.id = aa.artist_id
        WHERE ll.user_id = $1
        GROUP BY a.id
-       ORDER BY ll.added_at DESC`,
+       ORDER BY MAX(ll.added_at) DESC`,
       [userId]
     );
     res.json(albums.map(a => ({ ...a, artistId: a.artistIds[0] })));
