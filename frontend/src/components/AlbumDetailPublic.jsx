@@ -334,9 +334,14 @@ export default function AlbumDetailPublic({ user }) {
               ) : (
                 <>
                   <i>{album.title}</i> by{" "}
-                  <Link to={`/artists/${album.artistId}`}>
-                    {album.artist}
-                  </Link>
+                  {album.artistIds?.map((id, i) => (
+                    <span key={id}>
+                      <Link to={`/artists/${id}`} style={{ color: "white" }}>
+                        {album.artist?.split(' & ')[i]}
+                      </Link>
+                      {i < album.artistIds.length - 1 && " & "}
+                    </span>
+                  ))}
                 </>
               )}
             </h1>

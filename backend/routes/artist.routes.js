@@ -112,19 +112,19 @@ router.get("/:artistId/users/:username", requireAuth, async (req, res) => {
     const { artistId } = req.params;
     const userId = req.profileUser.id;
 
+    const artistRes = await pool.query(
+      `SELECT id, name, image FROM artists WHERE id = $1`,
+      [artistId]
+    );
+    const artist = artistRes.rows[0];
+    if (!artist) return res.status(404).json({ error: "Artist not found" });
+
     const baseAlbums = await getUserRatedAlbumsByArtist(userId, artistId);
-    if (baseAlbums.length === 0) return res.json({ artist: null, albums: [] });
+    if (baseAlbums.length === 0) return res.json({ artist, albums: [] });
 
     const albums = await attachUserAlbumStats(baseAlbums, userId);
 
-    res.json({
-      artist: {
-        id: baseAlbums[0].artistId,
-        name: baseAlbums[0].artist,
-        image: baseAlbums[0].artistImage,
-      },
-      albums,
-    });
+    res.json({ artist, albums });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to load artist albums" });

@@ -215,9 +215,14 @@ export default function AlbumDetail({ user }) {
             <h1 style={{ margin: 0 }}><i>{album.title}</i></h1>
 
             <h2 style={{ margin: 0 }}>
-              <Link to={`/artists/${album.artistId}/users/${effectiveUsername}`} style={{ color: "white" }}>
-                {album.artist}
-              </Link>
+              {album.artistIds?.map((id, i) => (
+                <span key={id}>
+                  <Link to={`/artists/${id}/users/${effectiveUsername}`} style={{ color: "white" }}>
+                    {album.artist?.split(' & ')[i]}
+                  </Link>
+                  {i < album.artistIds.length - 1 && " & "}
+                </span>
+              ))}
             </h2>
 
             <h4 style={{ margin: 0 }}>
@@ -384,9 +389,14 @@ export default function AlbumDetail({ user }) {
             <Link to={`/albums/${album.id}`} style={{ textDecoration: "none" }}>
               All ratings of {album.title}
             </Link>
-            <Link to={`/artists/${album.artistId}/users/${effectiveUsername}`} style={{ textDecoration: "none" }}>
-              All albums by {album.artist}
-            </Link>
+            {album.artistIds?.map(id => {
+              const name = album.artist?.split(' & ').find((_, i) => album.artistIds[i] === id);
+              return (
+                <Link key={id} to={`/artists/${id}/users/${effectiveUsername}`} style={{ textDecoration: "none" }}>
+                  All albums by {name}
+                </Link>
+              );
+            })}
             {isOwner && (
               <button
                 onClick={handleDeleteAlbum}
