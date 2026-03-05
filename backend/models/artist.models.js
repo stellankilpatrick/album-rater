@@ -110,7 +110,13 @@ export async function getArtistAlbums(artistId) {
 export async function getArtistAlbumsWithTotal(artistId) {
   const albumsRes = await pool.query(
     `
-    WITH user_album_scores AS (
+    WITH artist_names AS (
+      SELECT aa.album_id, STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist
+      FROM album_artists aa
+      JOIN artists ar ON ar.id = aa.artist_id
+      GROUP BY aa.album_id
+    ),
+    user_album_scores AS (
       SELECT
         a.id AS "albumId",
         sr.user_id,
@@ -127,17 +133,16 @@ export async function getArtistAlbumsWithTotal(artistId) {
       a.title,
       a.release_date AS "releaseDate",
       a.cover_art AS "albumCoverArt",
-      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
+      an.artist,
       ROUND(COALESCE(AVG(uas."userScore")::numeric, 0), 2) AS "avgScore",
       COUNT(uas.user_id) AS "ratingCount"
     FROM albums a
-    JOIN album_artists aa2 ON aa2.album_id = a.id
-    JOIN artists ar ON ar.id = aa2.artist_id
+    JOIN artist_names an ON an.album_id = a.id
     LEFT JOIN user_album_scores uas ON uas."albumId" = a.id
     WHERE EXISTS (
       SELECT 1 FROM album_artists aa WHERE aa.album_id = a.id AND aa.artist_id = $1
     )
-    GROUP BY a.id
+    GROUP BY a.id, an.artist
     ORDER BY "avgScore" DESC
     `,
     [artistId]
