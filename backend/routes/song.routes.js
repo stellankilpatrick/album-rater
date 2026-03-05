@@ -1,7 +1,7 @@
 import express from "express";
 import pool from "../db/database.js";
 import { requireAuth } from "../auth/auth.middleware.js";
-import { getAlbumById } from "../models/album.models.js";
+import { getAlbumById, updateAlbumRatingForUser } from "../models/album.models.js";
 import { updateSongComment } from "../models/song.models.js";
 
 const router = express.Router();
@@ -112,6 +112,9 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
       [songId]
     );
     if (!songRows[0]) return res.status(404).json({ error: "Song not found" });
+
+    // sync album_ratings
+    await updateAlbumRatingForUser(req.user.id, songRows[0].album_id);
 
     const album = await getAlbumById(songRows[0].album_id);
     res.json({ success: true, albumRating: album.rating });
