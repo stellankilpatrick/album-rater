@@ -9,19 +9,23 @@ export async function getCommunityFeed(userId, limit = 40) {
       u.username,
       al.id AS album_id,
       al.title AS album_title,
-      ar.name AS artist_name,
+      (
+        SELECT STRING_AGG(ar.name, ' & ' ORDER BY ar.name)
+        FROM album_artists aa
+        JOIN artists ar ON ar.id = aa.artist_id
+        WHERE aa.album_id = al.id
+      ) AS artist_name,
       MAX(r.updated_at) AS updated_at
     FROM song_ratings r
     JOIN follows f ON f.following_id = r.user_id
     JOIN users u ON u.id = r.user_id
     JOIN songs s ON s.id = r.song_id
     JOIN albums al ON al.id = s.album_id
-    JOIN artists ar ON ar.id = al.artist_id
     WHERE f.follower_id = $1
-    GROUP BY r.user_id, al.id, u.username, al.title, ar.name
+    GROUP BY r.user_id, al.id, u.username, al.title
     ORDER BY updated_at DESC
     LIMIT $2
-  `,
+    `,
     [userId, limit]
   );
 
