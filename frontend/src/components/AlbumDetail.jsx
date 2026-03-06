@@ -402,7 +402,7 @@ export default function AlbumDetail({ user }) {
                 onClick={handleDeleteAlbum}
                 style={{
                   backgroundColor: "red",
-                  color: "white",
+                  color: "red",
                   padding: "0.3rem 0.5rem",
                   border: "none",
                   borderRadius: "4px",

@@ -71,7 +71,10 @@ export default function ProfilePage({ user }) {
 
     useEffect(() => {
         api.get(`/users/${effectiveUsername}/follow-counts`)
-            .then(res => setFollowCounts(res.data));
+            .then(res => setFollowCounts({
+                followers: Number(res.data.followers),
+                following: Number(res.data.following)
+            }));
     }, [user.id]);
 
     useEffect(() => {
