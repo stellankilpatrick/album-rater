@@ -7,7 +7,7 @@ import {
   getUserRatedAlbums, updateAlbumRatingForUser, getUserAlbumScoreSingle, getAlbumDetailsPrivate,
   getUserAlbumScores, updateAlbumReleaseDate, deleteUserAlbumRating,
   getAlbumGenres, getAllGenres, addGenreToAlbum, removeGenreFromAlbum,
-  getAlbumGenreRank, getAlbumYearRank, getAlbumDecadeRank, getAlbumArtistRank, 
+  getAlbumGenreRank, getAlbumYearRank, getAlbumDecadeRank, getAlbumArtistRank,
   getAlbumOverallRank, updateAlbumReview
 } from "../models/album.models.js";
 import { addSongsToAlbum } from "../models/song.models.js";

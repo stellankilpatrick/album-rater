@@ -482,14 +482,26 @@ export default function AlbumDetailPublic({ user }) {
                   setIsEditing(e => !e);
                   setEditingSongId(null);
                 }}
+                style={isEditing ? { backgroundColor: "green", color: "white", border: "none", borderRadius: "3px" } : {}}
               >
                 {isEditing ? "Done editing" : "Edit album"}
               </button>
 
               {user && !isEditing && (
-                <button onClick={handleRateClick}>Rate album</button>
+                <button
+                  onClick={handleRateClick}
+                  style={{
+                    backgroundColor: "#1db954",
+                    color: "white",
+                    borderRadius: "5px",
+                    border: "none",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
+                >
+                  Rate album
+                </button>
               )}
-
               {user && !isEditing && (
                 <button
                   onClick={() =>
@@ -599,14 +611,18 @@ export default function AlbumDetailPublic({ user }) {
       )}
 
       {isEditing && Number(album.ratingCount) === 0 && (
-        <button className="danger" onClick={deleteAlbum}>
+        <button
+          className="danger"
+          onClick={deleteAlbum}
+          style={{ backgroundColor: "red", color: "white", border: "none", borderRadius: "4px", padding: "4px 10px", cursor: "pointer" }}
+        >
           Delete album
         </button>
       )}
 
       {user && followingReviews.length > 0 && (
         <>
-          <h4>Reviewed by people you follow</h4>
+          <h4>Reviews by others:</h4>
           <ul>
             {followingReviews.map(r => (
               <li key={r.id}>

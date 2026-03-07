@@ -89,6 +89,7 @@ export default function AlbumDetail({ user }) {
 
   const handleReviewBlur = () => {
     setReviewFocused(false);
+    if (!review.trim()) return;
     api.patch(`/albums/${albumId}/review/users/${effectiveUsername}`, { review })
       .catch(err => console.error("Failed to update review:", err));
   };
@@ -212,8 +213,11 @@ export default function AlbumDetail({ user }) {
 
           {/* MIDDLE: text — tighter spacing */}
           <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-            <h1 style={{ margin: 0 }}><i>{album.title}</i></h1>
-
+            <h1 style={{ margin: 0 }}>
+              <Link to={`/albums/${album.id}`} style={{ color: "white" }}>
+                <i>{album.title}</i>
+              </Link>
+            </h1>
             <h2 style={{ margin: 0 }}>
               {album.artistIds?.map((id, i) => (
                 <span key={id}>
@@ -318,6 +322,7 @@ export default function AlbumDetail({ user }) {
                         }
                         : undefined
                     }
+                    style={{ color: isOwner ? "inherit" : "#333", background: isOwner ? "inherit" : "#f0f0f0" }}
                   >
                     <option value="">Interlude</option>
                     <option value={0}>- Skip</option>
@@ -345,8 +350,7 @@ export default function AlbumDetail({ user }) {
                       )}
                     </div>
                   ) : (
-                    <span style={{ color: "#666", fontSize: "13px" }}>{song.comment ?? ""}</span>
-                  )}
+                    <span style={{ color: "#333", fontSize: "13px" }}>{song.comment ?? ""}</span>)}
                 </td>
               </tr>
             ))}
@@ -402,7 +406,7 @@ export default function AlbumDetail({ user }) {
                 onClick={handleDeleteAlbum}
                 style={{
                   backgroundColor: "red",
-                  color: "red",
+                  color: "white",
                   padding: "0.3rem 0.5rem",
                   border: "none",
                   borderRadius: "4px",

@@ -595,7 +595,7 @@ export async function updateAlbumRatingForUser(userId, albumId) {
     const stats = res.rows[0];
     const ratedSongs = Number(stats.rated_songs);
     const nonSkips = Number(stats.non_skips);
-    const totalRating = Number(stats.total_rating)*Number(stats.total_rating)/ratedSongs;
+    const totalRating = Number(stats.total_rating) * Number(stats.total_rating) / ratedSongs;
 
     if (ratedSongs === 0) {
       await client.query(
@@ -834,9 +834,10 @@ export async function getAlbumOverallRank(albumId, userId) {
 export async function updateAlbumReview(userId, albumId, review) {
   if (review && review.length > 1000) throw new Error("Review exceeds 1000 character limit");
   const result = await pool.query(`
-    UPDATE album_ratings
-    SET review = $3, updated_at = NOW()
-    WHERE user_id = $1 AND album_id = $2
+    INSERT INTO album_ratings (user_id, album_id, rating, non_skips, rated_songs, review, updated_at)
+    VALUES ($1, $2, 0, 0, 0, $3, NOW())
+    ON CONFLICT (user_id, album_id)
+    DO UPDATE SET review = EXCLUDED.review, updated_at = NOW()
     RETURNING *
   `, [userId, albumId, review]);
   return result.rows[0];

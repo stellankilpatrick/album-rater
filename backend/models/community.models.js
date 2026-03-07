@@ -1,6 +1,6 @@
 import pool from "../db/database.js";
 
-export async function getCommunityFeed(userId, limit = 40) {
+export async function getCommunityFeed(userId, limit = 15) {
   const res = await pool.query(
     `
     SELECT

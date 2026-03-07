@@ -89,6 +89,9 @@ export default function AuthPage({ onLogin }) {
                     </div>
                 )}
 
+                <p style={{ fontSize: "12px", color: "#999", margin: "4px 0" }}>
+                    Sign in may be delayed around 30 seconds due to inactivity. Thank you for your patience.
+                </p>
                 <button type="submit">{isRegister ? "Sign Up" : "Login"}</button>
                 {error && <p className="error">{error}</p>}
             </form>
