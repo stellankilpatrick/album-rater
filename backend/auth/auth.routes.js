@@ -14,7 +14,9 @@ const router = express.Router();
 // ===============================
 router.post("/register", async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { email, password } = req.body;
+    const username = req.body.username?.trim().toLowerCase();
+
     if (!username || !email || !password)
       return res.status(400).json({ error: "Missing fields" });
 

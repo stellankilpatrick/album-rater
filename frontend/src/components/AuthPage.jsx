@@ -23,12 +23,13 @@ export default function AuthPage({ onLogin }) {
 
         try {
             const url = isRegister ? "/auth/register" : "/auth/login";
-            const body = isRegister ? { username, email, password } : { email, password };
+            const normalizedUsername = username.trim().toLowerCase();
+            const body = isRegister ? { username: normalizedUsername, email: email.trim(), password } : { email: email.trim(), password };
 
             const res = await api.post(url, body);
             localStorage.setItem("token", res.data.token);
             onLogin(res.data.user, res.data.token);
-            navigate(`/${username}/albums`);
+            navigate(`/${normalizedUsername}/albums`);
         } catch (err) {
             console.error(err);
             setError(err.response?.data?.error || "Something went wrong");
