@@ -416,12 +416,23 @@ export async function getUserRatedAlbums(userId) {
     ORDER BY "totalRating" DESC`,
     [userId]
   );
+
+  const genresRes = await pool.query(`
+  SELECT ag.album_id, ARRAY_AGG(g.name) AS genres
+  FROM album_genres ag
+  JOIN genres g ON g.id = ag.genre_id
+  WHERE ag.album_id = ANY($1)
+  GROUP BY ag.album_id
+`, [res.rows.map(a => a.id)]);
+
+  const genreMap = new Map(genresRes.rows.map(r => [r.album_id, r.genres]));
+
   return res.rows.map(a => {
     const ratedSongs = Number(a.ratedSongs);
     const totalRating = Number(a.totalRating);
     const nonSkips = Number(a.nonSkips);
     const rating = ratedSongs > 0 ? (totalRating * totalRating) / ratedSongs : 0;
-    return { ...a, artistId: a.artistIds[0], rating, rate: `${nonSkips}/${ratedSongs}` };
+    return { ...a, artistId: a.artistIds[0], rating, rate: `${nonSkips}/${ratedSongs}`, genres: genreMap.get(a.id) || [] };
   });
 }
 

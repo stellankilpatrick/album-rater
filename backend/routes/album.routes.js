@@ -572,4 +572,24 @@ router.patch("/:id/review/users/:username", requireAuth, async (req, res) => {
   }
 });
 
+router.get("/users/:username/genres", requireAuth, async (req, res) => {
+  try {
+    const userId = req.profileUser.id;
+    const { rows } = await pool.query(`
+      SELECT DISTINCT g.id, g.name
+      FROM genres g
+      JOIN album_genres ag ON ag.genre_id = g.id
+      JOIN albums a ON a.id = ag.album_id
+      JOIN songs s ON s.album_id = a.id
+      JOIN song_ratings sr ON sr.song_id = s.id
+      WHERE sr.user_id = $1
+      ORDER BY g.name
+    `, [userId]);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch genres" });
+  }
+});
+
 export default router;

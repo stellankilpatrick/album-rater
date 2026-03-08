@@ -8,6 +8,7 @@ export default function AlbumList({ user }) {
     const [sortConfig, setSortConfig] = useState({ key: "score10", direction: "desc" });
     const [filters, setFilters] = useState({
         artists: [],
+        genres: [],
         minYear: "",
         maxYear: ""
     });
@@ -15,6 +16,10 @@ export default function AlbumList({ user }) {
     const [showDropdown, setShowDropdown] = useState(false);
 
     const [viewMode, setViewMode] = useState("list");
+
+    const [availableGenres, setAvailableGenres] = useState([]);
+    const [genreSearchTerm, setGenreSearchTerm] = useState("");
+    const [showGenreDropdown, setShowGenreDropdown] = useState(false);
 
     const navigate = useNavigate();
 
@@ -51,12 +56,20 @@ export default function AlbumList({ user }) {
         fetchAlbums();
     }, [token, effectiveUsername]);
 
+    useEffect(() => {
+        if (!effectiveUsername) return;
+        api.get(`/albums/users/${effectiveUsername}/genres`)
+            .then(res => setAvailableGenres(res.data))
+            .catch(err => console.error(err));
+    }, [effectiveUsername]);
+
     // Get unique artists from albums
     const uniqueArtists = [...new Set(albums.map(a => a.artist))].sort();
 
     // Filter albums
     const filteredAlbums = albums.filter(album => {
         const matchesArtist = filters.artists.length === 0 || filters.artists.includes(album.artist);
+        const matchesGenre = filters.genres.length === 0 || filters.genres.some(g => album.genres?.includes(g));
 
         const albumYear = parseInt(album.releaseDate.slice(0, 4));
         const minYear = filters.minYear ? parseInt(filters.minYear) : null;
@@ -65,7 +78,7 @@ export default function AlbumList({ user }) {
         const matchesMinYear = !minYear || albumYear >= minYear;
         const matchesMaxYear = !maxYear || albumYear <= maxYear;
 
-        return matchesArtist && matchesMinYear && matchesMaxYear;
+        return matchesArtist && matchesMinYear && matchesMaxYear && matchesGenre;
     });
 
     // Sort handler
@@ -105,6 +118,15 @@ export default function AlbumList({ user }) {
         });
     };
 
+    const toggleGenre = (genre) => {
+        setFilters(prev => ({
+            ...prev,
+            genres: prev.genres.includes(genre)
+                ? prev.genres.filter(g => g !== genre)
+                : [...prev.genres, genre]
+        }));
+    };
+
     const handleYearChange = (type, value) => {
         setFilters(prev => ({ ...prev, [type]: value }));
     };
@@ -112,6 +134,7 @@ export default function AlbumList({ user }) {
     const clearFilters = () => {
         setFilters({
             artists: [],
+            genres: [],
             minYear: "",
             maxYear: ""
         });
@@ -179,6 +202,56 @@ export default function AlbumList({ user }) {
                                                 </label>
                                             </div>
                                         ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Genre Multi-Select Dropdown */}
+                            <div style={{ position: "relative" }}>
+                                <button
+                                    onClick={() => setShowGenreDropdown(!showGenreDropdown)}
+                                    style={{ padding: "3px 5px", cursor: "pointer" }}
+                                >
+                                    Genres ({filters.genres.length})
+                                </button>
+                                {showGenreDropdown && (
+                                    <div style={{
+                                        position: "absolute",
+                                        top: "100%",
+                                        left: 0,
+                                        background: "white",
+                                        border: "1px solid #ccc",
+                                        borderRadius: "4px",
+                                        padding: "10px",
+                                        zIndex: 1000,
+                                        minWidth: "200px",
+                                        maxHeight: "300px",
+                                        overflowY: "auto",
+                                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                                    }}>
+                                        <input
+                                            type="text"
+                                            placeholder="Search genres..."
+                                            value={genreSearchTerm}
+                                            onChange={(e) => setGenreSearchTerm(e.target.value)}
+                                            style={{ width: "100%", padding: "5px", marginBottom: "10px", boxSizing: "border-box" }}
+                                        />
+                                        {availableGenres
+                                            .filter(g => g.name.toLowerCase().includes(genreSearchTerm.toLowerCase()))
+                                            .map(g => (
+                                                <div key={g.id} style={{ padding: "3px 0" }}>
+                                                    <label style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={filters.genres.includes(g.name)}
+                                                            onChange={() => toggleGenre(g.name)}
+                                                            style={{ marginRight: "8px" }}
+                                                        />
+                                                        {g.name}
+                                                    </label>
+                                                </div>
+                                            ))
+                                        }
                                     </div>
                                 )}
                             </div>
