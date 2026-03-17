@@ -93,7 +93,7 @@ export default function ArtistDetail({ user }) {
                                 <tr
                                     key={album.id}
                                     style={{ cursor: "pointer" }}
-                                    onClick={() => navigate(`/albums/${album.id}/users/${user.username}`)}>
+                                    onClick={() => navigate(`/albums/${album.id}/users/${effectiveUsername}`)}>
                                     <td>{i + 1}</td>
                                     <td style={{ textAlign: "left" }}>
                                         {album.coverArt && (

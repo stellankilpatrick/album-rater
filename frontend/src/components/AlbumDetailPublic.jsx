@@ -629,7 +629,7 @@ export default function AlbumDetailPublic({ user }) {
                 <Link to={`/albums/${albumId}/users/${r.username}`}>
                   {r.username}
                 </Link>{" "}
-                — {Math.round(r.rating)}
+                — {Math.round(r.rating)} points
               </li>
             ))}
           </ul>

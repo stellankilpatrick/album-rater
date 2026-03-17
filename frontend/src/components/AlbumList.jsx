@@ -263,7 +263,7 @@ export default function AlbumList({ user }) {
                                     placeholder="Min year"
                                     value={filters.minYear}
                                     onChange={(e) => handleYearChange("minYear", e.target.value)}
-                                    style={{ padding: "3px", width: "70px" }}
+                                    style={{ padding: "3px", width: "90px" }}
                                 />
                                 <span>to</span>
                                 <input
@@ -271,7 +271,7 @@ export default function AlbumList({ user }) {
                                     placeholder="Max year"
                                     value={filters.maxYear}
                                     onChange={(e) => handleYearChange("maxYear", e.target.value)}
-                                    style={{ padding: "3px", width: "70px" }}
+                                    style={{ padding: "3px", width: "90px" }}
                                 />
                             </div>
 

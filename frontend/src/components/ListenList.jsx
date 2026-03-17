@@ -36,7 +36,7 @@ export default function ListenList({ user }) {
         }
     };
 
-    if (loading) return <p>Loading your listen list...</p>;
+    if (loading) return <p>Loading listen list...</p>;
 
     return (
         <div>
@@ -60,7 +60,7 @@ export default function ListenList({ user }) {
             )}
 
             {listenList.length === 0 ? (
-                <p>Your listen list is empty.</p>
+                <p>Listen list is empty.</p>
             ) : (
                 <div style={{
                     display: "grid",

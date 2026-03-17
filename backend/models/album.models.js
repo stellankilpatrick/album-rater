@@ -22,6 +22,20 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
       artistIds.push(artistRes.rows[0].id);
     }
 
+    // Check for existing album with the same title and any of the same artists
+    const duplicateCheck = await client.query(
+      `SELECT a.id FROM albums a
+       JOIN album_artists aa ON aa.album_id = a.id
+       WHERE LOWER(a.title) = LOWER($1)
+       AND aa.artist_id = ANY($2::int[])
+       LIMIT 1`,
+      [title, artistIds]
+    );
+
+    if (duplicateCheck.rows.length > 0) {
+      throw new Error(`An album titled "${title}" by "${artist}" already exists.`);
+    }
+
     const albumRes = await client.query(
       `INSERT INTO albums (title, release_date, cover_art)
        VALUES ($1, $2, $3) RETURNING id`,

@@ -393,14 +393,11 @@ export default function AlbumDetail({ user }) {
             <Link to={`/albums/${album.id}`} style={{ textDecoration: "none" }}>
               All ratings of {album.title}
             </Link>
-            {album.artistIds?.map(id => {
-              const name = album.artist?.split(', ').find((_, i) => album.artistIds[i] === id);
-              return (
-                <Link key={id} to={`/artists/${id}/users/${effectiveUsername}`} style={{ textDecoration: "none" }}>
-                  All albums by {name}
-                </Link>
-              );
-            })}
+            {album.artistIds?.map((id, i) => (
+              <Link key={id} to={`/artists/${id}/users/${effectiveUsername}`} style={{ textDecoration: "none" }}>
+                All albums by {album.artist?.split(' & ')[i]}
+              </Link>
+            ))}
             {isOwner && (
               <button
                 onClick={handleDeleteAlbum}
