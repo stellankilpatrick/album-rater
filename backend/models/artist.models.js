@@ -176,6 +176,7 @@ export async function getUserRatedAlbumsByArtist(userId, artistId) {
       SELECT 1 FROM album_artists aa WHERE aa.album_id = a.id AND aa.artist_id = $2
     )
     GROUP BY a.id
+    HAVING COUNT(sr.rating) > 0    
     ORDER BY (COALESCE(SUM(sr.rating), 0) * COALESCE(SUM(sr.rating), 0)) / NULLIF(COUNT(sr.rating), 0) DESC`,
     [userId, artistId]
   );
