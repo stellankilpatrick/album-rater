@@ -28,6 +28,14 @@ export default function AlbumDetailPublic({ user }) {
 
   const [followingReviews, setFollowingReviews] = useState([]);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     const fetchAlbum = async () => {
       try {
@@ -41,34 +49,26 @@ export default function AlbumDetailPublic({ user }) {
         setLoading(false);
       }
     };
-
     fetchAlbum();
   }, [albumId]);
 
   useEffect(() => {
     if (album) {
-      // Convert ISO timestamp to "YYYY-MM-DD" for the date input
-      const formattedDate = album.releaseDate
-        ? album.releaseDate.split("T")[0]  // <- this removes the time part
-        : "";
+      const formattedDate = album.releaseDate ? album.releaseDate.split("T")[0] : "";
       setEditReleaseDate(formattedDate);
-
       setEditTitle(album.title);
       setEditArtist(album.artist);
       setEditCover(prev => prev || album.coverArt || "");
     }
   }, [album]);
 
-  // fetches album reviews from following
   useEffect(() => {
     if (!user || !albumId) return;
-
     api.get(`/albums/${albumId}/following-reviews`)
       .then(res => setFollowingReviews(res.data))
       .catch(err => console.error(err));
   }, [albumId, user]);
 
-  // fetch genres
   useEffect(() => {
     if (isEditing && allGenres.length === 0) {
       api.get("/albums/genres/all").then(res => setAllGenres(res.data));
@@ -77,122 +77,75 @@ export default function AlbumDetailPublic({ user }) {
 
   const saveAlbumTitle = async () => {
     if (!editTitle.trim()) return;
-
     try {
-      const res = await api.patch(`/albums/${albumId}/title`, {
-        title: editTitle
-      });
+      const res = await api.patch(`/albums/${albumId}/title`, { title: editTitle });
       setAlbum(res.data);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const saveAlbumArtist = async () => {
     if (!editArtist.trim()) return;
-
     try {
-      const res = await api.patch(`/albums/${albumId}/artist`, {
-        artist: editArtist
-      });
+      const res = await api.patch(`/albums/${albumId}/artist`, { artist: editArtist });
       setAlbum(res.data);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const saveCover = async () => {
     const trimmedCover = editCover.trim();
-    if (!trimmedCover) return;
-    if (trimmedCover === album.coverArt) return; // don't re-save same value
-
+    if (!trimmedCover || trimmedCover === album.coverArt) return;
     try {
-      const res = await api.patch(`/albums/${albumId}/cover`, {
-        cover: trimmedCover
-      });
+      const res = await api.patch(`/albums/${albumId}/cover`, { cover: trimmedCover });
       setAlbum(res.data);
       setEditCover(res.data.coverArt || "");
-    } catch (err) {
-      console.error("Failed to update cover:", err);
-    }
+    } catch (err) { console.error("Failed to update cover:", err); }
   };
 
   const saveSongTitle = async (song) => {
     if (!song.title.trim()) return;
-
     try {
-      const res = await api.patch(`/songs/${song.id}/title`, {
-        title: song.title
-      });
-
-      setSongs(prev =>
-        prev.map(s => (s.id === song.id ? res.data : s))
-      );
+      const res = await api.patch(`/songs/${song.id}/title`, { title: song.title });
+      setSongs(prev => prev.map(s => s.id === song.id ? res.data : s));
       setEditingSongId(null);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const saveAlbumReleaseDate = async () => {
     if (!editReleaseDate) return;
-
     try {
-      const res = await api.patch(`/albums/${albumId}/release-date`, {
-        releaseDate: editReleaseDate
-      });
+      const res = await api.patch(`/albums/${albumId}/release-date`, { releaseDate: editReleaseDate });
       setAlbum(res.data);
-    } catch (err) {
-      console.error("Failed to update release date:", err);
-    }
+    } catch (err) { console.error("Failed to update release date:", err); }
   };
 
   const saveTrackNum = async (song) => {
     if (!song.num || song.num < 1) return;
-
     try {
       await api.patch(`/songs/${song.id}/num`, { num: song.num });
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const deleteSong = async (songId) => {
     if (!window.confirm("Delete this song?")) return;
-
     try {
       await api.delete(`/songs/${songId}`);
       setSongs(prev => prev.filter(s => s.id !== songId));
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const handleRateClick = async () => {
-    if (!user) {
-      alert("Please log in to rate this album.");
-      return;
-    }
-
+    if (!user) { alert("Please log in to rate this album."); return; }
     try {
-      const res = await api.post(
-        `/albums/${album.id}/users/${effectiveUsername}`
-      );
-
-      // ALWAYS trust the backend id
-      const ratedAlbumId = res.data.id;
-
-      navigate(`/albums/${ratedAlbumId}/users/${effectiveUsername}`);
+      const res = await api.post(`/albums/${album.id}/users/${effectiveUsername}`);
+      navigate(`/albums/${res.data.id}/users/${effectiveUsername}`);
     } catch (err) {
       console.error(err);
       alert("Failed to submit rating.");
     }
   };
 
-
   const deleteAlbum = async () => {
     if (!window.confirm("Delete this album?")) return;
-
     try {
       await api.delete(`/albums/${albumId}`);
       navigate("/albums");
@@ -212,14 +165,13 @@ export default function AlbumDetailPublic({ user }) {
           position: "relative",
           overflow: "hidden",
           marginBottom: "20px",
-          width: "calc(100% + 32px)",
-          marginLeft: "-16px",
-          marginRight: "-16px",
+          width: "100vw",
+          marginLeft: "calc(50% - 50vw)",
+          marginRight: "calc(50% - 50vw)",
           marginTop: "-10px",
           color: "white"
         }}
       >
-        {/* blurred background */}
         {album.coverArt && (
           <img
             src={album.coverArt}
@@ -237,7 +189,6 @@ export default function AlbumDetailPublic({ user }) {
           />
         )}
 
-        {/* dark overlay */}
         <div
           style={{
             position: "absolute",
@@ -246,14 +197,14 @@ export default function AlbumDetailPublic({ user }) {
           }}
         />
 
-        {/* content */}
         <div
           style={{
             position: "relative",
             zIndex: 2,
             display: "flex",
+            flexDirection: isMobile ? "column" : "row",
             gap: "20px",
-            alignItems: "flex-start",
+            alignItems: isMobile ? "center" : "flex-start",
             padding: "24px"
           }}
         >
@@ -263,8 +214,8 @@ export default function AlbumDetailPublic({ user }) {
               <div
                 style={{
                   position: "relative",
-                  width: "200px",
-                  height: "200px",
+                  width: isMobile ? "150px" : "200px",
+                  height: isMobile ? "150px" : "200px",
                   overflow: "hidden",
                   borderRadius: "12px"
                 }}
@@ -311,40 +262,39 @@ export default function AlbumDetailPublic({ user }) {
           </div>
 
           {/* Right side info */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <h1 style={{ margin: 0 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: isMobile ? "center" : "flex-start" }}>
+            <h1 style={{ margin: 0, fontSize: isMobile ? "1.75rem" : undefined, textAlign: isMobile ? "center" : undefined }}>
               {isEditing ? (
-                <>
-                  <input
-                    value={editTitle}
-                    onChange={e => setEditTitle(e.target.value)}
-                    onBlur={saveAlbumTitle}
-                    onKeyDown={e => e.key === "Enter" && e.target.blur()}
-                    style={{ fontStyle: "italic", marginRight: "6px" }}
-                  />
-                  {" "}by{" "}
-                  <input
-                    value={editArtist}
-                    onChange={e => setEditArtist(e.target.value)}
-                    onBlur={saveAlbumArtist}
-                    onKeyDown={e => e.key === "Enter" && e.target.blur()}
-                    style={{ marginLeft: "6px" }}
-                  />
-                </>
+                <input
+                  value={editTitle}
+                  onChange={e => setEditTitle(e.target.value)}
+                  onBlur={saveAlbumTitle}
+                  onKeyDown={e => e.key === "Enter" && e.target.blur()}
+                  style={{ fontStyle: "italic" }}
+                />
               ) : (
-                <>
-                  <i>{album.title}</i> by{" "}
-                  {album.artistIds?.map((id, i) => (
-                    <span key={id}>
-                      <Link to={`/artists/${id}`} style={{ color: "white" }}>
-                        {album.artist?.split(' & ')[i]}
-                      </Link>
-                      {i < album.artistIds.length - 1 && ", "}
-                    </span>
-                  ))}
-                </>
+                <i>{album.title}</i>
               )}
             </h1>
+            <h2 style={{ margin: 0, textAlign: isMobile ? "center" : undefined }}>
+              {isEditing ? (
+                <input
+                  value={editArtist}
+                  onChange={e => setEditArtist(e.target.value)}
+                  onBlur={saveAlbumArtist}
+                  onKeyDown={e => e.key === "Enter" && e.target.blur()}
+                />
+              ) : (
+                album.artistIds?.map((id, i) => (
+                  <span key={id}>
+                    <Link to={`/artists/${id}`} style={{ color: "white" }}>
+                      {album.artist?.split(' & ')[i]}
+                    </Link>
+                    {i < album.artistIds.length - 1 && ", "}
+                  </span>
+                ))
+              )}
+            </h2>
 
             <h4 style={{ margin: 0 }}>
               Released{" "}
@@ -358,14 +308,13 @@ export default function AlbumDetailPublic({ user }) {
                 />
               ) : (
                 new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
-                  "en-US",
-                  { year: "numeric", month: "short", day: "numeric" }
+                  "en-US", { year: "numeric", month: "short", day: "numeric" }
                 )
               )}
             </h4>
 
             {/* Genres */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center", maxWidth: "400px" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center", maxWidth: "400px", justifyContent: isMobile ? "center" : "flex-start" }}>
               {genres.map(g => (
                 <span
                   key={g.id}
@@ -472,16 +421,12 @@ export default function AlbumDetailPublic({ user }) {
 
             <p style={{ margin: 0 }}>
               Average Score: {album.avgScore?.toFixed(1) || "0.0"} |{" "}
-              {album.ratingCount ?? 0} rating
-              {album.ratingCount !== 1 ? "s" : ""}
+              {album.ratingCount ?? 0} rating{album.ratingCount !== 1 ? "s" : ""}
             </p>
 
-            <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+            <div style={{ display: "flex", gap: "8px", marginTop: "6px", flexWrap: "wrap", justifyContent: isMobile ? "center" : "flex-start" }}>
               <button
-                onClick={() => {
-                  setIsEditing(e => !e);
-                  setEditingSongId(null);
-                }}
+                onClick={() => { setIsEditing(e => !e); setEditingSongId(null); }}
                 style={isEditing ? { backgroundColor: "green", color: "white", border: "none", borderRadius: "3px" } : {}}
               >
                 {isEditing ? "Done editing" : "Edit album"}
@@ -490,24 +435,13 @@ export default function AlbumDetailPublic({ user }) {
               {user && !isEditing && (
                 <button
                   onClick={handleRateClick}
-                  style={{
-                    backgroundColor: "#1db954",
-                    color: "white",
-                    borderRadius: "5px",
-                    border: "none",
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                  }}
+                  style={{ backgroundColor: "#1db954", color: "white", borderRadius: "5px", border: "none", fontWeight: "bold", cursor: "pointer" }}
                 >
                   Rate album
                 </button>
               )}
               {user && !isEditing && (
-                <button
-                  onClick={() =>
-                    api.post(`/users/${effectiveUsername}/listen-list/${album.id}`)
-                  }
-                >
+                <button onClick={() => api.post(`/users/${effectiveUsername}/listen-list/${album.id}`)}>
                   Add to Listen List
                 </button>
               )}
@@ -519,88 +453,64 @@ export default function AlbumDetailPublic({ user }) {
       {/* ===== Tracks ===== */}
       <h2>Tracklist</h2>
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Title</th>
-            <th>Rating</th>
-          </tr>
-        </thead>
+      <div style={{ overflowX: isMobile ? "auto" : "visible", width: isMobile ? "100%" : "auto" }}>
+        <table style={{ width: isMobile ? "auto" : "100%", borderCollapse: "collapse", tableLayout: isMobile ? "auto" : "fixed" }}>
+          <thead>
+            <tr>
+              <th style={{ width: "30px" }}>#</th>
+              <th style={{ textAlign: "left", maxWidth: isMobile ? "200px" : undefined }}>Title</th>
+              <th>Rating</th>
+              {isEditing && <th></th>}
+            </tr>
+          </thead>
 
-        <tbody>
-          {songs
-            .slice()
-            .sort((a, b) => a.num - b.num)
-            .map(song => (
-              <tr key={song.id}>
-                <td>
-                  {isEditing ? (
-                    <input
-                      type="number"
-                      min="1"
-                      value={song.num}
-                      style={{ width: "3rem" }}
-                      onChange={e =>
-                        setSongs(prev =>
-                          prev.map(s =>
-                            s.id === song.id
-                              ? { ...s, num: Number(e.target.value) }
-                              : s
-                          )
-                        )
-                      }
-                      onBlur={() => saveTrackNum(song)}
-                    />
-                  ) : (
-                    song.num
-                  )}
-                </td>
+          <tbody>
+            {songs
+              .slice()
+              .sort((a, b) => a.num - b.num)
+              .map(song => (
+                <tr key={song.id}>
+                  <td>
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        min="1"
+                        value={song.num}
+                        style={{ width: "3rem" }}
+                        onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, num: Number(e.target.value) } : s))}
+                        onBlur={() => saveTrackNum(song)}
+                      />
+                    ) : song.num}
+                  </td>
 
-                <td>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={song.title}
-                      autoFocus={editingSongId === song.id}
-                      onChange={e =>
-                        setSongs(prev =>
-                          prev.map(s =>
-                            s.id === song.id
-                              ? { ...s, title: e.target.value }
-                              : s
-                          )
-                        )
-                      }
-                      onBlur={() => saveSongTitle(song)}
-                      onKeyDown={e => {
-                        if (e.key === "Enter") e.target.blur();
-                        if (e.key === "Escape") setEditingSongId(null);
-                      }}
-                      onFocus={() => setEditingSongId(song.id)}
-                    />
-                  ) : (
-                    <span>{song.title}</span>
-                  )}
-                </td>
+                  <td style={{ maxWidth: isMobile ? "300px" : undefined, whiteSpace: isMobile && !isEditing ? "nowrap" : undefined, overflow: isMobile && !isEditing ? "hidden" : undefined, textOverflow: isMobile && !isEditing ? "ellipsis" : undefined }}>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={song.title}
+                        autoFocus={editingSongId === song.id}
+                        onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, title: e.target.value } : s))}
+                        onBlur={() => saveSongTitle(song)}
+                        onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingSongId(null); }}
+                        onFocus={() => setEditingSongId(song.id)}
+                      />
+                    ) : (
+                      <span>{song.title}</span>
+                    )}
+                  </td>
 
-                <td>
-                  {song.totalRatings > 0
-                    ? `${song.notSkippedPercent}%`
-                    : "No ratings"}
-                </td>
+                  <td>{song.totalRatings > 0 ? `${song.notSkippedPercent}%` : "No ratings"}</td>
 
-                <td>
                   {isEditing && (
-                    <button className="danger" onClick={() => deleteSong(song.id)}>
-                      Delete
-                    </button>
+                    <td>
+                      <button className="danger" onClick={() => deleteSong(song.id)}>Delete</button>
+                    </td>
                   )}
-                </td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
 
       {isEditing && (
         <AddSongForm
@@ -626,9 +536,7 @@ export default function AlbumDetailPublic({ user }) {
           <ul>
             {followingReviews.map(r => (
               <li key={r.id}>
-                <Link to={`/albums/${albumId}/users/${r.username}`}>
-                  {r.username}
-                </Link>{" "}
+                <Link to={`/albums/${albumId}/users/${r.username}`}>{r.username}</Link>{" "}
                 — {Math.round(r.rating)} points
               </li>
             ))}

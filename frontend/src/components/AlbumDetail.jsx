@@ -316,11 +316,11 @@ export default function AlbumDetail({ user }) {
 
         {/* Tracklist — scrollable on mobile */}
         <div style={{ overflowX: isMobile ? "auto" : "visible", width: isMobile ? "100%" : "auto" }}>
-          <table style={{ borderCollapse: "collapse", flex: "0 0 auto" }}>
+          <table style={{ borderCollapse: "collapse", flex: "0 0 auto", tableLayout: isMobile ? "fixed" : "auto", width: isMobile ? "100%" : "auto" }}>
             <thead>
               <tr>
                 <th style={{ textAlign: "left", paddingRight: "12px", width: "30px" }}>#</th>
-                <th style={{ textAlign: "left", paddingRight: "12px", minWidth: isMobile ? "180px" : undefined }}>Title</th>
+                <th style={{ textAlign: "left", paddingRight: "12px", minWidth: isMobile ? "150px" : undefined }}>Title</th>
                 <th style={{ textAlign: "left" }}>Rating</th>
                 <th style={{ textAlign: "left" }}>Comment</th>
               </tr>
@@ -329,17 +329,18 @@ export default function AlbumDetail({ user }) {
               {songs.map(song => (
                 <tr key={song.id}>
                   <td style={{ paddingRight: "12px", width: "30px" }}>{song.num}</td>
-                  <td style={{ paddingRight: "12px" }}>{song.title}</td>
+                  <td style={{ paddingRight: "12px", maxWidth: isMobile ? "160px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {song.title}
+                  </td>
                   <td style={{ paddingRight: "24px" }}>
                     <select
                       value={song.localRating ?? ""}
                       disabled={!isOwner}
                       onChange={
-                        isOwner
-                          ? e => {
-                            const value = e.target.value === "" ? null : Number(e.target.value);
-                            handleRatingChange(song.id, value);
-                          }
+                        isOwner ? e => {
+                          const value = e.target.value === "" ? null : Number(e.target.value);
+                          handleRatingChange(song.id, value);
+                        }
                           : undefined
                       }
                       style={{ color: isOwner ? "inherit" : "#333", background: isOwner ? "inherit" : "#f0f0f0" }}
@@ -361,7 +362,7 @@ export default function AlbumDetail({ user }) {
                           onFocus={() => setFocusedSongId(song.id)}
                           placeholder="Add a note..."
                           maxLength={75}
-                          style={{ border: "none", background: "transparent", width: isMobile ? "160px" : "520px" }}
+                          style={{ border: "none", background: "transparent", width: isMobile ? "520px" : "520px" }}
                         />
                         {focusedSongId === song.id && song.comment?.length > 0 && (
                           <span style={{ fontSize: "11px", color: song.comment?.length >= 75 ? "red" : "#999" }}>
