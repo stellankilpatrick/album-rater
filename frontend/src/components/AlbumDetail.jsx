@@ -320,7 +320,7 @@ export default function AlbumDetail({ user }) {
             <thead>
               <tr>
                 <th style={{ textAlign: "left", paddingRight: "12px", width: "30px" }}>#</th>
-                <th style={{ textAlign: "left", paddingRight: "12px", minWidth: isMobile ? "150px" : undefined }}>Title</th>
+                <th style={{ textAlign: "left", paddingRight: "12px", minWidth: isMobile ? "200px" : undefined }}>Title</th>
                 <th style={{ textAlign: "left" }}>Rating</th>
                 <th style={{ textAlign: "left" }}>Comment</th>
               </tr>
@@ -329,7 +329,7 @@ export default function AlbumDetail({ user }) {
               {songs.map(song => (
                 <tr key={song.id}>
                   <td style={{ paddingRight: "12px", width: "30px" }}>{song.num}</td>
-                  <td style={{ paddingRight: "12px", maxWidth: isMobile ? "160px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <td style={{ paddingRight: "12px", maxWidth: isMobile ? "200px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {song.title}
                   </td>
                   <td style={{ paddingRight: "24px" }}>
