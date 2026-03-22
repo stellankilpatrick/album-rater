@@ -22,11 +22,19 @@ export default function AlbumDetail({ user }) {
   const [review, setReview] = useState("");
   const [reviewFocused, setReviewFocused] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
   const ordinal = n => {
     const s = ["th", "st", "nd", "rd"];
     const v = n % 100;
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
   };
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   /* ---------------- fetch album ------------ */
   useEffect(() => {
@@ -45,20 +53,14 @@ export default function AlbumDetail({ user }) {
     setSongs([]);
   }, [albumId]);
 
-  // set review when album loads
   useEffect(() => {
     if (album?.review) setReview(album.review);
   }, [album]);
 
-
-  // update song rating
   const handleRatingChange = (songId, newRating) => {
     setSongs(prev => prev.map(s => s.id === songId ? { ...s, localRating: newRating } : s));
-
-    // update backend
     api.patch(`/songs/${songId}/rating`, { rating: newRating })
       .then(res => {
-        // update album rating in parent
         setSongs(prev => prev.map(s =>
           s.id === songId ? { ...s, localRating: newRating } : s
         ));
@@ -66,10 +68,8 @@ export default function AlbumDetail({ user }) {
       .catch(err => console.error("Failed to update rating:", err));
   };
 
-  // delete album
   const handleDeleteAlbum = async () => {
     if (!window.confirm("Delete this album?")) return;
-
     try {
       await api.delete(`/albums/${album.id}/users/${effectiveUsername}`);
       navigate(`/albums/users/${effectiveUsername}`);
@@ -94,7 +94,6 @@ export default function AlbumDetail({ user }) {
       .catch(err => console.error("Failed to update review:", err));
   };
 
-  // get genres
   useEffect(() => {
     if (!albumId) return;
     api.get(`/albums/${albumId}/genres`)
@@ -102,7 +101,6 @@ export default function AlbumDetail({ user }) {
       .catch(err => console.error(err));
   }, [albumId]);
 
-  // fetch ranks
   useEffect(() => {
     if (!album) return;
     api.get(`/albums/${albumId}/rank/overall/users/${effectiveUsername}`).then(r => setRanks(p => ({ ...p, overall: r.data })));
@@ -115,11 +113,58 @@ export default function AlbumDetail({ user }) {
     });
   }, [album, genres]);
 
-
   if (!album) return <div>Loading...</div>
 
   const goodSongs = songs.filter(s => s.localRating > 0).length;
   const ratedSongs = songs.filter(s => s.localRating !== null && s.localRating !== undefined).length;
+
+  const reviewPanel = (
+    <div style={{
+      flexShrink: 0,
+      width: isMobile ? "100%" : "575px",
+      display: "flex",
+      flexDirection: "column",
+      gap: "4px",
+      zIndex: 3,
+      ...(isMobile ? { padding: "0 16px 16px 0px" } : { marginLeft: "auto", marginTop: "16px" })
+    }}>
+      {isOwner ? (
+        <>
+          <textarea
+            value={review}
+            onChange={e => setReview(e.target.value)}
+            onFocus={() => setReviewFocused(true)}
+            onBlur={handleReviewBlur}
+            placeholder="Write a review..."
+            maxLength={500}
+            style={{
+              background: isMobile ? "rgba(0,0,0,0.1)" : "rgba(0,0,0,0.2)",
+              border: "1px solid rgba(255,255,255,0.3)",
+              borderRadius: "8px",
+              color: isMobile ? "black" : "white",
+              padding: "8px",
+              resize: "none",
+              width: isMobile ? "100%" : "500px",
+              height: isMobile ? "100px" : "150px",
+              fontSize: "13px",
+              boxSizing: "border-box",
+            }}
+          />
+          {reviewFocused && (
+            <span style={{ fontSize: "11px", color: review.length >= 500 ? "red" : "rgba(255,255,255,0.6)" }}>
+              {review.length}/500
+            </span>
+          )}
+        </>
+      ) : (
+        album?.review && (
+          <p style={{ margin: 0, fontSize: "13px", color: "rgba(255,255,255,0.85)", fontStyle: "italic" }}>
+            "{album.review}"
+          </p>
+        )
+      )}
+    </div>
+  );
 
   return (
     <div>
@@ -129,6 +174,7 @@ export default function AlbumDetail({ user }) {
           position: "relative",
           zIndex: 2,
           display: "flex",
+          flexDirection: isMobile ? "column" : "row",
           overflow: "hidden",
           marginBottom: "20px",
           width: "100vw",
@@ -177,8 +223,8 @@ export default function AlbumDetail({ user }) {
             <div
               style={{
                 position: "relative",
-                width: "200px",
-                height: "200px",
+                width: isMobile ? "200px" : "200px",
+                height: isMobile ? "200px" : "200px",
                 overflow: "hidden",
                 borderRadius: "12px",
                 flexShrink: 0
@@ -211,14 +257,13 @@ export default function AlbumDetail({ user }) {
             </div>
           )}
 
-          {/* MIDDLE: text — tighter spacing */}
           <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-            <h1 style={{ margin: 0 }}>
+            <h1 style={{ margin: 0, fontSize: isMobile ? "1.75rem" : undefined }}>
               <Link to={`/albums/${album.id}`} style={{ color: "white" }}>
                 <i>{album.title}</i>
               </Link>
             </h1>
-            <h2 style={{ margin: 0 }}>
+            <h2 style={{ margin: 0, fontSize: isMobile ? "1.25rem" : undefined }}>
               {album.artistIds?.map((id, i) => (
                 <span key={id}>
                   <Link to={`/artists/${id}/users/${effectiveUsername}`} style={{ color: "white" }}>
@@ -241,10 +286,10 @@ export default function AlbumDetail({ user }) {
 
             {album.score10 != null && (
               <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-                <h1 style={{ margin: 0, fontSize: "3.5rem" }}>{album.score10.toFixed(1)}</h1>
+                <h1 style={{ margin: 0, fontSize: isMobile ? "3rem" : "3.5rem" }}>{album.score10.toFixed(1)}</h1>
                 {ranks.overall?.rank != null && (
                   <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "14px" }}>
-                    <strong style={{ fontSize: "25px" }}>{ordinal(ranks.overall.rank)}</strong> of {ranks.overall.total} albums
+                    <strong style={{ fontSize: isMobile ? "18px" : "25px" }}>{ordinal(ranks.overall.rank)}</strong> of {ranks.overall.total} albums
                   </span>
                 )}
               </div>
@@ -252,112 +297,88 @@ export default function AlbumDetail({ user }) {
           </div>
         </div>
 
-        {/* RIGHT: review */}
-        <div style={{ marginLeft: "auto", flexShrink: 0, width: "575px", display: "flex", flexDirection: "column", gap: "4px", zIndex: 3 }}>
-          <strong style={{ color: "white", fontSize: "20px", marginTop: "20px" }}>Review</strong>
-          {isOwner ? (
-            <>
-              <textarea
-                value={review}
-                onChange={e => setReview(e.target.value)}
-                onFocus={() => setReviewFocused(true)}
-                onBlur={handleReviewBlur}
-                placeholder="Write a review..."
-                maxLength={500}
-                style={{
-                  background: "rgba(0,0,0,0.2)",
-                  border: "1px solid rgba(255,255,255,0.3)",
-                  borderRadius: "8px",
-                  color: "white",
-                  padding: "8px",
-                  resize: "none",
-                  width: "500px",
-                  height: "150px",
-                  fontSize: "13px",
-                }}
-              />
-              {reviewFocused && (
-                <span style={{ fontSize: "11px", color: review.length >= 500 ? "red" : "rgba(255,255,255,0.6)" }}>
-                  {review.length}/500
-                </span>
-              )}
-            </>
-          ) : (
-            album?.review && (
-              <p style={{ margin: 0, fontSize: "13px", color: "rgba(255,255,255,0.85)", fontStyle: "italic" }}>
-                "{album.review}"
-              </p>
-            )
-          )}
-        </div>
+        {/* Review panel — inline on desktop, stacked on mobile */}
+        {!isMobile && reviewPanel}
       </div>
 
+      {/* Review panel stacked below header on mobile */}
+      {isMobile && reviewPanel}
+
       {/* ===== TRACKLIST + SIDEBAR ===== */}
-      <div style={{ display: "flex", gap: "32px", alignItems: "flex-start", paddingLeft: "10px" }}>
+      <div style={{
+        display: "flex",
+        flexDirection: isMobile ? "column" : "row",
+        gap: "32px",
+        alignItems: "flex-start",
+        paddingLeft: isMobile ? "0" : "10px"
+      }}>
 
-        {/* Tracklist */}
-        <table style={{ borderCollapse: "collapse", flex: "0 0 auto" }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: "left", paddingRight: "12px", width: "30px" }}>#</th>
-              <th style={{ textAlign: "left", paddingRight: "12px" }}>Title</th>
-              <th style={{ textAlign: "left" }}>Rating</th>
-              <th style={{ textAlign: "left" }}>Comment</th>
-            </tr>
-          </thead>
-          <tbody>
-            {songs.map(song => (
-              <tr key={song.id}>
-                <td style={{ paddingRight: "12px", width: "30px" }}>{song.num}</td>
-                <td style={{ paddingRight: "12px" }}>{song.title}</td>
-                <td style={{ paddingRight: "24px" }}>
-                  <select
-                    value={song.localRating ?? ""}
-                    disabled={!isOwner}
-                    onChange={
-                      isOwner
-                        ? e => {
-                          const value = e.target.value === "" ? null : Number(e.target.value);
-                          handleRatingChange(song.id, value);
-                        }
-                        : undefined
-                    }
-                    style={{ color: isOwner ? "inherit" : "#333", background: isOwner ? "inherit" : "#f0f0f0" }}
-                  >
-                    <option value="">Interlude</option>
-                    <option value={0}>- Skip</option>
-                    <option value={1}>+ Play</option>
-                    <option value={2}>++ Special</option>
-                  </select>
-                </td>
-                <td style={{ wordBreak: "break-word" }}>
-                  {isOwner ? (
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <input
-                        type="text"
-                        value={song.comment ?? ""}
-                        onChange={e => handleCommentChange(song.id, e.target.value)}
-                        onBlur={e => { handleCommentBlur(song.id, e.target.value); setFocusedSongId(null); }}
-                        onFocus={() => setFocusedSongId(song.id)}
-                        placeholder="Add a note..."
-                        maxLength={75}
-                        style={{ border: "none", background: "transparent", width: "520px" }}
-                      />
-                      {focusedSongId === song.id && song.comment?.length > 0 && (
-                        <span style={{ fontSize: "11px", color: song.comment?.length >= 75 ? "red" : "#999" }}>
-                          {song.comment?.length}/75
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <span style={{ color: "#333", fontSize: "13px" }}>{song.comment ?? ""}</span>)}
-                </td>
+        {/* Tracklist — scrollable on mobile */}
+        <div style={{ overflowX: isMobile ? "auto" : "visible", width: isMobile ? "100%" : "auto" }}>
+          <table style={{ borderCollapse: "collapse", flex: "0 0 auto" }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: "left", paddingRight: "12px", width: "30px" }}>#</th>
+                <th style={{ textAlign: "left", paddingRight: "12px" }}>Title</th>
+                <th style={{ textAlign: "left" }}>Rating</th>
+                <th style={{ textAlign: "left" }}>Comment</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {songs.map(song => (
+                <tr key={song.id}>
+                  <td style={{ paddingRight: "12px", width: "30px" }}>{song.num}</td>
+                  <td style={{ paddingRight: "12px" }}>{song.title}</td>
+                  <td style={{ paddingRight: "24px" }}>
+                    <select
+                      value={song.localRating ?? ""}
+                      disabled={!isOwner}
+                      onChange={
+                        isOwner
+                          ? e => {
+                            const value = e.target.value === "" ? null : Number(e.target.value);
+                            handleRatingChange(song.id, value);
+                          }
+                          : undefined
+                      }
+                      style={{ color: isOwner ? "inherit" : "#333", background: isOwner ? "inherit" : "#f0f0f0" }}
+                    >
+                      <option value="">Interlude</option>
+                      <option value={0}>- Skip</option>
+                      <option value={1}>+ Play</option>
+                      <option value={2}>++ Special</option>
+                    </select>
+                  </td>
+                  <td style={{ wordBreak: "break-word" }}>
+                    {isOwner ? (
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        <input
+                          type="text"
+                          value={song.comment ?? ""}
+                          onChange={e => handleCommentChange(song.id, e.target.value)}
+                          onBlur={e => { handleCommentBlur(song.id, e.target.value); setFocusedSongId(null); }}
+                          onFocus={() => setFocusedSongId(song.id)}
+                          placeholder="Add a note..."
+                          maxLength={75}
+                          style={{ border: "none", background: "transparent", width: isMobile ? "160px" : "520px" }}
+                        />
+                        {focusedSongId === song.id && song.comment?.length > 0 && (
+                          <span style={{ fontSize: "11px", color: song.comment?.length >= 75 ? "red" : "#999" }}>
+                            {song.comment?.length}/75
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span style={{ color: "#333", fontSize: "13px" }}>{song.comment ?? ""}</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, paddingLeft: isMobile ? "10px" : "0" }}>
 
           {/* RANKS */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
@@ -418,6 +439,6 @@ export default function AlbumDetail({ user }) {
 
         </div>
       </div>
-    </div >
+    </div>
   );
 }
