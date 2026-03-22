@@ -224,8 +224,9 @@ export default function AlbumDetail({ user }) {
             <div
               style={{
                 position: "relative",
-                width: isMobile ? "50%" : "200px",
+                width: isMobile ? "60%" : "200px",
                 aspectRatio: "1 / 1",
+                maxHeight: isMobile ? "60vw" : "200px",
                 overflow: "hidden",
                 borderRadius: "12px",
                 flexShrink: 0
