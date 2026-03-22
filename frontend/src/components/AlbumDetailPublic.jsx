@@ -459,8 +459,7 @@ export default function AlbumDetailPublic({ user }) {
             <tr>
               <th style={{ width: "30px" }}>#</th>
               <th style={{ textAlign: "left", maxWidth: isMobile ? "200px" : undefined }}>Title</th>
-              <th>Rating</th>
-              {isEditing && <th></th>}
+              {!isEditing && <th>Rating</th>}
             </tr>
           </thead>
 
@@ -483,7 +482,7 @@ export default function AlbumDetailPublic({ user }) {
                     ) : song.num}
                   </td>
 
-                  <td style={{ maxWidth: isMobile ? "300px" : undefined, whiteSpace: isMobile && !isEditing ? "nowrap" : undefined, overflow: isMobile && !isEditing ? "hidden" : undefined, textOverflow: isMobile && !isEditing ? "ellipsis" : undefined }}>
+                  <td style={{ minWidth: isMobile ? "270px" : undefined, whiteSpace: isMobile && !isEditing ? "nowrap" : undefined, overflow: isMobile && !isEditing ? "hidden" : undefined, textOverflow: isMobile && !isEditing ? "ellipsis" : undefined }}>
                     {isEditing ? (
                       <input
                         type="text"
@@ -499,7 +498,7 @@ export default function AlbumDetailPublic({ user }) {
                     )}
                   </td>
 
-                  <td>{song.totalRatings > 0 ? `${song.notSkippedPercent}%` : "No ratings"}</td>
+                  {!isEditing && <td>{song.totalRatings > 0 ? `${song.notSkippedPercent}%` : "No ratings"}</td>}
 
                   {isEditing && (
                     <td>
