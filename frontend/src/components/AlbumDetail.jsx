@@ -320,7 +320,7 @@ export default function AlbumDetail({ user }) {
             <thead>
               <tr>
                 <th style={{ textAlign: "left", paddingRight: "12px", width: "30px" }}>#</th>
-                <th style={{ textAlign: "left", paddingRight: "12px" }}>Title</th>
+                <th style={{ textAlign: "left", paddingRight: "12px", minWidth: isMobile ? "180px" : undefined }}>Title</th>
                 <th style={{ textAlign: "left" }}>Rating</th>
                 <th style={{ textAlign: "left" }}>Comment</th>
               </tr>
