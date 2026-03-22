@@ -214,8 +214,9 @@ export default function AlbumDetail({ user }) {
             position: "relative",
             zIndex: 2,
             display: "flex",
+            flexDirection: isMobile ? "column" : "row",
             gap: "20px",
-            alignItems: "flex-start",
+            alignItems: isMobile ? "center" : "flex-start",
             padding: "24px"
           }}
         >
@@ -223,7 +224,7 @@ export default function AlbumDetail({ user }) {
             <div
               style={{
                 position: "relative",
-                width: isMobile ? "20%" : "200px",
+                width: isMobile ? "50%" : "200px",
                 aspectRatio: "1 / 1",
                 overflow: "hidden",
                 borderRadius: "12px",
