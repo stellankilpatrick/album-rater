@@ -316,11 +316,11 @@ export default function AlbumDetail({ user }) {
 
         {/* Tracklist — scrollable on mobile */}
         <div style={{ overflowX: isMobile ? "auto" : "visible", width: isMobile ? "100%" : "auto" }}>
-          <table style={{ borderCollapse: "collapse", flex: "0 0 auto", tableLayout: isMobile ? "fixed" : "auto", width: isMobile ? "100%" : "auto" }}>
+          <table style={{ borderCollapse: "collapse", flex: "0 0 auto", tableLayout: "auto", width: isMobile ? "100%" : "auto" }}>
             <thead>
               <tr>
                 <th style={{ textAlign: "left", paddingRight: "12px", width: "30px" }}>#</th>
-                <th style={{ textAlign: "left", paddingRight: "12px", minWidth: isMobile ? "200px" : undefined }}>Title</th>
+                <th style={{ textAlign: "left", paddingRight: "12px", minWidth: isMobile ? "250px" : undefined }}>Title</th>
                 <th style={{ textAlign: "left" }}>Rating</th>
                 <th style={{ textAlign: "left" }}>Comment</th>
               </tr>
@@ -329,7 +329,7 @@ export default function AlbumDetail({ user }) {
               {songs.map(song => (
                 <tr key={song.id}>
                   <td style={{ paddingRight: "12px", width: "30px" }}>{song.num}</td>
-                  <td style={{ paddingRight: "12px", maxWidth: isMobile ? "200px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <td style={{ paddingRight: "12px", maxWidth: isMobile ? "250px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {song.title}
                   </td>
                   <td style={{ paddingRight: "24px" }}>
