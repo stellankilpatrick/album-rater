@@ -8,7 +8,19 @@ export default function ArtistList({ user }) {
     const navigate = useNavigate();
     const { username } = useParams();
     const effectiveUsername = username ?? user?.username;
-    const [viewMode, setViewMode] = useState("list");
+
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [viewMode, setViewMode] = useState(window.innerWidth <= 768 ? "grid" : "list");
+
+    useEffect(() => {
+        const handleResize = () => {
+            const mobile = window.innerWidth <= 768;
+            setIsMobile(mobile);
+            if (mobile) setViewMode("grid");
+        };
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
     if (!effectiveUsername) return <Navigate to="/login" />;
 
@@ -18,7 +30,6 @@ export default function ArtistList({ user }) {
             .catch(err => console.error(err));
     }, [effectiveUsername]);
 
-    // Sort handler
     const sortedArtists = [...artists].sort((a, b) => {
         const key = sortConfig.key;
         if (a[key] < b[key]) return sortConfig.direction === "asc" ? -1 : 1;
@@ -37,18 +48,16 @@ export default function ArtistList({ user }) {
         <div>
             <h1>{effectiveUsername}'s Top Artists</h1>
 
-            <button
-                onClick={() =>
-                    setViewMode(prev => (prev === "list" ? "grid" : "list"))
-                }
-                style={{ marginBottom: "15px" }}
-            >
-                {viewMode === "list" ? "Grid View" : "List View"}
-            </button>
-
+            {!isMobile && (
+                <button
+                    onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")}
+                    style={{ marginBottom: "15px" }}
+                >
+                    {viewMode === "list" ? "Grid View" : "List View"}
+                </button>
+            )}
 
             {viewMode === "list" ? (
-                /* LIST VIEW (existing table) */
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>
                         <tr>
@@ -59,30 +68,17 @@ export default function ArtistList({ user }) {
                             <th onClick={() => handleSort("totalScore")}>Total Score</th>
                         </tr>
                     </thead>
-
                     <tbody>
                         {sortedArtists.map((a, i) => (
                             <tr key={a.id}>
                                 <td>{i + 1}</td>
                                 <td>
                                     {a.image && (
-                                        <img
-                                            src={a.image}
-                                            alt={a.name}
-                                            style={{
-                                                width: 25,
-                                                height: 25,
-                                                objectFit: "cover",
-                                                borderRadius: "50%"
-                                            }}
-                                        />
+                                        <img src={a.image} alt={a.name} style={{ width: 25, height: 25, objectFit: "cover", borderRadius: "50%" }} />
                                     )}
                                 </td>
                                 <td>
-                                    <Link
-                                        to={`/artists/${a.id}/users/${effectiveUsername}`}
-                                        style={{ textDecoration: "none", color: "inherit" }}
-                                    >
+                                    <Link to={`/artists/${a.id}/users/${effectiveUsername}`} style={{ textDecoration: "none", color: "inherit" }}>
                                         {a.name}
                                     </Link>
                                 </td>
@@ -93,21 +89,16 @@ export default function ArtistList({ user }) {
                     </tbody>
                 </table>
             ) : (
-                /* GRID VIEW */
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-                        gap: "20px"
-                    }}
-                >
-                    {sortedArtists.map(a => (
+                <div style={{
+                    display: "grid",
+                    gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(auto-fill, minmax(180px, 1fr))",
+                    gap: isMobile ? "10px" : "20px"
+                }}>
+                    {sortedArtists.map((a, i) => (
                         <div
                             key={a.id}
                             style={{ textAlign: "center", cursor: "pointer" }}
-                            onClick={() =>
-                                navigate(`/artists/${a.id}/users/${effectiveUsername}`)
-                            }
+                            onClick={() => navigate(`/artists/${a.id}/users/${effectiveUsername}`)}
                         >
                             {a.image && (
                                 <img
@@ -122,8 +113,8 @@ export default function ArtistList({ user }) {
                                     }}
                                 />
                             )}
-                            <div style={{ fontWeight: 500 }}>{a.name}</div>
-                            <div style={{ fontSize: "13px" }}>
+                            <div style={{ fontWeight: 500, fontSize: isMobile ? "13px" : "14px" }}>{i + 1}. {a.name}</div>
+                            <div style={{ fontSize: isMobile ? "11px" : "13px" }}>
                                 {a.albumCount} albums · {Math.round(a.totalScore, 1)} points
                             </div>
                         </div>

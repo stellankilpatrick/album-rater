@@ -72,7 +72,7 @@ export default function ArtistsPublic({ user }) {
                             <th onClick={() => handleSort("name")}>Artist</th>
                             <th onClick={() => handleSort("albumCount")}>Albums</th>
                             <th onClick={() => handleSort("ratingCount")}>Reviews</th>
-                            <th onClick={() => handleSort("avgRating")}>Average Score</th>
+                            <th onClick={() => handleSort("avgRating")}>Avg Pts</th>
                         </tr>
                     </thead>
                     <tbody>

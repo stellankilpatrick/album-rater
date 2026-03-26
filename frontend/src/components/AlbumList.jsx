@@ -268,7 +268,7 @@ export default function AlbumList({ user }) {
                             gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(auto-fill, minmax(180px, 1fr))",
                             gap: isMobile ? "10px" : "16px"
                         }}>
-                            {sortedAlbums.map(album => (
+                            {sortedAlbums.map((album, i) => (
                                 <div
                                     key={album.id}
                                     style={{ cursor: "pointer", textAlign: "center" }}
@@ -280,7 +280,7 @@ export default function AlbumList({ user }) {
                                         style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: "6px" }}
                                     />
                                     <div style={{ fontSize: isMobile ? "11px" : "14px", fontWeight: 500 }}>
-                                        <i>{album.title}</i> · {album.score10.toFixed(1)}
+                                        {i+1}. <i>{album.title}</i> · {album.score10.toFixed(1)}
                                     </div>
                                     <div style={{ fontSize: isMobile ? "10px" : "13px", color: "#666" }}>
                                         {album.artist}
