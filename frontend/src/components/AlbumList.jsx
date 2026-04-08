@@ -282,7 +282,7 @@ export default function AlbumList({ user }) {
                                     <div style={{ fontSize: isMobile ? "11px" : "14px", fontWeight: 500 }}>
                                         {i+1}. <i>{album.title}</i> · {album.score10.toFixed(1)}
                                     </div>
-                                    <div style={{ fontSize: isMobile ? "10px" : "13px", color: "#666" }}>
+                                    <div style={{ fontSize: isMobile ? "10px" : "13px", color: "#888" }}>
                                         {album.artist}
                                     </div>
                                 </div>

@@ -205,7 +205,7 @@ export default function AlbumsPublic({ user }) {
               <div style={{ fontWeight: 500, fontSize: isMobile ? "12px" : "14px" }}>
                 <i>{album.title}</i>
               </div>
-              <div style={{ fontSize: isMobile ? "11px" : "12px", color: "#666" }}>
+              <div style={{ fontSize: isMobile ? "11px" : "12px", color: "#888" }}>
                 {album.artist}
               </div>
             </div>
