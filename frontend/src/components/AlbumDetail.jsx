@@ -141,7 +141,7 @@ export default function AlbumDetail({ user }) {
               background: isMobile ? "rgba(0,0,0,0.1)" : "rgba(0,0,0,0.2)",
               border: "1px solid rgba(255,255,255,0.3)",
               borderRadius: "8px",
-              color: isMobile ? "black" : "white",
+              color: isMobile ? "#D3D3D3" : "white",
               padding: "8px",
               resize: "none",
               width: isMobile ? "100%" : "500px",
@@ -362,7 +362,7 @@ export default function AlbumDetail({ user }) {
                           onFocus={() => setFocusedSongId(song.id)}
                           placeholder="Add a note..."
                           maxLength={75}
-                          style={{ border: "none", background: "transparent", width: isMobile ? "520px" : "520px" }}
+                          style={{ border: "none", background: "transparent", width: isMobile ? "520px" : "520px", color: "#D3D3D3"}}
                         />
                         {focusedSongId === song.id && song.comment?.length > 0 && (
                           <span style={{ fontSize: "11px", color: song.comment?.length >= 75 ? "red" : "#999" }}>
@@ -371,7 +371,7 @@ export default function AlbumDetail({ user }) {
                         )}
                       </div>
                     ) : (
-                      <span style={{ color: "#333", fontSize: "13px" }}>{song.comment ?? ""}</span>
+                      <span style={{ color: "#D3D3D3", fontSize: "13px" }}>{song.comment ?? ""}</span>
                     )}
                   </td>
                 </tr>
@@ -387,26 +387,26 @@ export default function AlbumDetail({ user }) {
             <h3 style={{ margin: 0 }}>Ranks</h3>
             {ranks.year?.rank != null && (
               <div style={{ fontSize: "16px" }}>
-                <strong style={{ fontSize: "22px" }}>{ordinal(ranks.year.rank)} </strong>
-                <span style={{ color: "#666" }}>of {ranks.year.total} <strong style={{ fontSize: "15px" }}>{album.releaseDate?.slice(0, 4)}</strong> albums</span>
+                <strong style={{ fontSize: "28px" }}>{ordinal(ranks.year.rank)} </strong>
+                <span style={{ color: "#999" }}>of {ranks.year.total} <strong style={{ fontSize: "15px" }}>{album.releaseDate?.slice(0, 4)}</strong> albums</span>
               </div>
             )}
             {ranks.decade?.rank != null && (
               <div style={{ fontSize: "16px" }}>
-                <strong style={{ fontSize: "22px" }}>{ordinal(ranks.decade.rank)} </strong>
-                <span style={{ color: "#666" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> albums</span>
+                <strong style={{ fontSize: "28px" }}>{ordinal(ranks.decade.rank)} </strong>
+                <span style={{ color: "#999" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> albums</span>
               </div>
             )}
             {Array.isArray(ranks.artist) && ranks.artist.map(a => a.rank != null && (
               <div key={a.name} style={{ fontSize: "16px" }}>
-                <strong style={{ fontSize: "22px" }}>{ordinal(a.rank)} </strong>
-                <span style={{ color: "#666" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> albums</span>
+                <strong style={{ fontSize: "28px" }}>{ordinal(a.rank)} </strong>
+                <span style={{ color: "#999" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> albums</span>
               </div>
             ))}
             {genres.map(g => ranks[`genre_${g.name}`]?.rank != null && (
               <div key={g.name} style={{ fontSize: "16px" }}>
-                <strong style={{ fontSize: "22px" }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
-                <span style={{ color: "#666" }}>of {ranks[`genre_${g.name}`].total} <strong style={{ fontSize: "15px" }}>{g.name}</strong> albums</span>
+                <strong style={{ fontSize: "28px" }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
+                <span style={{ color: "#999" }}>of {ranks[`genre_${g.name}`].total} <strong style={{ fontSize: "15px" }}>{g.name}</strong> albums</span>
               </div>
             ))}
           </div>
