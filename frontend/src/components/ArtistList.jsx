@@ -10,7 +10,7 @@ export default function ArtistList({ user }) {
     const effectiveUsername = username ?? user?.username;
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-    const [viewMode, setViewMode] = useState(window.innerWidth <= 768 ? "grid" : "list");
+    const [viewMode, setViewMode] = useState(window.innerWidth <= 768 ? "grid" : "grid");
 
     useEffect(() => {
         const handleResize = () => {

@@ -29,7 +29,8 @@ export default function AuthPage({ onLogin }) {
             const res = await api.post(url, body);
             localStorage.setItem("token", res.data.token);
             onLogin(res.data.user, res.data.token);
-            navigate(`/${normalizedUsername}/albums`);
+            const loggedInUsername = res.data.user?.username ?? normalizedUsername;
+            navigate(`/albums/users/${loggedInUsername}`);
         } catch (err) {
             console.error(err);
             setError(err.response?.data?.error || "Something went wrong");

@@ -14,7 +14,7 @@ export default function AlbumList({ user }) {
     const [showGenreDropdown, setShowGenreDropdown] = useState(false);
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-    const [viewMode, setViewMode] = useState(window.innerWidth <= 768 ? "grid" : "list");
+    const [viewMode, setViewMode] = useState(window.innerWidth <= 768 ? "grid" : "grid");
 
     useEffect(() => {
         const handleResize = () => {
