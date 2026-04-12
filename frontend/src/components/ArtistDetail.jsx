@@ -81,12 +81,16 @@ export default function ArtistDetail({ user }) {
             <button onClick={() => setSortMode(prev => prev === "rating" ? "chronological" : "rating")} style={{ marginBottom: "10px" }}>
                 {sortMode === "rating" ? "Sort: Rating" : "Sort: Chronological"}
             </button>
-            
+
             {!isMobile && (
                 <button onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")} style={{ marginBottom: "10px", marginLeft: "8px" }}>
                     {viewMode === "list" ? "Grid View" : "List View"}
                 </button>
             )}
+
+            <Link to={`/artists/${artist.id}`} style={{ display: "block", marginBottom: "10px", marginLeft: "8px" }}>
+                All albums by {artist.name}
+            </Link>
 
             {albums.length === 0 ? (
                 <p>No albums for this artist.</p>
@@ -150,10 +154,6 @@ export default function ArtistDetail({ user }) {
                     ))}
                 </div>
             )}
-
-            <Link to={`/artists/${artist.id}`} style={{ display: "block", marginTop: "16px" }}>
-                All albums by {artist.name}
-            </Link>
         </div>
     );
 }
