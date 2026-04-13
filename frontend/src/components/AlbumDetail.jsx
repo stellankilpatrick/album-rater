@@ -362,7 +362,7 @@ export default function AlbumDetail({ user }) {
                           onFocus={() => setFocusedSongId(song.id)}
                           placeholder="Add a note..."
                           maxLength={75}
-                          style={{ border: "none", background: "transparent", width: isMobile ? "520px" : "520px", color: "#D3D3D3"}}
+                          style={{ border: "none", background: "transparent", width: isMobile ? "520px" : "520px", color: "#D3D3D3" }}
                         />
                         {focusedSongId === song.id && song.comment?.length > 0 && (
                           <span style={{ fontSize: "11px", color: song.comment?.length >= 75 ? "red" : "#999" }}>
@@ -413,13 +413,17 @@ export default function AlbumDetail({ user }) {
 
           {/* Sidebar: links + delete */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
-            <Link to={`/albums/${album.id}`} style={{ textDecoration: "none" }}>
-              All ratings of {album.title}
-            </Link>
-            {album.artistIds?.map((id, i) => (
-              <Link key={id} to={`/artists/${id}/users/${effectiveUsername}`} style={{ textDecoration: "none" }}>
-                All albums by {album.artist?.split(' & ')[i]}
+            <button style={{ minWidth: "30px", borderRadius: "4px" }}>
+              <Link to={`/albums/${album.id}`} style={{ textDecoration: "none", fontSize: "14px"  }}>
+                All ratings of {album.title}
               </Link>
+            </button>
+            {album.artistIds?.map((id, i) => (
+              <button style={{ minWidth: "30px", borderRadius: "4px" }}>
+                <Link key={id} to={`/artists/${id}/users/${effectiveUsername}`} style={{ textDecoration: "none", fontSize: "14px" }}>
+                  All albums by {album.artist?.split(' & ')[i]}
+                </Link>
+              </button>
             ))}
             {isOwner && (
               <button

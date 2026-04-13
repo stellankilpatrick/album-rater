@@ -78,7 +78,7 @@ export default function ArtistDetail({ user }) {
                 </div>
             </div>
 
-            <button onClick={() => setSortMode(prev => prev === "rating" ? "chronological" : "rating")} style={{ marginBottom: "10px" }}>
+            <button onClick={() => setSortMode(prev => prev === "rating" ? "chronological" : "rating")} style={{ marginBottom: "10px", marginRight: "8px" }}>
                 {sortMode === "rating" ? "Sort: Rating" : "Sort: Chronological"}
             </button>
 
@@ -88,9 +88,11 @@ export default function ArtistDetail({ user }) {
                 </button>
             )}
 
-            <Link to={`/artists/${artist.id}`} style={{ display: "block", marginBottom: "10px", marginLeft: "8px" }}>
-                All albums by {artist.name}
-            </Link>
+            <button>
+                <Link to={`/artists/${artist.id}`} style={{ marginBottom: "10px" }}>
+                    All albums by {artist.name}
+                </Link>
+            </button>
 
             {albums.length === 0 ? (
                 <p>No albums for this artist.</p>

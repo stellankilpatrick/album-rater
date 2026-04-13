@@ -71,7 +71,7 @@ export default function Community() {
 
                 {anniversaryAlbums.length > 0 && (
                     <div className="anniversary">
-                        <h3>Released This Week</h3>
+                        <h3>Released This Week In History</h3>
                         <div
                             style={{
                                 display: "grid",
