@@ -116,6 +116,8 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
     // sync album_ratings
     await updateAlbumRatingForUser(req.user.id, songRows[0].album_id);
 
+    await syncUserScore10s(req.user.id);
+
     const album = await getAlbumById(songRows[0].album_id);
     res.json({ success: true, albumRating: album.rating });
   } catch (err) {
