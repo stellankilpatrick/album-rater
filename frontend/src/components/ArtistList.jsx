@@ -91,7 +91,7 @@ export default function ArtistList({ user }) {
             ) : (
                 <div style={{
                     display: "grid",
-                    gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(auto-fill, minmax(180px, 1fr))",
+                    gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(auto-fill, minmax(200px, 1fr))",
                     gap: isMobile ? "10px" : "20px"
                 }}>
                     {sortedArtists.map((a, i) => (

@@ -878,7 +878,7 @@ export async function syncUserScore10s(userId) {
   if (!scores.length) return;
 
   const values = scores.map((_, i) =>
-    `($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`
+    `($${i * 3 + 1}::int, $${i * 3 + 2}::int, $${i * 3 + 3}::real)`
   ).join(", ");
 
   const params = scores.flatMap(s => [userId, s.albumId, s.score10]);
