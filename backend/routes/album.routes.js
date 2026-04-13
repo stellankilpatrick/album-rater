@@ -103,6 +103,8 @@ router.post("/:id/rate", requireAuth, async (req, res) => {
       client.release();
     }
 
+    await syncUserScore10s(req.user.id);
+
     const album = await getAlbumDetailsPublic(req.params.id);
     res.json(album);
   } catch (err) {
@@ -433,6 +435,8 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
       client.release();
     }
 
+    await syncUserScore10s(req.user.id);
+
     const album = await getAlbumDetailsPublic(req.params.id);
     res.json(album);
   } catch (err) {
@@ -490,13 +494,11 @@ router.delete("/:id/users/:username", requireAuth, async (req, res) => {
 router.get("/:albumId/following-reviews", requireAuth, async (req, res) => {
   try {
     const reviewsRes = await pool.query(
-      `
-      SELECT u.id, u.username, ar.rating
+      `SELECT u.id, u.username, ar.rating
       FROM follows f
       JOIN album_ratings ar ON ar.user_id = f.following_id
       JOIN users u ON u.id = ar.user_id
-      WHERE f.follower_id = $1 AND ar.album_id = $2
-      `,
+      WHERE f.follower_id = $1 AND ar.album_id = $2`,
       [req.user.id, req.params.albumId]
     );
 

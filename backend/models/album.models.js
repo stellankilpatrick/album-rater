@@ -867,3 +867,27 @@ export async function updateAlbumReview(userId, albumId, review) {
   `, [userId, albumId, review]);
   return result.rows[0];
 }
+
+/**
+ * Sync score10s
+ * @param {} userId 
+ * @returns 
+ */
+export async function syncUserScore10s(userId) {
+  const scores = await getUserAlbumScores(userId);
+  if (!scores.length) return;
+
+  const values = scores.map((_, i) =>
+    `($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`
+  ).join(", ");
+
+  const params = scores.flatMap(s => [userId, s.albumId, s.score10]);
+
+  await pool.query(
+    `UPDATE album_ratings AS ar
+     SET score10 = v.score10
+     FROM (VALUES ${values}) AS v(user_id, album_id, score10)
+     WHERE ar.user_id = v.user_id::int AND ar.album_id = v.album_id::int`,
+    params
+  );
+}

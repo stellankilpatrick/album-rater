@@ -52,23 +52,6 @@ export async function addSongsToAlbum(albumId, songs) {
 }
 
 /**
- * Rate (or re-rate) a song
- */
-export async function rateSong(userId, songId, rating) {
-  if (![0, 1, 2].includes(rating)) throw new Error("Invalid rating");
-
-  await pool.query(
-    `
-    INSERT INTO song_ratings (user_id, song_id, rating, updated_at)
-    VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
-    ON CONFLICT(user_id, song_id)
-    DO UPDATE SET rating = EXCLUDED.rating, updated_at = CURRENT_TIMESTAMP
-  `,
-    [userId, songId, rating]
-  );
-}
-
-/**
  * Update a song's info
  */
 export async function updateSong(songId, data) {

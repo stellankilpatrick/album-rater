@@ -536,7 +536,7 @@ export default function AlbumDetailPublic({ user }) {
             {followingReviews.map(r => (
               <li key={r.id}>
                 <Link to={`/albums/${albumId}/users/${r.username}`}>{r.username}</Link>{" "}
-                — {Math.round(r.rating)} points
+                — {r.score10 !== null ? r.score10.toFixed(1) : "N/A"}/10
               </li>
             ))}
           </ul>
