@@ -103,8 +103,8 @@ export default function ArtistDetailPublic({ user }) {
               alt={`${artist.name} cover`}
               onClick={() => setIsEditingImage(true)}
               style={{
-                width: "150px",
-                height: "150px",
+                width: "200px",
+                height: "200px",
                 objectFit: "cover",
                 borderRadius: "50%",
                 cursor: "pointer"

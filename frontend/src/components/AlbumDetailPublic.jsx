@@ -441,7 +441,7 @@ export default function AlbumDetailPublic({ user }) {
                 </button>
               )}
               {user && !isEditing && (
-                <button onClick={() => api.post(`/users/${effectiveUsername}/listen-list/${album.id}`)} style = {{background: "#fbf0c5"}}>
+                <button onClick={() => api.post(`/users/${effectiveUsername}/listen-list/${album.id}`)} style={{ background: "#fbf0c5" }}>
                   Add to Listen List
                 </button>
               )}
@@ -450,98 +450,112 @@ export default function AlbumDetailPublic({ user }) {
         </div>
       </div>
 
-      {/* ===== Tracks ===== */}
-      <h2>Tracklist</h2>
+      <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
+        {/* ===== Tracks ===== */}
+        <div style={{ flex: 7 }}>
+          <h2>Tracklist</h2>
 
-      <div style={{ overflowX: isMobile ? "auto" : "visible", width: isMobile ? "100%" : "auto" }}>
-        <table style={{ width: isMobile ? "auto" : "100%", borderCollapse: "collapse", tableLayout: isMobile ? "auto" : "fixed" }}>
-          <thead>
-            <tr>
-              <th style={{ width: "30px" }}>#</th>
-              <th style={{ textAlign: "left", maxWidth: isMobile ? "200px" : undefined }}>Title</th>
-              {!isEditing && <th>Rating</th>}
-            </tr>
-          </thead>
-
-          <tbody>
-            {songs
-              .slice()
-              .sort((a, b) => a.num - b.num)
-              .map(song => (
-                <tr key={song.id}>
-                  <td>
-                    {isEditing ? (
-                      <input
-                        type="number"
-                        min="1"
-                        value={song.num}
-                        style={{ width: "3rem" }}
-                        onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, num: Number(e.target.value) } : s))}
-                        onBlur={() => saveTrackNum(song)}
-                      />
-                    ) : song.num}
-                  </td>
-
-                  <td style={{ minWidth: isMobile ? "270px" : undefined, whiteSpace: isMobile && !isEditing ? "nowrap" : undefined, overflow: isMobile && !isEditing ? "hidden" : undefined, textOverflow: isMobile && !isEditing ? "ellipsis" : undefined }}>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={song.title}
-                        autoFocus={editingSongId === song.id}
-                        onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, title: e.target.value } : s))}
-                        onBlur={() => saveSongTitle(song)}
-                        onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingSongId(null); }}
-                        onFocus={() => setEditingSongId(song.id)}
-                      />
-                    ) : (
-                      <span>{song.title}</span>
-                    )}
-                  </td>
-
-                  {!isEditing && <td>{song.totalRatings > 0 ? `${song.notSkippedPercent}%` : "No ratings"}</td>}
-
-                  {isEditing && (
-                    <td>
-                      <button className="danger" onClick={() => deleteSong(song.id)}>Delete</button>
-                    </td>
-                  )}
+          <div style={{ overflowX: isMobile ? "auto" : "visible", width: isMobile ? "100%" : "auto" }}>
+            <table style={{ width: isMobile ? "auto" : "100%", borderCollapse: "collapse", tableLayout: isMobile ? "auto" : "fixed" }}>
+              <thead>
+                <tr>
+                  <th style={{ width: "30px" }}>#</th>
+                  <th style={{ textAlign: "left", maxWidth: isMobile ? "200px" : undefined }}>Title</th>
+                  {!isEditing && <th>Rating</th>}
                 </tr>
-              ))}
-          </tbody>
-        </table>
+              </thead>
+
+              <tbody>
+                {songs
+                  .slice()
+                  .sort((a, b) => a.num - b.num)
+                  .map(song => (
+                    <tr key={song.id}>
+                      <td>
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            min="1"
+                            value={song.num}
+                            style={{ width: "3rem" }}
+                            onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, num: Number(e.target.value) } : s))}
+                            onBlur={() => saveTrackNum(song)}
+                          />
+                        ) : song.num}
+                      </td>
+
+                      <td style={{
+                        minWidth: isMobile ? "270px" : undefined,
+                        whiteSpace: isMobile && !isEditing ? "normal" : "normal",
+                        overflow: isMobile && !isEditing ? "hidden" : undefined,
+                        textOverflow: isMobile && !isEditing ? "ellipsis" : undefined,
+                        wordBreak: "break-word"
+                      }}>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={song.title}
+                            autoFocus={editingSongId === song.id}
+                            onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, title: e.target.value } : s))}
+                            onBlur={() => saveSongTitle(song)}
+                            onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingSongId(null); }}
+                            onFocus={() => setEditingSongId(song.id)}
+                          />
+                        ) : (
+                          <span>{song.title}</span>
+                        )}
+                      </td>
+
+                      {!isEditing && <td>{song.totalRatings > 0 ? `${song.notSkippedPercent}%` : "No ratings"}</td>}
+
+                      {isEditing && (
+                        <td>
+                          <button className="danger" onClick={() => deleteSong(song.id)}>Delete</button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+
+          {isEditing && (
+            <AddSongForm
+              albumId={albumId}
+              nextNum={songs.length + 1}
+              onAdd={song => setSongs(prev => [...prev, song])}
+            />
+          )}
+
+          {isEditing && Number(album.ratingCount) === 0 && (
+            <button
+              className="danger"
+              onClick={deleteAlbum}
+              style={{ backgroundColor: "red", color: "white", border: "none", borderRadius: "4px", padding: "4px 10px", cursor: "pointer" }}
+            >
+              Delete album
+            </button>
+          )}
+        </div>
+
+        {!isMobile && (
+          < div style={{ flex: 2 }}>
+            {user && followingReviews.length > 0 && (
+              <>
+                <h3>Reviews by others:</h3>
+                <ul>
+                  {followingReviews.map(r => (
+                    <li key={r.id}>
+                      <Link to={`/albums/${albumId}/users/${r.username}`}>{r.username}</Link>
+                      : {r.score10 != null ? r.score10.toFixed(1) : "N/A"}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
       </div>
-
-      {isEditing && (
-        <AddSongForm
-          albumId={albumId}
-          nextNum={songs.length + 1}
-          onAdd={song => setSongs(prev => [...prev, song])}
-        />
-      )}
-
-      {isEditing && Number(album.ratingCount) === 0 && (
-        <button
-          className="danger"
-          onClick={deleteAlbum}
-          style={{ backgroundColor: "red", color: "white", border: "none", borderRadius: "4px", padding: "4px 10px", cursor: "pointer" }}
-        >
-          Delete album
-        </button>
-      )}
-
-      {user && followingReviews.length > 0 && (
-        <>
-          <h4>Reviews by others:</h4>
-          <ul>
-            {followingReviews.map(r => (
-              <li key={r.id}>
-                <Link to={`/albums/${albumId}/users/${r.username}`}>{r.username}</Link>{" "}
-                — {r.score10 != null ? r.score10.toFixed(1) : "N/A"} ({Math.round(r.rating)} pts)
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-    </div>
+    </div >
   );
 }

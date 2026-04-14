@@ -69,7 +69,7 @@ export default function ArtistDetail({ user }) {
                         <img
                             src={artist.image}
                             alt={`${artist.name} cover`}
-                            style={{ width: isMobile ? "80px" : "150px", height: isMobile ? "80px" : "150px", objectFit: "cover", borderRadius: "50%" }}
+                            style={{ width: isMobile ? "80px" : "200px", height: isMobile ? "80px" : "200px", objectFit: "cover", borderRadius: "50%" }}
                         />
                     )}
                     <h1 style={{ margin: 0, fontSize: isMobile ? "1.3rem" : undefined }}>
