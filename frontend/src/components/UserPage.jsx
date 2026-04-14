@@ -102,12 +102,11 @@ export default function ProfilePage({ user }) {
                         alt="profile"
                         onClick={() => isMe && setEditingPfp(true)}
                         style={{
-                            width: "120px",
-                            height: "120px",
+                            width: "200px",
+                            height: "200px",
                             objectFit: "cover",
                             borderRadius: "50%",
                             cursor: isMe ? "pointer" : "default",
-                            opacity: isMe ? 1 : 0.95
                         }}
                     />
 
