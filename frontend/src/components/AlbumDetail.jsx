@@ -158,7 +158,7 @@ export default function AlbumDetail({ user }) {
         </>
       ) : (
         album?.review && (
-          <p style={{ margin: 0, fontSize: "13px", color: "rgba(255,255,255,0.85)", fontStyle: "italic" }}>
+          <p style={{ margin: isMobile ? 0 : "0 30px 0 0", fontSize: "13px", color: "white", fontStyle: "italic" }}>
             "{album.review}"
           </p>
         )
