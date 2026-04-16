@@ -9,9 +9,14 @@ export default function ProfilePage({ user }) {
     const [loading, setLoading] = useState(false);
     const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
     const [ratingCounts, setRatingCounts] = useState({ albums: 0, artists: 0 });
+
     const [pfp, setPfp] = useState(null);
     const [editingPfp, setEditingPfp] = useState(false);
     const [pfpInput, setPfpInput] = useState("");
+
+    const [banner, setBanner] = useState(null);
+    const [editingBanner, setEditingBanner] = useState(false);
+    const [bannerInput, setBannerInput] = useState("");
 
     const { username } = useParams();
     const effectiveUsername = username ?? user?.username;
@@ -49,10 +54,19 @@ export default function ProfilePage({ user }) {
         fetchTop();
     }, [user.id]);
 
+    // fetch pfp
     useEffect(() => {
         api.get(`/users/${effectiveUsername}/pfp`).then(res => {
             setPfp(res.data.pfp);
             setPfpInput(res.data.pfp);
+        });
+    }, [effectiveUsername]);
+
+    // fetch banner
+    useEffect(() => {
+        api.get(`/users/${effectiveUsername}/banner`).then(res => {
+            setBanner(res.data.banner);
+            setBannerInput(res.data.banner ?? "");
         });
     }, [effectiveUsername]);
 
@@ -66,6 +80,16 @@ export default function ProfilePage({ user }) {
             setEditingPfp(false);
         } catch (err) {
             console.error("Error updating pfp", err);
+        }
+    };
+
+    const saveBanner = async () => {
+        try {
+            const res = await api.put(`/users/${effectiveUsername}/banner`, { banner: bannerInput });
+            setBanner(res.data.banner);
+            setEditingBanner(false);
+        } catch (err) {
+            console.error("Error updating banner", err);
         }
     };
 
@@ -94,6 +118,40 @@ export default function ProfilePage({ user }) {
 
     return (
         <div>
+            {/* Banner */}
+            <div
+                onClick={() => isMe && setEditingBanner(true)}
+                style={{
+                    width: "100%",
+                    height: "180px",
+                    backgroundColor: "#222",
+                    backgroundImage: banner ? `url(${banner})` : undefined,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    cursor: isMe ? "pointer" : "default",
+                    marginBottom: "16px",
+                    borderRadius: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
+            >
+                {isMe && !banner && <span style={{ color: "#666" }}>Click to add banner</span>}
+            </div>
+
+            {isMe && editingBanner && (
+                <div style={{ marginBottom: "12px" }}>
+                    <input
+                        type="text"
+                        value={bannerInput}
+                        onChange={e => setBannerInput(e.target.value)}
+                        placeholder="Paste image URL"
+                        style={{ width: "260px" }}
+                    />
+                    <button onClick={saveBanner}>Save</button>
+                    <button onClick={() => setEditingBanner(false)}>Cancel</button>
+                </div>
+            )}
             <div style={{ display: "flex", alignItems: "center", gap: "24px", marginBottom: "16px" }}>
                 {/* Profile Picture */}
                 <div>

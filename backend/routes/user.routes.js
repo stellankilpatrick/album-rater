@@ -83,6 +83,36 @@ router.put("/:username/pfp", requireAuth, async (req, res) => {
   }
 });
 
+// BANNER //
+
+router.get("/:username/banner", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT banner FROM users WHERE username = $1`,
+      [req.params.username]
+    );
+    res.json({ banner: rows[0]?.banner ?? null });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.put("/:username/banner", requireAuth, async (req, res) => {
+  const { username } = req.params;
+  const { banner } = req.body;
+  if (req.user.username !== username) return res.status(403).json({ error: "Forbidden" });
+  if (!banner || typeof banner !== "string") return res.status(400).json({ error: "Invalid banner URL" });
+
+  try {
+    await pool.query(`UPDATE users SET banner = $1 WHERE username = $2`, [banner, username]);
+    res.json({ success: true, banner });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update banner" });
+  }
+});
+
 // ---------------------
 // Followers / Following / Friends / Follow status
 // ---------------------
