@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import api from "../api/api";
 
 function TopNav({ effectiveUsername, onLogout }) {
   const navigate = useNavigate();
@@ -7,6 +8,8 @@ function TopNav({ effectiveUsername, onLogout }) {
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [dropdownResults, setDropdownResults] = useState(null);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -14,8 +17,27 @@ function TopNav({ effectiveUsername, onLogout }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Close menu on navigation
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
+
+  useEffect(() => {
+    if (query.trim().length < 2) { setDropdownResults(null); return; }
+    const timeout = setTimeout(() => {
+      api.get(`/search?q=${encodeURIComponent(query)}`).then(res => {
+        setDropdownResults(res.data);
+      });
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownResults(null);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const handleSignOut = () => {
     onLogout();
@@ -27,6 +49,7 @@ function TopNav({ effectiveUsername, onLogout }) {
     if (!query.trim()) return;
     navigate(`/search?q=${encodeURIComponent(query)}`);
     setQuery("");
+    setDropdownResults(null);
     setMenuOpen(false);
   };
 
@@ -48,6 +71,59 @@ function TopNav({ effectiveUsername, onLogout }) {
     </>
   );
 
+  const SearchBox = (
+    <div ref={dropdownRef} style={{ position: "relative" }}>
+      <form onSubmit={handleSearch}>
+        <input
+          type="text"
+          placeholder="Search..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          style={{ width: isMobile ? "140px" : undefined }}
+        />
+      </form>
+
+      {dropdownResults && (
+        <div style={{
+          position: "absolute",
+          top: "100%",
+          left: 0,
+          backgroundColor: "#111",
+          border: "1px solid #333",
+          borderRadius: "4px",
+          zIndex: 200,
+          minWidth: "250px",
+          maxHeight: "400px",
+          overflowY: "auto",
+          padding: "8px 0"
+        }}>
+          {["albums", "artists", "users"].map(type => (
+            dropdownResults[type]?.length > 0 && (
+              <div key={type}>
+                <div style={{ color: "#888", fontSize: "11px", padding: "4px 12px", textTransform: "uppercase" }}>{type}</div>
+                {dropdownResults[type].map(item => (
+                  <Link
+                    key={item.id}
+                    to={type === "albums" ? `/albums/${item.id}` : type === "artists" ? `/artists/${item.id}` : `/users/${item.username}`}
+                    onClick={() => { setQuery(""); setDropdownResults(null); }}
+                    style={{ display: "block", padding: "6px 12px", color: "white", textDecoration: "none" }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = "#222"}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+                  >
+                    {type === "albums" ? <><i>{item.title}</i> — {item.artist}</> : type === "artists" ? item.name : item.username}
+                  </Link>
+                ))}
+              </div>
+            )
+          ))}
+          {["albums", "artists", "users"].every(t => !dropdownResults[t]?.length) && (
+            <div style={{ color: "#999", padding: "8px 12px" }}>No results</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div style={{ backgroundColor: "black", position: "relative", zIndex: 100 }}>
       <div
@@ -62,7 +138,6 @@ function TopNav({ effectiveUsername, onLogout }) {
       >
         {isMobile ? (
           <>
-            {/* Hamburger button */}
             <button
               onClick={() => setMenuOpen(o => !o)}
               style={{
@@ -80,17 +155,8 @@ function TopNav({ effectiveUsername, onLogout }) {
               <span style={{ display: "block", width: "22px", height: "2px", backgroundColor: "white" }} />
             </button>
 
-            {/* Search + sign out always visible */}
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "12px" }}>
-              <form onSubmit={handleSearch}>
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  style={{ width: "140px" }}
-                />
-              </form>
+              {SearchBox}
               <button onClick={handleSignOut} style={{ color: "white", backgroundColor: "black", border: "1px solid white", cursor: "pointer" }}>
                 Sign out
               </button>
@@ -100,14 +166,7 @@ function TopNav({ effectiveUsername, onLogout }) {
           <>
             {links}
             <div style={{ marginLeft: "auto" }} />
-            <form onSubmit={handleSearch} style={{ marginLeft: "24px" }}>
-              <input
-                type="text"
-                placeholder="Search albums / artists"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </form>
+            {SearchBox}
             <button onClick={handleSignOut} style={{ color: "white", backgroundColor: "black", border: "1px solid white", cursor: "pointer" }}>
               Sign out
             </button>
@@ -115,7 +174,6 @@ function TopNav({ effectiveUsername, onLogout }) {
         )}
       </div>
 
-      {/* Dropdown menu */}
       {isMobile && menuOpen && (
         <div style={{
           position: "absolute",
