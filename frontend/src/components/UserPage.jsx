@@ -122,15 +122,15 @@ export default function ProfilePage({ user }) {
             <div
                 onClick={() => isMe && setEditingBanner(true)}
                 style={{
-                    width: "100%",
                     height: "180px",
                     backgroundColor: "#222",
                     backgroundImage: banner ? `url(${banner})` : undefined,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     cursor: isMe ? "pointer" : "default",
-                    marginBottom: "16px",
-                    borderRadius: "8px",
+                    marginLeft: "calc(-50vw + 50%)",
+                    marginRight: "calc(-50vw + 50%)",
+                    marginTop: "-16px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -140,13 +140,13 @@ export default function ProfilePage({ user }) {
             </div>
 
             {isMe && editingBanner && (
-                <div style={{ marginBottom: "12px" }}>
+                <div style={{ marginBottom: "12px", visibility: editingBanner ? "visible" : "hidden", height: "32px" }}>
                     <input
                         type="text"
                         value={bannerInput}
                         onChange={e => setBannerInput(e.target.value)}
                         placeholder="Paste image URL"
-                        style={{ width: "260px" }}
+                        style={{ width: "260px", marginLeft: "400px" }}
                     />
                     <button onClick={saveBanner}>Save</button>
                     <button onClick={() => setEditingBanner(false)}>Cancel</button>
@@ -160,10 +160,12 @@ export default function ProfilePage({ user }) {
                         alt="profile"
                         onClick={() => isMe && setEditingPfp(true)}
                         style={{
-                            width: "200px",
-                            height: "200px",
+                            width: "220px",
+                            height: "220px",
                             objectFit: "cover",
                             borderRadius: "50%",
+                            marginTop: "-75px",
+                            marginLeft: "20px",
                             cursor: isMe ? "pointer" : "default",
                         }}
                     />
