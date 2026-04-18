@@ -61,6 +61,40 @@ router.get("/recommendations/received", requireAuth, async (req, res) => {
   }
 });
 
+// GET recommendations sent
+router.get("/recommendations/sent", requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT r.id, r.to_user_id, u.username AS to_username,
+              r.album_id, a.title AS album_title, a.cover_art
+       FROM recommendations r
+       JOIN users u ON u.id = r.to_user_id
+       JOIN albums a ON a.id = r.album_id
+       WHERE r.from_user_id = $1
+       ORDER BY u.username, r.created_at DESC`,
+      [req.user.id]
+    );
+
+    const grouped = {};
+    for (const row of rows) {
+      if (!grouped[row.to_user_id]) {
+        grouped[row.to_user_id] = { username: row.to_username, albums: [] };
+      }
+      grouped[row.to_user_id].albums.push({
+        recId: row.id,
+        albumId: row.album_id,
+        title: row.album_title,
+        coverArt: row.cover_art,
+      });
+    }
+
+    res.json(Object.values(grouped));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to get sent recommendations" });
+  }
+});
+
 // POST /recommendations — send a recommendation
 router.post("/recommendations", requireAuth, async (req, res) => {
   const { toUsername, albumId } = req.body;
@@ -99,13 +133,13 @@ router.post("/recommendations", requireAuth, async (req, res) => {
 router.delete("/recommendations/:id", requireAuth, async (req, res) => {
   try {
     await pool.query(
-      `DELETE FROM recommendations WHERE id = $1 AND to_user_id = $2`,
+      `DELETE FROM recommendations WHERE id = $1 AND (to_user_id = $2 OR from_user_id = $2)`,
       [req.params.id, req.user.id]
     );
     res.json({ success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to dismiss recommendation" });
+    res.status(500).json({ error: "Failed to delete recommendation" });
   }
 });
 
