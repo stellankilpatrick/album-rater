@@ -397,7 +397,7 @@ router.get("/:id/users/:username", requireAuth, async (req, res) => {
 });
 
 // GET mutual friends for album recommendation
-router.get("/:albumId/users/:username/mutuals", requireAuth, async (req, res) => {
+router.get("/:id/users/:username/mutuals", requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT u.id, u.username FROM follows f1
