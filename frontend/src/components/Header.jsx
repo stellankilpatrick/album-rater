@@ -10,6 +10,7 @@ function TopNav({ effectiveUsername, onLogout }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [dropdownResults, setDropdownResults] = useState(null);
   const dropdownRef = useRef(null);
+  const [communityOpen, setCommunityOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -66,8 +67,44 @@ function TopNav({ effectiveUsername, onLogout }) {
       <Link to="/albums" style={navStyle("/albums")}>Albums</Link>
       <Link to="/artists" style={navStyle("/artists")}>Artists</Link>
       <Link to="/albums/new" style={navStyle("/albums/new")}>Add Album</Link>
-      <Link to="/community" style={navStyle("/community")}>Community</Link>
-      <Link to={`/users/${effectiveUsername}`} style={navStyle(`/users/${effectiveUsername}`)}>Profile</Link>
+      <div
+        style={{ position: "relative" }}
+        onMouseEnter={() => setCommunityOpen(true)}
+        onMouseLeave={() => setCommunityOpen(false)}
+      >
+        <Link to="/community" style={navStyle("/community")}>Community</Link>
+        {communityOpen && (
+          <div style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            backgroundColor: "#111",
+            border: "1px solid #333",
+            borderRadius: "4px",
+            fontSize: "13px",
+            zIndex: 200,
+            minWidth: "180px",
+            padding: "4px 0",
+          }}>
+            <Link
+              to="/community"
+              style={{ display: "block", padding: "8px 12px", color: "white" }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = "#222"}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+            >
+              Feed
+            </Link>
+            <Link
+              to="/community/recommendations"
+              style={{ display: "block", padding: "8px 12px", color: "white" }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = "#222"}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+            >
+              Recommendations
+            </Link>
+          </div>
+        )}
+      </div>      <Link to={`/users/${effectiveUsername}`} style={navStyle(`/users/${effectiveUsername}`)}>Profile</Link>
     </>
   );
 
