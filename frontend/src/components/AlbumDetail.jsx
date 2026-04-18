@@ -28,7 +28,7 @@ export default function AlbumDetail({ user }) {
   const [recSent, setRecSent] = useState(false);
 
   useEffect(() => {
-    if (user) api.get(`/users/${user.username}/mutuals`).then(res => setFriends(res.data));
+    if (user) api.get(`albums/${album.id}/users/${effectiveUsername}/mutuals`).then(res => setFriends(res.data));
   }, [user]);
 
   const sendRec = async () => {
@@ -438,7 +438,7 @@ export default function AlbumDetail({ user }) {
                 </Link>
               </button>
             ))}
-            // In JSX:
+            {/*Recommend album to friends */}
             {friends.length > 0 && (
               <div>
                 <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
