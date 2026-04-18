@@ -28,7 +28,7 @@ export default function AlbumDetail({ user }) {
   const [recSent, setRecSent] = useState(false);
 
   useEffect(() => {
-    if (user) api.get(`albums/${album.id}/users/${effectiveUsername}/mutuals`).then(res => setFriends(res.data));
+    if (user) api.get(`albums/${albumId}/users/${effectiveUsername}/mutuals`).then(res => setFriends(res.data));
   }, [user]);
 
   const sendRec = async () => {
