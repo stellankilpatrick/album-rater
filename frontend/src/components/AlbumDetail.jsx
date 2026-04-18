@@ -33,7 +33,7 @@ export default function AlbumDetail({ user }) {
 
   const sendRec = async () => {
     if (!selectedFriend) return;
-    await api.post("/recommendations", { toUsername: selectedFriend, albumId });
+    await api.post("/community/recommendations", { toUsername: selectedFriend, albumId });
     setRecSent(true);
   };
 
