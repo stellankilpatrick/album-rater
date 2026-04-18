@@ -394,7 +394,16 @@ export default function AlbumDetail({ user }) {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, paddingLeft: isMobile ? "10px" : "0" }}>
-
+          {/*Recommend album to friends */}
+          {friends.length > 0 && (
+            <div style={{ marginBottom: "-10px" }}>
+              <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
+                <option value="">Recommend to...</option>
+                {friends.map(f => <option key={f.id} value={f.username}>{f.username}</option>)}
+              </select>
+              <button onClick={sendRec} disabled={!selectedFriend}>{recSent ? "Sent!" : "Send"}</button>
+            </div>
+          )}
           {/* RANKS */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
             <h3 style={{ margin: 0 }}>Ranks</h3>
@@ -438,16 +447,6 @@ export default function AlbumDetail({ user }) {
                 </Link>
               </button>
             ))}
-            {/*Recommend album to friends */}
-            {friends.length > 0 && (
-              <div>
-                <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
-                  <option value="">Recommend to...</option>
-                  {friends.map(f => <option key={f.id} value={f.username}>{f.username}</option>)}
-                </select>
-                <button onClick={sendRec} disabled={!selectedFriend}>{recSent ? "Sent!" : "Send"}</button>
-              </div>
-            )}
             {isOwner && (
               <button
                 onClick={handleDeleteAlbum}

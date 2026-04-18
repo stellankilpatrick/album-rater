@@ -110,6 +110,6 @@ export default function Community() {
                     </div>
                 )}
             </div>
-        </div>
+            <Link to="/community/recommendations">Recommended Albums</Link>        </div>
     );
 }

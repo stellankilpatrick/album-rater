@@ -1,6 +1,7 @@
 import express from "express";
 import { getAnniversaryAlbums, getCommunityFeed } from "../models/community.models.js";
 import { requireAuth } from "../auth/auth.middleware.js";
+import pool from "../db/database.js";
 
 const router = express.Router();
 

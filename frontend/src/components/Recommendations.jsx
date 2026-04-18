@@ -6,11 +6,11 @@ export default function Recommendations({ user }) {
   const [grouped, setGrouped] = useState([]);
 
   useEffect(() => {
-    api.get("/recommendations/received").then(res => setGrouped(res.data));
+    api.get("/community/recommendations/received").then(res => setGrouped(res.data));
   }, []);
 
   const dismiss = async (recId, fromUsername) => {
-    await api.delete(`/recommendations/${recId}`);
+    await api.delete(`/community/recommendations/${recId}`);
     setGrouped(prev => prev.map(g => g.username === fromUsername
       ? { ...g, albums: g.albums.filter(a => a.recId !== recId) }
       : g
