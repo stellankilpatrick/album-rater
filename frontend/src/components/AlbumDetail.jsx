@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import api from "../api/api";
-import AddSongForm from "./AddSongForm";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
 export default function AlbumDetail({ user }) {
@@ -23,6 +22,20 @@ export default function AlbumDetail({ user }) {
   const [reviewFocused, setReviewFocused] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  const [friends, setFriends] = useState([]);
+  const [selectedFriend, setSelectedFriend] = useState("");
+  const [recSent, setRecSent] = useState(false);
+
+  useEffect(() => {
+    if (user) api.get(`/users/${user.username}/mutual-friends`).then(res => setFriends(res.data));
+  }, [user]);
+
+  const sendRec = async () => {
+    if (!selectedFriend) return;
+    await api.post("/recommendations", { toUsername: selectedFriend, albumId });
+    setRecSent(true);
+  };
 
   const ordinal = n => {
     const s = ["th", "st", "nd", "rd"];
@@ -414,7 +427,7 @@ export default function AlbumDetail({ user }) {
           {/* Sidebar: links + delete */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
             <button style={{ minWidth: "30px", borderRadius: "4px" }}>
-              <Link to={`/albums/${album.id}`} style={{ textDecoration: "none", fontSize: "14px"  }}>
+              <Link to={`/albums/${album.id}`} style={{ textDecoration: "none", fontSize: "14px" }}>
                 All ratings of {album.title}
               </Link>
             </button>
@@ -425,6 +438,16 @@ export default function AlbumDetail({ user }) {
                 </Link>
               </button>
             ))}
+            // In JSX:
+            {friends.length > 0 && (
+              <div>
+                <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
+                  <option value="">Recommend to...</option>
+                  {friends.map(f => <option key={f.id} value={f.username}>{f.username}</option>)}
+                </select>
+                <button onClick={sendRec} disabled={!selectedFriend}>{recSent ? "Sent!" : "Send"}</button>
+              </div>
+            )}
             {isOwner && (
               <button
                 onClick={handleDeleteAlbum}

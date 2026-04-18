@@ -18,6 +18,7 @@ import SearchResults from "./components/SearchResults";
 import UserConnections from "./components/UserConnections";
 import Community from "./components/Community";
 import Home from "./components/Home"
+import Recommendations from "./components/Recommendations";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -84,6 +85,7 @@ function App() {
               <Route path="/albums" element={<AlbumsPublic user={user} />} />
               <Route path="/artists/:artistId" element={<ArtistDetailPublic user={user} />} />
               <Route path="/artists" element={<ArtistsPublic user={user} />} />
+              <Route path="/community/recommendations" element={<Recommendations user={user} />} />
               <Route path="/community" element={<Community user={user} />} />
               <Route path="/" element={<Home user={user} />} />
 
@@ -94,7 +96,7 @@ function App() {
             </>
           )}
         </Routes>
-        </div>
+      </div>
     </BrowserRouter>
   );
 }

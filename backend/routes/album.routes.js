@@ -396,6 +396,23 @@ router.get("/:id/users/:username", requireAuth, async (req, res) => {
   }
 });
 
+// GET mutual friends for album recommendation
+router.get("/:albumId/:username/mutuals", requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT u.id, u.username FROM follows f1
+       JOIN follows f2 ON f2.follower_id = f1.following_id AND f2.following_id = f1.follower_id
+       JOIN users u ON u.id = f1.following_id
+       WHERE f1.follower_id = $1`,
+      [req.user.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to get mutual friends" });
+  }
+});
+
 
 // ---------------------
 // RATE ALBUM SONGS
