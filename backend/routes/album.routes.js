@@ -276,6 +276,8 @@ router.post("/new", requireAuth, async (req, res) => {
       }
     }
 
+    await syncUserScore10s(req.user.id);
+
     res.status(201).json(album); // return full album object
   } catch (err) {
     console.error(err);

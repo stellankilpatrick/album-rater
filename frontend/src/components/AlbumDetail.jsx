@@ -395,7 +395,7 @@ export default function AlbumDetail({ user }) {
 
         <div style={{ display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, paddingLeft: isMobile ? "10px" : "0" }}>
           {/*Recommend album to friends */}
-          {friends.length > 0 && (
+          {friends.length > 0 && user.username === effectiveUsername && (
             <div style={{ marginBottom: "-10px" }}>
               <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
                 <option value="">Recommend to...</option>
