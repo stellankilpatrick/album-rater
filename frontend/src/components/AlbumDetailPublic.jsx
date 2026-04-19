@@ -30,6 +30,15 @@ export default function AlbumDetailPublic({ user }) {
 
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
+  const [myReview, setMyReview] = useState(null);
+
+  useEffect(() => {
+    if (!user || !albumId) return;
+    api.get(`/albums/${albumId}/users/${user.username}`)
+      .then(res => setMyReview(res.data))
+      .catch(() => setMyReview(null));
+  }, [albumId, user]);
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener("resize", handleResize);
@@ -539,15 +548,23 @@ export default function AlbumDetailPublic({ user }) {
         </div>
 
         {!isMobile && (
-          < div style={{ flex: 2 }}>
+          <div style={{ flex: 2 }}>
+            {myReview?.score10 != null && (
+              <h3>
+                Your rating: <Link to={`/albums/${albumId}/users/${user.username}`}>
+                  {myReview.score10.toFixed(1)}
+                </Link>
+              </h3>
+            )}
+
             {user && followingReviews.length > 0 && (
               <>
                 <h3>Reviews by others:</h3>
-                <ul>
+                <ul style={{ listStyle: "none", padding: 0 }}>
                   {followingReviews.map(r => (
                     <li key={r.id}>
                       <Link to={`/albums/${albumId}/users/${r.username}`}>{r.username}</Link>
-                      : {r.score10 != null ? r.score10.toFixed(1) : "N/A"}
+                      {" "} <b>{r.score10 != null ? r.score10.toFixed(1) : "N/A"}</b>
                     </li>
                   ))}
                 </ul>
