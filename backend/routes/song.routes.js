@@ -1,8 +1,8 @@
 import express from "express";
 import pool from "../db/database.js";
 import { requireAuth } from "../auth/auth.middleware.js";
-import { getAlbumById, updateAlbumRatingForUser } from "../models/album.models.js";
-import { updateSongComment, syncUserScore10s } from "../models/song.models.js";
+import { getAlbumById, updateAlbumRatingForUser, syncUserScore10s } from "../models/album.models.js";
+import { updateSongComment } from "../models/song.models.js";
 
 const router = express.Router();
 
