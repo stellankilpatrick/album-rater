@@ -279,18 +279,10 @@ export async function getAlbumDetailsPublic(albumId) {
 
   const albumScoreRes = await pool.query(
     `SELECT
-      COUNT(*) AS "ratingCount",
-      ROUND(AVG(user_album_score)::numeric, 2) AS "avgScore"
-    FROM (
-      SELECT
-        sr.user_id,
-        (SUM(sr.rating) * SUM(sr.rating))::float
-          / NULLIF(COUNT(sr.rating), 0) AS user_album_score
-      FROM songs s
-      JOIN song_ratings sr ON sr.song_id = s.id
-      WHERE s.album_id = $1
-      GROUP BY sr.user_id
-    ) AS per_user_scores`,
+     COUNT(*) AS "ratingCount",
+     ROUND(AVG(score10)::numeric, 2) AS "avgScore"
+    FROM album_ratings
+    WHERE album_id = $1 AND score10 IS NOT NULL`,
     [albumId]
   );
 
