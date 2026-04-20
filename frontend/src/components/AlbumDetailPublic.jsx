@@ -549,9 +549,9 @@ export default function AlbumDetailPublic({ user }) {
 
         {!isMobile && (
           <div style={{ flex: 2 }}>
-            {myReview?.score10 != null && (
+            {myReview?.score10 != null && myReview?.userRating != null && (
               <h3>
-                Your rating: <Link to={`/albums/${albumId}/users/${user.username}`}>
+                Your rating: <Link to={`/albums/${albumId}/users/${effectiveUsername}`}>
                   {myReview.score10.toFixed(1)}
                 </Link>
               </h3>
