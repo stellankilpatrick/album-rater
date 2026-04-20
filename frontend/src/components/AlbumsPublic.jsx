@@ -93,6 +93,8 @@ export default function AlbumsPublic({ user }) {
     artist.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const displayedAlbums = sortedAlbums.slice(0, 100);
+
   if (loading) return <p>Loading albums...</p>;
 
   return (
@@ -142,7 +144,7 @@ export default function AlbumsPublic({ user }) {
           <button onClick={clearFilters} style={{ padding: "5px 10px" }}>Clear Filters</button>
         </div>
         <p style={{ marginTop: "10px", fontSize: "14px", color: "#666" }}>
-          Showing {sortedAlbums.length} of {albums.length} albums
+          Showing {Math.min(100, sortedAlbums.length)} of {albums.length} albums
         </p>
       </div>
 
@@ -152,7 +154,7 @@ export default function AlbumsPublic({ user }) {
         </button>
       )}
 
-      {sortedAlbums.length === 0 ? (
+      {displayedAlbums.length === 0 ? (
         <p>No albums match your filters.</p>
       ) : viewMode === "list" ? (
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -168,7 +170,7 @@ export default function AlbumsPublic({ user }) {
             </tr>
           </thead>
           <tbody>
-            {sortedAlbums.map((album, i) => (
+            {displayedAlbums.map((album, i) => (
               <tr key={album.id}>
                 <td>{i + 1}</td>
                 <td>
@@ -191,7 +193,7 @@ export default function AlbumsPublic({ user }) {
           gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(auto-fill, minmax(140px, 1fr))",
           gap: isMobile ? "10px" : "20px"
         }}>
-          {sortedAlbums.map(album => (
+          {displayedAlbums.map(album => (
             <div key={album.id} style={{ cursor: "pointer", textAlign: "center" }}>
               {album.coverArt && (
                 <Link to={`/albums/${album.id}`}>
