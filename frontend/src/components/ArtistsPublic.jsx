@@ -47,6 +47,8 @@ export default function ArtistsPublic({ user }) {
         return 0;
     });
 
+    const displayedArtists = sortedArtists.slice(0, 100);
+
     if (loading) return <p>Loading artists...</p>;
 
     return (
@@ -76,7 +78,7 @@ export default function ArtistsPublic({ user }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {sortedArtists.map((artist, i) => (
+                        {displayedArtists.map((artist, i) => (
                             <tr
                                 key={artist.id}
                                 style={{ cursor: "pointer" }}
@@ -114,7 +116,7 @@ export default function ArtistsPublic({ user }) {
                         gap: "22px"
                     }}
                 >
-                    {sortedArtists.map(artist => (
+                    {displayedArtists.map(artist => (
                         <div
                             key={artist.id}
                             style={{ textAlign: "center", cursor: "pointer" }}

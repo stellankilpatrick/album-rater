@@ -87,15 +87,22 @@ export async function getAllAlbumsPublic() {
       a.title,
       a.release_date AS "releaseDate",
       a.cover_art AS "coverArt",
-      ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
-      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
+      artists.ids AS "artistIds",
+      artists.names AS artist,
       ROUND(COALESCE(AVG(alr.score10), 0)::numeric, 2)::float AS "avgScore",
       COUNT(alr.user_id) AS "ratingCount"
     FROM albums a
-    JOIN album_artists aa ON aa.album_id = a.id
-    JOIN artists ar ON ar.id = aa.artist_id
+    JOIN (
+      SELECT
+        aa.album_id,
+        ARRAY_AGG(ar.id ORDER BY ar.name) AS ids,
+        STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS names
+      FROM album_artists aa
+      JOIN artists ar ON ar.id = aa.artist_id
+      GROUP BY aa.album_id
+    ) artists ON artists.album_id = a.id
     LEFT JOIN album_ratings alr ON alr.album_id = a.id AND alr.score10 IS NOT NULL
-    GROUP BY a.id
+    GROUP BY a.id, artists.ids, artists.names
     ORDER BY a.title
   `);
 
