@@ -295,7 +295,10 @@ export default function AlbumDetail({ user }) {
             <h4 style={{ margin: 0 }}>
               {effectiveUsername === user?.username
                 ? `Your likes: ${goodSongs} of ${ratedSongs} tracks`
-                : `${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`}
+                : <Link to={`/users/${effectiveUsername}`} style={{ color: "white" }}>
+                  {`${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`}
+                </Link>
+              }
             </h4>
 
             {album.score10 != null && (

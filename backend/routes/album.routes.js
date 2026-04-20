@@ -8,7 +8,7 @@ import {
   getUserAlbumScores, updateAlbumReleaseDate, deleteUserAlbumRating,
   getAlbumGenres, getAllGenres, addGenreToAlbum, removeGenreFromAlbum,
   getAlbumGenreRank, getAlbumYearRank, getAlbumDecadeRank, getAlbumArtistRank,
-  getAlbumOverallRank, updateAlbumReview
+  getAlbumOverallRank, updateAlbumReview, syncUserScore10s
 } from "../models/album.models.js";
 import { addSongsToAlbum } from "../models/song.models.js";
 
