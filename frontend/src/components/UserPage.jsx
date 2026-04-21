@@ -120,14 +120,12 @@ export default function ProfilePage({ user }) {
         <div>
             {/* Banner */}
             <div
-                onClick={() => isMe && setEditingBanner(true)}
                 style={{
                     height: "180px",
                     backgroundColor: "#222",
                     backgroundImage: banner ? `url(${banner})` : undefined,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
-                    cursor: isMe ? "pointer" : "default",
                     marginLeft: "calc(-50vw + 50%)",
                     marginRight: "calc(-50vw + 50%)",
                     marginTop: "-16px",
@@ -156,7 +154,6 @@ export default function ProfilePage({ user }) {
                     <img
                         src={pfp}
                         alt="profile"
-                        onClick={() => isMe && setEditingPfp(true)}
                         style={{
                             width: "220px",
                             height: "220px",
@@ -164,7 +161,6 @@ export default function ProfilePage({ user }) {
                             borderRadius: "50%",
                             marginTop: "-75px",
                             marginLeft: "20px",
-                            cursor: isMe ? "pointer" : "default",
                         }}
                     />
 

@@ -450,7 +450,13 @@ export default function AlbumDetailPublic({ user }) {
                 </button>
               )}
               {user && !isEditing && (
-                <button onClick={() => api.post(`/users/${effectiveUsername}/listen-list/${album.id}`)} style={{ background: "#fbf0c5" }}>
+                <button
+                  onClick={(e) => {
+                    api.post(`/users/${effectiveUsername}/listen-list/${album.id}`);
+                    e.target.textContent = "Added to Listen List!";
+                  }}
+                  style={{ background: "#fbf0c5" }}
+                >
                   Add to Listen List
                 </button>
               )}
