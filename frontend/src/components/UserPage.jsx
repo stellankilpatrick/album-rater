@@ -148,8 +148,6 @@ export default function ProfilePage({ user }) {
                         placeholder="Paste image URL"
                         style={{ width: "260px", marginLeft: "400px" }}
                     />
-                    <button onClick={saveBanner}>Save</button>
-                    <button onClick={() => setEditingBanner(false)}>Cancel</button>
                 </div>
             )}
             <div style={{ display: "flex", alignItems: "center", gap: "24px", marginBottom: "16px" }}>
@@ -179,8 +177,6 @@ export default function ProfilePage({ user }) {
                                 placeholder="Paste image URL"
                                 style={{ width: "260px" }}
                             />
-                            <button onClick={savePfp}>Save</button>
-                            <button onClick={() => setEditingPfp(false)}>Cancel</button>
                         </div>
                     )}
                 </div>
@@ -193,6 +189,28 @@ export default function ProfilePage({ user }) {
                             <button onClick={toggleFollow}>
                                 {isFollowing ? "Following" : "Follow"}
                             </button>
+                        )}
+                        {isMe && (
+                            <>
+                                <button onClick={() => {
+                                    if (editingPfp || editingBanner) {
+                                        savePfp();
+                                        saveBanner();
+                                        setEditingPfp(false);
+                                        setEditingBanner(false);
+                                    } else {
+                                        setEditingPfp(true);
+                                        setEditingBanner(true);
+                                    }
+                                }}>
+                                    {editingPfp || editingBanner ? "Save Changes" : "Edit Profile"}
+                                </button>
+                                {(editingPfp || editingBanner) && (
+                                    <button onClick={() => { setEditingPfp(false); setEditingBanner(false); }}>
+                                        Cancel
+                                    </button>
+                                )}
+                            </>
                         )}
                     </div>
 
