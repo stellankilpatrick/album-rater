@@ -436,7 +436,7 @@ export default function AlbumDetailPublic({ user }) {
             <div style={{ display: "flex", gap: "8px", marginTop: "6px", flexWrap: "wrap", justifyContent: isMobile ? "center" : "flex-start" }}>
               <button
                 onClick={() => { setIsEditing(e => !e); setEditingSongId(null); }}
-                style={isEditing ? { backgroundColor: "green", color: "white", border: "none", borderRadius: "3px" } : {}}
+                style={isEditing ? { backgroundColor: "green", color: "white", border: "none", borderRadius: "4px" } : { borderRadius: "3px", border: "None" }}
               >
                 {isEditing ? "Done editing" : "Edit album"}
               </button>
@@ -455,7 +455,7 @@ export default function AlbumDetailPublic({ user }) {
                     api.post(`/users/${effectiveUsername}/listen-list/${album.id}`);
                     e.target.textContent = "Added to Listen List!";
                   }}
-                  style={{ background: "#fbf0c5" }}
+                  style={{ background: "#fbf0c5", borderRadius: "4px", border: "None" }}
                 >
                   Add to Listen List
                 </button>
