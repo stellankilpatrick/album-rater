@@ -443,6 +443,7 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
       a.cover_art AS "coverArt",
       ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
       STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
+      alr.id AS "ratingId",
       alr.rating AS "userRating", 
       alr.rated_songs,
       alr.review AS review

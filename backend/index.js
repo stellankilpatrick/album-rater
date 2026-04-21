@@ -7,6 +7,7 @@ import songRoutes from "./routes/song.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import communityRoutes from "./routes/community.routes.js";
+import likeRoutes from "./routes/like.routes.js";
 import cors from "cors";
 //import router from "./router.js"
 
@@ -22,6 +23,7 @@ app.use("/artists", artistRoutes);
 app.use("/songs", songRoutes);
 app.use("/users", userRoutes);
 app.use("/community", communityRoutes);
+app.use("/likes", likeRoutes);
 
 // Health check
 app.get("/health", (req, res) => res.json({ status: "ok" }));

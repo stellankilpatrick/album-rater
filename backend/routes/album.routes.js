@@ -617,12 +617,16 @@ router.get("/users/:username/genres", requireAuth, async (req, res) => {
 router.get("/:albumId/users/:username/comments", requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT c.id, c.content, c.created_at, u.username
+      `SELECT c.id, c.content, c.created_at, u.username,
+              COUNT(l.id) AS like_count,
+              BOOL_OR(l.user_id = $3) AS liked_by_me
        FROM album_review_comments c
        JOIN users u ON u.id = c.user_id
+       LEFT JOIN likes l ON l.target_type = 'review_comment' AND l.target_id = c.id
        WHERE c.album_id = $1 AND c.reviewed_user_id = $2
+       GROUP BY c.id, u.username
        ORDER BY c.created_at ASC`,
-      [req.params.albumId, req.profileUser.id]
+      [req.params.albumId, req.profileUser.id, req.user.id]
     );
     res.json(rows);
   } catch (err) {
