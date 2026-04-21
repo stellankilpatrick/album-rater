@@ -61,17 +61,17 @@ router.post("/", requireAuth, async (req, res) => {
     );
 
     // send notification
-    if (owner) {
-      const message = targetType === "album_review"
-        ? `${req.user.username} liked your review of ${owner.title}`
-        : `${req.user.username} liked your comment on ${owner.title}`;
+    //if (owner) {
+      //const message = targetType === "album_review"
+        //? `${req.user.username} liked your review of ${owner.title}`
+       // : `${req.user.username} liked your comment on ${owner.title}`;
 
-      await pool.query(
-        `INSERT INTO notifications (user_id, type, from_user_id, message)
-         VALUES ($1, 'like', $2, $3)`,
-        [owner.user_id, req.user.id, message]
-      );
-    }
+      //await pool.query(
+       // `INSERT INTO notifications (user_id, type, from_user_id, message)
+        // VALUES ($1, 'like', $2, $3)`,
+        //[owner.user_id, req.user.id, message]
+      //);
+    //}
 
     res.json({ count: await getLikeCount(targetType, targetId) });
   } catch (err) {
