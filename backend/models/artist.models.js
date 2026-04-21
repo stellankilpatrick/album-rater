@@ -54,38 +54,20 @@ export async function attachAlbumStats(albums, userId = null) {
   return result;
 }
 
-// Get all rated artists (avg album score)
+// Get all rated artists (avg album score10)
 export async function getAllRatedArtists() {
   const res = await pool.query(`
-    WITH user_album_scores AS (
-      SELECT
-        a.id AS album_id,
-        sr.user_id,
-        (SUM(sr.rating) * SUM(sr.rating))::float / COUNT(sr.rating) AS userScore
-      FROM albums a
-      JOIN songs s ON s.album_id = a.id
-      JOIN song_ratings sr ON sr.song_id = s.id
-      GROUP BY a.id, sr.user_id
-    ),
-    album_scores AS (
-      SELECT
-        album_id,
-        AVG(userScore) AS albumScore,
-        COUNT(user_id) AS ratingCount
-      FROM user_album_scores
-      GROUP BY album_id
-    )
     SELECT
       ar.id,
       ar.name,
       ar.image,
-      ROUND(AVG(album_scores.albumScore)::numeric, 2)::float AS "avgRating",
-      SUM(album_scores.ratingCount) AS "ratingCount",
+      ROUND(AVG(alr.score10)::numeric, 2)::float AS "avgRating",
+      COUNT(alr.user_id) AS "ratingCount",
       COUNT(DISTINCT a.id) AS "albumCount"
     FROM artists ar
     JOIN album_artists aa ON aa.artist_id = ar.id
     JOIN albums a ON a.id = aa.album_id
-    LEFT JOIN album_scores ON album_scores.album_id = a.id
+    LEFT JOIN album_ratings alr ON alr.album_id = a.id AND alr.score10 IS NOT NULL
     GROUP BY ar.id, ar.name, ar.image
     ORDER BY "avgRating" DESC
   `);

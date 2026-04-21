@@ -54,6 +54,25 @@ function TopNav({ effectiveUsername, onLogout }) {
     setMenuOpen(false);
   };
 
+  // Add album form in header
+  const [addAlbumOpen, setAddAlbumOpen] = useState(false);
+  const [albumTitle, setAlbumTitle] = useState("");
+  const [albumArtist, setAlbumArtist] = useState("");
+  const [albumReleaseDate, setAlbumReleaseDate] = useState("");
+
+  const handleAddAlbum = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await api.post("/albums/new", { title: albumTitle, artist: albumArtist, releaseDate: albumReleaseDate });
+      const album = { ...res.data, id: res.data.id ?? res.data.albumId };
+      setAlbumTitle(""); setAlbumArtist(""); setAlbumReleaseDate("");
+      setAddAlbumOpen(false);
+      navigate(`/albums/${album.id}`);
+    } catch (err) {
+      console.error("Failed to add album:", err);
+    }
+  };
+
   const navStyle = (path) => ({
     textDecoration: location.pathname === path ? "underline" : "none",
     color: "white",
@@ -66,7 +85,56 @@ function TopNav({ effectiveUsername, onLogout }) {
       <Link to={`/artists/users/${effectiveUsername}`} style={navStyle(`/artists/users/${effectiveUsername}`)}>Artist Rankings</Link>
       <Link to="/albums" style={navStyle("/albums")}>Albums</Link>
       <Link to="/artists" style={navStyle("/artists")}>Artists</Link>
-      <Link to="/albums/new" style={navStyle("/albums/new")}>Add Album</Link>
+      <div style={{ position: "relative" }}
+        onMouseEnter={() => setAddAlbumOpen(true)}
+        onMouseLeave={() => setAddAlbumOpen(false)}
+      >
+        {isMobile ? (
+          <Link to="/albums/new" style={navStyle("/albums/new")}>Add Album</Link>
+        ) : (
+          <span style={{ ...navStyle("/albums/new"), cursor: "default" }}>Add Album</span>
+        )}
+        {addAlbumOpen && (
+          <div style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            backgroundColor: "#111",
+            border: "1px solid #333",
+            borderRadius: "4px",
+            zIndex: 200,
+            padding: "12px",
+            minWidth: "260px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px"
+          }}>
+            <input
+              type="text"
+              value={albumTitle}
+              onChange={e => setAlbumTitle(e.target.value)}
+              placeholder="Album title"
+              style={{ padding: "4px 8px" }}
+            />
+            <input
+              type="text"
+              value={albumArtist}
+              onChange={e => setAlbumArtist(e.target.value)}
+              placeholder="Artist"
+              style={{ padding: "4px 8px" }}
+            />
+            <input
+              type="date"
+              value={albumReleaseDate}
+              onChange={e => setAlbumReleaseDate(e.target.value)}
+              style={{ padding: "4px 8px" }}
+            />
+            <button onClick={handleAddAlbum} style={{ padding: "4px 8px", cursor: "pointer" }}>
+              Add Album
+            </button>
+          </div>
+        )}
+      </div>
       <div
         style={{ position: "relative" }}
         onMouseEnter={() => setCommunityOpen(true)}
@@ -104,7 +172,8 @@ function TopNav({ effectiveUsername, onLogout }) {
             </Link>
           </div>
         )}
-      </div>      <Link to={`/users/${effectiveUsername}`} style={navStyle(`/users/${effectiveUsername}`)}>Profile</Link>
+      </div>
+      <Link to={`/users/${effectiveUsername}`} style={navStyle(`/users/${effectiveUsername}`)}>Profile</Link>
     </>
   );
 

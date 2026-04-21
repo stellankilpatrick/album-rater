@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import TopNav from "./components/Header"
+import TopNav from "./components/TopNav"
 import AlbumList from "./components/AlbumList";
 import AlbumDetail from "./components/AlbumDetail";
 import ArtistList from "./components/ArtistList";
