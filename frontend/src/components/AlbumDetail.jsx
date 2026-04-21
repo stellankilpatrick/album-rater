@@ -137,7 +137,7 @@ export default function AlbumDetail({ user }) {
 
   // after album loads
   useEffect(() => {
-    if (!album?.ratingId || !isOwner) return;
+    if (!album?.ratingId) return;
     api.get(`/likes/status?targetType=album_review&targetId=${album.ratingId}`)
       .then(res => setReviewLikes({ ...res.data, ratingId: album.ratingId }));
   }, [album]);
@@ -316,30 +316,31 @@ export default function AlbumDetail({ user }) {
             )}
           </div>
         </div>
-        {!isMobile && reviewPanel}
+        <div style={{ position: "relative", zIndex: 3, color: "white" }}>
+          {!isMobile && reviewPanel}
+          {!isOwner && album?.ratingId && (
+            <button
+              onClick={async () => {
+                if (reviewLikes.likedByMe) {
+                  const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
+                  setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
+                } else {
+                  const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
+                  setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
+                }
+              }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: reviewLikes.likedByMe ? "#e0245e" : "white", fontSize: "14px" }}
+            >
+              ❤︎⁠ {reviewLikes.count}
+            </button>
+          )}
+          {isOwner && reviewLikes.count > 0 && (
+            <span style={{ color: "white", fontSize: "13px" }}>♥ {reviewLikes.count}</span>
+          )}
+        </div>
       </div>
 
       {isMobile && reviewPanel}
-
-      {!isOwner && album?.ratingId && (
-        <button
-          onClick={async () => {
-            if (reviewLikes.likedByMe) {
-              const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
-              setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
-            } else {
-              const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
-              setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
-            }
-          }}
-          style={{ background: "none", border: "none", cursor: "pointer", color: reviewLikes.likedByMe ? "#e0245e" : "#999", fontSize: "14px" }}
-        >
-          ♥ {reviewLikes.count}
-        </button>
-      )}
-      {isOwner && reviewLikes.count > 0 && (
-        <span style={{ color: "#999", fontSize: "13px" }}>♥ {reviewLikes.count}</span>
-      )}
 
       {/* ===== TRACKLIST + SIDEBAR ===== */}
       <div style={{
