@@ -12,6 +12,8 @@ export default function AlbumDetail({ user }) {
 
   const [album, setAlbum] = useState(null);
   const [songs, setSongs] = useState([]);
+  const [pendingSongs, setPendingSongs] = useState([]);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const [ranks, setRanks] = useState({});
   const [genres, setGenres] = useState([]);
@@ -19,6 +21,7 @@ export default function AlbumDetail({ user }) {
   const [focusedSongId, setFocusedSongId] = useState(null);
 
   const [review, setReview] = useState("");
+  const [pendingReview, setPendingReview] = useState("");
   const [reviewFocused, setReviewFocused] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -49,14 +52,13 @@ export default function AlbumDetail({ user }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  /* ---------------- fetch album ------------ */
   useEffect(() => {
     if (!effectiveUsername) return;
-
     api.get(`/albums/${albumId}/users/${effectiveUsername}`)
       .then(res => {
         setAlbum(res.data);
         setSongs(res.data.songs);
+        setPendingSongs(res.data.songs);
       })
       .catch(err => console.error(err));
   }, [albumId, effectiveUsername]);
@@ -64,21 +66,58 @@ export default function AlbumDetail({ user }) {
   useEffect(() => {
     setAlbum(null);
     setSongs([]);
+    setPendingSongs([]);
+    setHasChanges(false);
   }, [albumId]);
 
   useEffect(() => {
-    if (album?.review) setReview(album.review);
+    if (album?.review) {
+      setReview(album.review);
+      setPendingReview(album.review);
+    }
   }, [album]);
 
   const handleRatingChange = (songId, newRating) => {
-    setSongs(prev => prev.map(s => s.id === songId ? { ...s, localRating: newRating } : s));
-    api.patch(`/songs/${songId}/rating`, { rating: newRating })
-      .then(res => {
-        setSongs(prev => prev.map(s =>
-          s.id === songId ? { ...s, localRating: newRating } : s
-        ));
-      })
-      .catch(err => console.error("Failed to update rating:", err));
+    setPendingSongs(prev => prev.map(s => s.id === songId ? { ...s, localRating: newRating } : s));
+    setHasChanges(true);
+  };
+
+  const handleCommentChange = (songId, comment) => {
+    setPendingSongs(prev => prev.map(s => s.id === songId ? { ...s, comment } : s));
+    setHasChanges(true);
+  };
+
+  const handleReviewChange = (val) => {
+    setPendingReview(val);
+    setHasChanges(true);
+  };
+
+  const handleSaveRating = async () => {
+    if (!window.confirm("Are you sure you want to save your changes?")) return;
+
+    try {
+      // Save all song ratings
+      for (const song of pendingSongs) {
+        const original = songs.find(s => s.id === song.id);
+        if (original?.localRating !== song.localRating) {
+          await api.patch(`/songs/${song.id}/rating`, { rating: song.localRating ?? null });
+        }
+        if (original?.comment !== song.comment) {
+          await api.patch(`/songs/${song.id}/comment`, { comment: song.comment });
+        }
+      }
+
+      // Save review
+      if (pendingReview !== review && pendingReview.trim()) {
+        await api.patch(`/albums/${albumId}/review/users/${effectiveUsername}`, { review: pendingReview });
+      }
+
+      setSongs(pendingSongs);
+      setReview(pendingReview);
+      setHasChanges(false);
+    } catch (err) {
+      console.error("Failed to save ratings:", err);
+    }
   };
 
   const handleDeleteAlbum = async () => {
@@ -89,22 +128,6 @@ export default function AlbumDetail({ user }) {
     } catch (err) {
       console.error("Failed to delete album:", err);
     }
-  }
-
-  const handleCommentChange = (songId, comment) => {
-    setSongs(prev => prev.map(s => s.id === songId ? { ...s, comment } : s));
-  };
-
-  const handleCommentBlur = (songId, comment) => {
-    api.patch(`/songs/${songId}/comment`, { comment })
-      .catch(err => console.error("Failed to update comment:", err));
-  };
-
-  const handleReviewBlur = () => {
-    setReviewFocused(false);
-    if (!review.trim()) return;
-    api.patch(`/albums/${albumId}/review/users/${effectiveUsername}`, { review })
-      .catch(err => console.error("Failed to update review:", err));
   };
 
   useEffect(() => {
@@ -126,10 +149,10 @@ export default function AlbumDetail({ user }) {
     });
   }, [album, genres]);
 
-  if (!album) return <div>Loading...</div>
+  if (!album) return <div>Loading...</div>;
 
-  const goodSongs = songs.filter(s => s.localRating > 0).length;
-  const ratedSongs = songs.filter(s => s.localRating !== null && s.localRating !== undefined).length;
+  const goodSongs = pendingSongs.filter(s => s.localRating > 0).length;
+  const ratedSongs = pendingSongs.filter(s => s.localRating !== null && s.localRating !== undefined).length;
 
   const reviewPanel = (
     <div style={{
@@ -144,10 +167,10 @@ export default function AlbumDetail({ user }) {
       {isOwner ? (
         <>
           <textarea
-            value={review}
-            onChange={e => setReview(e.target.value)}
+            value={pendingReview}
+            onChange={e => handleReviewChange(e.target.value)}
             onFocus={() => setReviewFocused(true)}
-            onBlur={handleReviewBlur}
+            onBlur={() => setReviewFocused(false)}
             placeholder="Write a review..."
             maxLength={500}
             style={{
@@ -164,8 +187,8 @@ export default function AlbumDetail({ user }) {
             }}
           />
           {reviewFocused && (
-            <span style={{ fontSize: "11px", color: review.length >= 500 ? "red" : "rgba(255,255,255,0.6)" }}>
-              {review.length}/500
+            <span style={{ fontSize: "11px", color: pendingReview.length >= 500 ? "red" : "rgba(255,255,255,0.6)" }}>
+              {pendingReview.length}/500
             </span>
           )}
         </>
@@ -182,100 +205,52 @@ export default function AlbumDetail({ user }) {
   return (
     <div>
       {/* ===== HEADER WITH BLUR ===== */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 2,
-          display: "flex",
-          flexDirection: isMobile ? "column" : "row",
-          overflow: "hidden",
-          marginBottom: "20px",
-          width: "100vw",
-          marginLeft: "calc(50% - 50vw)",
-          marginRight: "calc(50% - 50vw)",
-          marginTop: "-10px",
-          color: "white"
-        }}
-      >
+      <div style={{
+        position: "relative",
+        zIndex: 2,
+        display: "flex",
+        flexDirection: isMobile ? "column" : "row",
+        overflow: "hidden",
+        marginBottom: "20px",
+        width: "100vw",
+        marginLeft: "calc(50% - 50vw)",
+        marginRight: "calc(50% - 50vw)",
+        marginTop: "-10px",
+        color: "white"
+      }}>
         {album.coverArt && (
-          <img
-            src={album.coverArt}
-            alt=""
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              filter: "blur(40px)",
-              transform: "scale(1.2)",
-              opacity: 0.95
-            }}
-          />
+          <img src={album.coverArt} alt="" style={{
+            position: "absolute", inset: 0, width: "100%", height: "100%",
+            objectFit: "cover", filter: "blur(40px)", transform: "scale(1.2)", opacity: 0.95
+          }} />
         )}
-
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4))"
-          }}
-        />
-
-        <div
-          style={{
-            position: "relative",
-            zIndex: 2,
-            display: "flex",
-            flexDirection: isMobile ? "column" : "row",
-            gap: "20px",
-            alignItems: isMobile ? "center" : "flex-start",
-            padding: "24px"
-          }}
-        >
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4))"
+        }} />
+        <div style={{
+          position: "relative", zIndex: 2, display: "flex",
+          flexDirection: isMobile ? "column" : "row", gap: "20px",
+          alignItems: isMobile ? "center" : "flex-start", padding: "24px"
+        }}>
           {album.coverArt && (
-            <div
-              style={{
-                position: "relative",
-                width: isMobile ? "200px" : "220px",
-                height: isMobile ? "200px" : "220px",
-                overflow: "hidden",
-                borderRadius: "12px",
-                flexShrink: 0
-              }}
-            >
-              <img
-                src={album.coverArt}
-                alt=""
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  filter: "blur(24px)",
-                  transform: "scale(1.15)",
-                  opacity: 0.7
-                }}
-              />
-              <img
-                src={album.coverArt}
-                alt={`${album.title} cover`}
-                style={{
-                  position: "relative",
-                  width: "100%",
-                  height: "auto",
-                  objectFit: "contain"
-                }}
-              />
+            <div style={{
+              position: "relative", width: isMobile ? "200px" : "220px",
+              height: isMobile ? "200px" : "220px", overflow: "hidden",
+              borderRadius: "12px", flexShrink: 0
+            }}>
+              <img src={album.coverArt} alt="" style={{
+                position: "absolute", inset: 0, width: "100%", height: "100%",
+                objectFit: "cover", filter: "blur(24px)", transform: "scale(1.15)", opacity: 0.7
+              }} />
+              <img src={album.coverArt} alt={`${album.title} cover`} style={{
+                position: "relative", width: "100%", height: "auto", objectFit: "contain"
+              }} />
             </div>
           )}
-
           <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
             <h1 style={{ margin: 0, fontSize: isMobile ? "1.75rem" : undefined }}>
-              <Link to={`/albums/${album.id}`} style={{ color: "white" }}>
-                <i>{album.title}</i>
-              </Link>
+              <Link to={`/albums/${album.id}`} style={{ color: "white" }}><i>{album.title}</i></Link>
             </h1>
             <h2 style={{ margin: 0, fontSize: isMobile ? "1.25rem" : undefined }}>
               {album.artistIds?.map((id, i) => (
@@ -287,11 +262,9 @@ export default function AlbumDetail({ user }) {
                 </span>
               ))}
             </h2>
-
             <h4 style={{ margin: 0 }}>
               Released {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
             </h4>
-
             <h4 style={{ margin: 0 }}>
               {effectiveUsername === user?.username
                 ? `Your likes: ${goodSongs} of ${ratedSongs} tracks`
@@ -300,7 +273,6 @@ export default function AlbumDetail({ user }) {
                 </Link>
               }
             </h4>
-
             {album.score10 != null && (
               <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
                 <h1 style={{ margin: 0, fontSize: isMobile ? "3rem" : "3.5rem" }}>{album.score10.toFixed(1)}</h1>
@@ -313,24 +285,16 @@ export default function AlbumDetail({ user }) {
             )}
           </div>
         </div>
-
-        {/* Review panel — inline on desktop, stacked on mobile */}
         {!isMobile && reviewPanel}
       </div>
 
-      {/* Review panel stacked below header on mobile */}
       {isMobile && reviewPanel}
 
       {/* ===== TRACKLIST + SIDEBAR ===== */}
       <div style={{
-        display: "flex",
-        flexDirection: isMobile ? "column" : "row",
-        gap: "32px",
-        alignItems: "flex-start",
-        paddingLeft: isMobile ? "0" : "10px"
+        display: "flex", flexDirection: isMobile ? "column" : "row",
+        gap: "32px", alignItems: "flex-start", paddingLeft: isMobile ? "0" : "10px"
       }}>
-
-        {/* Tracklist — scrollable on mobile */}
         <div style={{ overflowX: isMobile ? "auto" : "visible", width: isMobile ? "100%" : "auto" }}>
           <table style={{ borderCollapse: "collapse", flex: "0 0 auto", tableLayout: "auto", width: isMobile ? "100%" : "auto" }}>
             <thead>
@@ -342,7 +306,7 @@ export default function AlbumDetail({ user }) {
               </tr>
             </thead>
             <tbody>
-              {songs.map(song => (
+              {pendingSongs.map(song => (
                 <tr key={song.id}>
                   <td style={{ paddingRight: "12px", width: "30px" }}>{song.num}</td>
                   <td style={{ paddingRight: "12px", maxWidth: isMobile ? "250px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -352,13 +316,10 @@ export default function AlbumDetail({ user }) {
                     <select
                       value={song.localRating ?? ""}
                       disabled={!isOwner}
-                      onChange={
-                        isOwner ? e => {
-                          const value = e.target.value === "" ? null : Number(e.target.value);
-                          handleRatingChange(song.id, value);
-                        }
-                          : undefined
-                      }
+                      onChange={isOwner ? e => {
+                        const value = e.target.value === "" ? null : Number(e.target.value);
+                        handleRatingChange(song.id, value);
+                      } : undefined}
                       style={{ color: isOwner ? "inherit" : "#333", background: isOwner ? "inherit" : "#f0f0f0" }}
                     >
                       <option value="">Interlude</option>
@@ -374,12 +335,17 @@ export default function AlbumDetail({ user }) {
                           type="text"
                           value={song.comment ?? ""}
                           onChange={e => handleCommentChange(song.id, e.target.value)}
-                          onBlur={e => { handleCommentBlur(song.id, e.target.value); setFocusedSongId(null); }}
                           onFocus={() => setFocusedSongId(song.id)}
+                          onBlur={() => setFocusedSongId(null)}
                           placeholder="Add a note..."
                           maxLength={75}
-                          style={{ border: "none", background: "transparent", width: isMobile ? "520px" : "520px", color: "#D3D3D3" }}
+                          style={{ border: "none", background: "transparent", width: "520px", color: "#D3D3D3" }}
                         />
+                        {focusedSongId === song.id && song.comment?.length > 0 && (
+                          <span style={{ fontSize: "11px", color: song.comment?.length >= 75 ? "red" : "#999" }}>
+                            {song.comment?.length}/75
+                          </span>
+                        )}
                       </div>
                     ) : (
                       <span style={{ color: "#D3D3D3", fontSize: "13px" }}>{song.comment ?? ""}</span>
@@ -389,10 +355,27 @@ export default function AlbumDetail({ user }) {
               ))}
             </tbody>
           </table>
+
+          {isOwner && hasChanges && (
+            <button
+              onClick={handleSaveRating}
+              style={{
+                marginTop: "16px",
+                backgroundColor: "#1db954",
+                color: "white",
+                border: "none",
+                borderRadius: "3px",
+                padding: "8px 8px",
+                cursor: "pointer",
+                fontWeight: "bold"
+              }}
+            >
+              Save Rating
+            </button>
+          )}
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, paddingLeft: isMobile ? "10px" : "0" }}>
-          {/*Recommend album to friends */}
           {friends.length > 0 && user.username === effectiveUsername && (
             <div style={{ marginBottom: "-10px" }}>
               <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
@@ -402,7 +385,6 @@ export default function AlbumDetail({ user }) {
               <button onClick={sendRec} disabled={!selectedFriend}>{recSent ? "Sent!" : "Send"}</button>
             </div>
           )}
-          {/* RANKS */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
             <h3 style={{ margin: 0 }}>Ranks</h3>
             {ranks.year?.rank != null && (
@@ -430,8 +412,6 @@ export default function AlbumDetail({ user }) {
               </div>
             ))}
           </div>
-
-          {/* Sidebar: links + delete */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
             <button style={{ minWidth: "30px", borderRadius: "4px" }}>
               <Link to={`/albums/${album.id}`} style={{ textDecoration: "none", fontSize: "14px" }}>
@@ -439,30 +419,21 @@ export default function AlbumDetail({ user }) {
               </Link>
             </button>
             {album.artistIds?.map((id, i) => (
-              <button style={{ minWidth: "30px", borderRadius: "4px" }}>
-                <Link key={id} to={`/artists/${id}/users/${effectiveUsername}`} style={{ textDecoration: "none", fontSize: "14px" }}>
+              <button key={id} style={{ minWidth: "30px", borderRadius: "4px" }}>
+                <Link to={`/artists/${id}/users/${effectiveUsername}`} style={{ textDecoration: "none", fontSize: "14px" }}>
                   All albums by {album.artist?.split(' & ')[i]}
                 </Link>
               </button>
             ))}
             {isOwner && (
-              <button
-                onClick={handleDeleteAlbum}
-                style={{
-                  backgroundColor: "red",
-                  color: "white",
-                  padding: "0.3rem 0.5rem",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  width: "fit-content"
-                }}
-              >
+              <button onClick={handleDeleteAlbum} style={{
+                backgroundColor: "red", color: "white", padding: "0.3rem 0.5rem",
+                border: "none", borderRadius: "4px", cursor: "pointer", width: "fit-content"
+              }}>
                 Delete Album Rating
               </button>
             )}
           </div>
-
         </div>
       </div>
     </div>
