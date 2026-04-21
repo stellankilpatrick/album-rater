@@ -380,11 +380,6 @@ export default function AlbumDetail({ user }) {
                           maxLength={75}
                           style={{ border: "none", background: "transparent", width: isMobile ? "520px" : "520px", color: "#D3D3D3" }}
                         />
-                        {focusedSongId === song.id && song.comment?.length > 0 && (
-                          <span style={{ fontSize: "11px", color: song.comment?.length >= 75 ? "red" : "#999" }}>
-                            {song.comment?.length}/75
-                          </span>
-                        )}
                       </div>
                     ) : (
                       <span style={{ color: "#D3D3D3", fontSize: "13px" }}>{song.comment ?? ""}</span>

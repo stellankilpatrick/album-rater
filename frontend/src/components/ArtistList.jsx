@@ -65,7 +65,7 @@ export default function ArtistList({ user }) {
                             <th></th>
                             <th onClick={() => handleSort("name")}>Artist</th>
                             <th onClick={() => handleSort("albumCount")}>Albums</th>
-                            <th onClick={() => handleSort("totalScore")}>Total Score</th>
+                            <th onClick={() => handleSort("totalScore")}>Points</th>
                         </tr>
                     </thead>
                     <tbody>
