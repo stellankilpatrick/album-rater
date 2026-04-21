@@ -153,6 +153,14 @@ export default function ArtistDetailPublic({ user }) {
         )}
       </div>
 
+      {hasRatedArtist && (
+        <button>
+          <Link to={`/artists/${artist.id}/users/${effectiveUsername}`} style={{}}>
+            Your rated albums by {artist.name}
+          </Link>
+        </button>
+      )}
+
       {albums.length === 0 ? (
         <div>
           <p>No albums for this artist.</p>
@@ -216,12 +224,6 @@ export default function ArtistDetailPublic({ user }) {
               ))}
           </tbody>
         </table>
-      )}
-
-      {hasRatedArtist && (
-        <Link to={`/artists/${artist.id}/users/${effectiveUsername}`} style={{}}>
-          Your favorite albums by {artist.name}
-        </Link>
       )}
     </div>
   );

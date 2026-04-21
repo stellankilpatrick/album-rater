@@ -33,38 +33,12 @@ export default function Recommendations({ user }) {
             <h2>Recommended for you</h2>
             {grouped.length === 0
                 ? <div style={{ color: "#999" }}>No recommendations yet.</div>
-                : grouped.map(group => (
-                    <div key={group.username} style={{ marginBottom: "24px" }}>
-                        <h3>From <Link to={`/users/${group.username}`}>{group.username}</Link></h3>
-                        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                            {group.albums.map(album => (
-                                <div key={album.recId} style={{ textAlign: "center" }}>
-                                    <Link to={`/albums/${album.albumId}`}>
-                                        {album.coverArt && (
-                                            <img src={album.coverArt} alt={album.title}
-                                                style={{ width: "120px", height: "120px", objectFit: "cover", borderRadius: "4px", display: "block" }} />
-                                        )}
-                                        <div style={{ fontSize: "12px", marginTop: "4px", maxWidth: "120px" }}>{album.title}</div>
-                                    </Link>
-                                    <button onClick={() => dismiss(album.recId, group.username)}
-                                        style={{ fontSize: "11px", marginTop: "4px", cursor: "pointer" }}>
-                                        Dismiss
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                ))
-            }
-
-            {sent.length > 0 && (
-                <>
-                    <h2>Sent by you</h2>
-                    {sent.map(group => (
-                        <div key={group.username} style={{ marginBottom: "24px" }}>
-                            <h3>To <Link to={`/users/${group.username}`}>{group.username}</Link></h3>
-                            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                                {group.albums.map(album => (
+                : <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }}>
+                    {grouped.map(group => (
+                        <div key={group.username} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                            <h3 style={{ margin: 0 }}>From <Link to={`/users/${group.username}`}>{group.username}</Link></h3>
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 120px)", gap: "8px" }}>
+                                {group.albums.slice(0, 8).map(album => (
                                     <div key={album.recId} style={{ textAlign: "center" }}>
                                         <Link to={`/albums/${album.albumId}`}>
                                             {album.coverArt && (
@@ -73,15 +47,45 @@ export default function Recommendations({ user }) {
                                             )}
                                             <div style={{ fontSize: "12px", marginTop: "4px", maxWidth: "120px" }}>{album.title}</div>
                                         </Link>
-                                        <button onClick={() => unsend(album.recId, group.username)}
+                                        <button onClick={() => dismiss(album.recId, group.username)}
                                             style={{ fontSize: "11px", marginTop: "4px", cursor: "pointer" }}>
-                                            Unsend
+                                            Dismiss
                                         </button>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     ))}
+                </div>
+            }
+
+            {sent.length > 0 && (
+                <>
+                    <h2>Sent by you</h2>
+                    <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }}>
+                        {sent.map(group => (
+                            <div key={group.username} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                <h3 style={{ margin: 0 }}>To <Link to={`/users/${group.username}`}>{group.username}</Link></h3>
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 120px)", gap: "8px" }}>
+                                    {group.albums.slice(0, 8).map(album => (
+                                        <div key={album.recId} style={{ textAlign: "center" }}>
+                                            <Link to={`/albums/${album.albumId}`}>
+                                                {album.coverArt && (
+                                                    <img src={album.coverArt} alt={album.title}
+                                                        style={{ width: "120px", height: "120px", objectFit: "cover", borderRadius: "4px", display: "block" }} />
+                                                )}
+                                                <div style={{ fontSize: "12px", marginTop: "4px", maxWidth: "120px" }}>{album.title}</div>
+                                            </Link>
+                                            <button onClick={() => unsend(album.recId, group.username)}
+                                                style={{ fontSize: "11px", marginTop: "4px", cursor: "pointer" }}>
+                                                Unsend
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </>
             )}
         </div>
