@@ -188,12 +188,12 @@ export default function AlbumDetail({ user }) {
   const reviewPanel = (
     <div style={{
       flexShrink: 0,
-      width: isMobile ? "100%" : "700px",
+      width: isMobile ? "100%" : "650px",
       display: "flex",
       flexDirection: "column",
       gap: "4px",
       zIndex: 3,
-      ...(isMobile ? { padding: "0 16px 16px 0px" } : { marginLeft: "auto", marginTop: "16px" })
+      ...(isMobile ? { padding: "0 16px 16px 0px" } : { marginLeft: "300px", marginTop: "16px" })
     }}>
       {isOwner ? (
         <>
@@ -329,7 +329,7 @@ export default function AlbumDetail({ user }) {
                   setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
                 }
               }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: reviewLikes.likedByMe ? "#e0245e" : "white", fontSize: "14px" }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: reviewLikes.likedByMe ? "#e0245e" : "white", fontSize: "14px", marginLeft: "300px"}}
             >
               ❤︎⁠ {reviewLikes.count}
             </button>
