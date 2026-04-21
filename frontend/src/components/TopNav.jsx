@@ -11,6 +11,7 @@ function TopNav({ effectiveUsername, onLogout }) {
   const [dropdownResults, setDropdownResults] = useState(null);
   const dropdownRef = useRef(null);
   const [communityOpen, setCommunityOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -173,7 +174,36 @@ function TopNav({ effectiveUsername, onLogout }) {
           </div>
         )}
       </div>
-      <Link to={`/users/${effectiveUsername}`} style={navStyle(`/users/${effectiveUsername}`)}>Profile</Link>
+      <div
+        style={{ position: "relative" }}
+        onMouseEnter={() => setProfileOpen(true)}
+        onMouseLeave={() => setProfileOpen(false)}
+      >
+        <Link to={`/users/${effectiveUsername}`} style={navStyle(`/users/${effectiveUsername}`)}>Profile</Link>
+        {profileOpen && (
+          <div style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            backgroundColor: "#111",
+            border: "1px solid #333",
+            borderRadius: "4px",
+            fontSize: "13px",
+            zIndex: 200,
+            minWidth: "180px",
+            padding: "4px 0",
+          }}>
+            <Link
+              to={`/users/${effectiveUsername}/listen-list`}
+              style={{ display: "block", padding: "8px 12px", color: "white" }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = "#222"}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+            >
+              Listen List
+            </Link>
+          </div>
+        )}
+      </div>
     </>
   );
 
