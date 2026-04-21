@@ -30,6 +30,9 @@ export default function AlbumDetail({ user }) {
   const [selectedFriend, setSelectedFriend] = useState("");
   const [recSent, setRecSent] = useState(false);
 
+  const [comments, setComments] = useState([]);
+  const [commentInput, setCommentInput] = useState("");
+
   useEffect(() => {
     if (user) api.get(`albums/${albumId}/users/${effectiveUsername}/mutuals`).then(res => setFriends(res.data));
   }, [user]);
@@ -128,6 +131,25 @@ export default function AlbumDetail({ user }) {
     } catch (err) {
       console.error("Failed to delete album:", err);
     }
+  };
+
+  useEffect(() => {
+    if (!albumId || !effectiveUsername) return;
+    api.get(`/albums/${albumId}/users/${effectiveUsername}/comments`)
+      .then(res => setComments(res.data))
+      .catch(err => console.error(err));
+  }, [albumId, effectiveUsername]);
+
+  const handlePostComment = async () => {
+    if (!commentInput.trim()) return;
+    const res = await api.post(`/albums/${albumId}/users/${effectiveUsername}/comments`, { content: commentInput });
+    setComments(prev => [...prev, res.data]);
+    setCommentInput("");
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    await api.delete(`/albums/${albumId}/users/${effectiveUsername}/comments/${commentId}`);
+    setComments(prev => prev.filter(c => c.id !== commentId));
   };
 
   useEffect(() => {
@@ -429,6 +451,46 @@ export default function AlbumDetail({ user }) {
               </button>
             )}
           </div>
+        </div>
+      </div>
+      {/* ===== COMMENTS ===== */}
+      <div style={{ marginBottom: "24px", maxWidth: "600px" }}>
+        <h3 style={{ marginBottom: "8px" }}>Comments</h3>
+        {comments.length === 0 && <div style={{ color: "#999", fontSize: "13px" }}>No comments yet.</div>}
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
+          {comments.map(c => (
+            <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "6px", padding: "8px 12px" }}>
+              <div>
+                <Link to={`/users/${c.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{c.username}</Link>
+                <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
+                  {new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                </span>
+                <div style={{ fontSize: "13px", marginTop: "2px" }}>{c.content}</div>
+              </div>
+              {(c.username === user?.username || isOwner) && (
+                <button
+                  onClick={() => handleDeleteComment(c.id)}
+                  style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", padding: "0 0 0 8px" }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: "8px" }}>
+          <input
+            type="text"
+            value={commentInput}
+            onChange={e => setCommentInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handlePostComment()}
+            placeholder="Add a comment..."
+            maxLength={200}
+            style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
+          />
+          <button onClick={handlePostComment} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
+            Post
+          </button>
         </div>
       </div>
     </div>

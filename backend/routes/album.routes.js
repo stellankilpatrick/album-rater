@@ -613,4 +613,54 @@ router.get("/users/:username/genres", requireAuth, async (req, res) => {
   }
 });
 
+// ALBUM REVIEW COMMENTS
+router.get("/:albumId/users/:username/comments", requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT c.id, c.content, c.created_at, u.username
+       FROM album_review_comments c
+       JOIN users u ON u.id = c.user_id
+       WHERE c.album_id = $1 AND c.reviewed_user_id = $2
+       ORDER BY c.created_at ASC`,
+      [req.params.albumId, req.profileUser.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to get comments" });
+  }
+});
+
+router.post("/:albumId/users/:username/comments", requireAuth, async (req, res) => {
+  const { content } = req.body;
+  if (!content?.trim()) return res.status(400).json({ error: "Comment cannot be empty" });
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO album_review_comments (user_id, album_id, reviewed_user_id, content)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, content, created_at`,
+      [req.user.id, req.params.albumId, req.profileUser.id, content.trim()]
+    );
+    res.json({ ...rows[0], username: req.user.username });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to post comment" });
+  }
+});
+
+router.delete("/:albumId/users/:username/comments/:commentId", requireAuth, async (req, res) => {
+  try {
+    // allow commenter or review owner to delete
+    await pool.query(
+      `DELETE FROM album_review_comments
+       WHERE id = $1 AND (user_id = $2 OR reviewed_user_id = $2)`,
+      [req.params.commentId, req.user.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete comment" });
+  }
+});
+
 export default router;
