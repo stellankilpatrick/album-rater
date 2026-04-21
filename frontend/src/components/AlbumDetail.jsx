@@ -211,7 +211,7 @@ export default function AlbumDetail({ user }) {
               color: isMobile ? "#D3D3D3" : "white",
               padding: "8px",
               resize: "none",
-              width: isMobile ? "100%" : "500px",
+              width: isMobile ? "100%" : "625px",
               height: isMobile ? "100px" : "150px",
               fontSize: "13px",
               boxSizing: "border-box",
@@ -318,7 +318,7 @@ export default function AlbumDetail({ user }) {
         </div>
         <div style={{ position: "relative", zIndex: 3, color: "white" }}>
           {!isMobile && reviewPanel}
-          {!isOwner && album?.ratingId && (
+          {!isOwner && album?.ratingId && album?.review && (
             <button
               onClick={async () => {
                 if (reviewLikes.likedByMe) {
