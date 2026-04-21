@@ -100,18 +100,10 @@ export async function getArtistAlbumsWithTotal(artistId) {
         JOIN artists ar2 ON ar2.id = aa2.artist_id
         WHERE aa2.album_id = a.id
       ) AS artist,
-      ROUND(COALESCE(AVG(uas."userScore")::numeric, 0), 2) AS "avgScore",
-      COUNT(uas.user_id) AS "ratingCount"
+      ROUND(COALESCE(AVG(alr.score10)::numeric, 0), 2) AS "avgScore",
+      COUNT(alr.user_id) AS "ratingCount"
     FROM albums a
-    LEFT JOIN (
-      SELECT
-        s.album_id AS "albumId",
-        sr.user_id,
-        (SUM(sr.rating) * SUM(sr.rating))::float / COUNT(sr.rating) AS "userScore"
-      FROM songs s
-      JOIN song_ratings sr ON sr.song_id = s.id
-      GROUP BY s.album_id, sr.user_id
-    ) uas ON uas."albumId" = a.id
+    LEFT JOIN album_ratings alr ON alr.album_id = a.id AND alr.score10 IS NOT NULL
     WHERE EXISTS (
       SELECT 1 FROM album_artists aa WHERE aa.album_id = a.id AND aa.artist_id = $1
     )
@@ -128,8 +120,7 @@ export async function getArtistAlbumsWithTotal(artistId) {
   }));
 
   const totalRating = albums.reduce(
-    (sum, a) => sum + a.avgScore * a.ratingCount,
-    0
+    (sum, a) => sum + a.avgScore * a.ratingCount, 0
   );
 
   return { albums, totalRating };

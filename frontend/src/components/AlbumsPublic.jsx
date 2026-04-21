@@ -166,7 +166,7 @@ export default function AlbumsPublic({ user }) {
               <th onClick={() => handleSort("artist")}>Artist{getSortArrow("artist")}</th>
               <th onClick={() => handleSort("releaseDate")}>Released{getSortArrow("releaseDate")}</th>
               <th onClick={() => handleSort("ratingCount")}>Reviews{getSortArrow("ratingCount")}</th>
-              <th onClick={() => handleSort("avgScore")}>Average Score{getSortArrow("avgScore")}</th>
+              <th onClick={() => handleSort("avgScore")}>Avg Rating{getSortArrow("avgScore")}</th>
             </tr>
           </thead>
           <tbody>
