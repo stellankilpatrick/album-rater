@@ -188,7 +188,7 @@ export default function AlbumDetail({ user }) {
   const reviewPanel = (
     <div style={{
       flexShrink: 0,
-      width: isMobile ? "100%" : "575px",
+      width: isMobile ? "100%" : "700px",
       display: "flex",
       flexDirection: "column",
       gap: "4px",
