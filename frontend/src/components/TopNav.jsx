@@ -374,7 +374,13 @@ function TopNav({ effectiveUsername, onLogout }) {
                             <img src={n.from_pfp} alt="" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                           )}
                           <Link
-                            to={n.album_id ? `/albums/${n.album_id}` : `/users/${n.from_username}`}
+                            to={
+                              n.type === "recommendation"
+                                ? `/albums/${n.album_id}`
+                                : n.album_id
+                                  ? `/albums/${n.album_id}/users/${effectiveUsername}`
+                                  : `/users/${n.from_username}`
+                            }
                             onClick={() => setNotifOpen(false)}
                             style={{ fontSize: "13px", color: "white", flex: 1 }}
                           >
