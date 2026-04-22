@@ -102,6 +102,13 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Rating must be 0, 1, 2, or null" });
     }
 
+    const { rows: existingAlbumRating } = await pool.query(
+      `SELECT 1 FROM album_ratings WHERE album_id = $1 AND user_id = $2`,
+      [albumId, req.user.id]
+    );
+
+    const isFirstAlbumRating = existingAlbumRating.length === 0;
+
     if (rating === null) {
       await pool.query(
         `DELETE FROM song_ratings WHERE song_id = $1 AND user_id = $2`,
@@ -138,14 +145,16 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
    WHERE r.to_user_id = $1 AND r.album_id = $2`,
       [req.user.id, albumId] // use the correct albumId variable for each route
     );
-    for (const rec of recRows) {
-      await createNotification(pool, {
-        userId: rec.from_user_id,
-        type: "recommendation_rated",
-        fromUserId: req.user.id,
-        albumId,
-        message: `${req.user.username} rated ${rec.title}, which you recommended to them`
-      });
+    if (isFirstAlbumRating) {
+      for (const rec of recRows) {
+        await createNotification(pool, {
+          userId: rec.from_user_id,
+          type: "recommendation_rated",
+          fromUserId: req.user.id,
+          albumId,
+          message: `${req.user.username} rated ${rec.title}, which you recommended to them`
+        });
+      }
     }
 
     const album = await getAlbumById(songRows[0].album_id);
