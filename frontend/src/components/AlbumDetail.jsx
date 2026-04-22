@@ -203,7 +203,9 @@ export default function AlbumDetail({ user }) {
       flexDirection: "column",
       gap: "4px",
       zIndex: 3,
-      ...(isMobile ? { padding: "0 16px 16px 0px" } : { marginLeft: "300px", marginTop: "16px" })
+      padding: isMobile ? "0 16px 16px 0px" : "8px 32px 8px 8px",
+      marginLeft: isMobile ? undefined : "auto",
+      marginTop: isMobile ? undefined : "16px"
     }}>
       {isOwner ? (
         <>
@@ -253,9 +255,9 @@ export default function AlbumDetail({ user }) {
         flexDirection: isMobile ? "column" : "row",
         overflow: "hidden",
         marginBottom: "20px",
-        width: "100vw",
-        marginLeft: "calc(50% - 50vw)",
-        marginRight: "calc(50% - 50vw)",
+        width: "100wv",
+        marginLeft: "calc(-1 * (100vw - 100%) / 2)",
+        marginRight: "calc(-1 * (100vw - 100%) / 2)",
         marginTop: "-10px",
         color: "white"
       }}>
@@ -289,7 +291,7 @@ export default function AlbumDetail({ user }) {
               }} />
             </div>
           )}
-          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 }}>
             <h1 style={{ margin: 0, fontSize: isMobile ? "1.75rem" : undefined }}>
               <Link to={`/albums/${album.id}`} style={{ color: "white" }}><i>{album.title}</i></Link>
             </h1>
@@ -326,28 +328,32 @@ export default function AlbumDetail({ user }) {
             )}
           </div>
         </div>
-        <div style={{ position: "relative", zIndex: 3, color: "white" }}>
-          {!isMobile && reviewPanel}
-          {album?.ratingId && (
-            <div style={{ position: "absolute", top: "15px", right: "-25px" }}>
-              {!isOwner ? (
-                <button
-                  onClick={async () => {
-                    if (reviewLikes.likedByMe) {
-                      const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
-                      setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
-                    } else {
-                      const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
-                      setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
-                    }
-                  }}
-                  style={{ background: "none", border: "none", cursor: "pointer", color: reviewLikes.likedByMe ? "#e0245e" : "white", fontSize: "24px" }}
-                >
-                  ❤︎ {reviewLikes.count}
-                </button>
-              ) : (
-                <span style={{ color: "white", fontSize: "22px" }}>❤︎ {reviewLikes.count}</span>
+        <div style={{ position: "relative", zIndex: 3, color: "white", flexShrink: 0, marginLeft: "auto" }}>
+          {!isMobile && (
+            <div style={{ position: "relative" }}>
+              {album?.ratingId && (
+                <div style={{ position: "absolute", top: "8px", right: "8px", zIndex: 4 }}>
+                  {!isOwner ? (
+                    <button
+                      onClick={async () => {
+                        if (reviewLikes.likedByMe) {
+                          const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
+                          setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
+                        } else {
+                          const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
+                          setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
+                        }
+                      }}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: reviewLikes.likedByMe ? "#e0245e" : "white", fontSize: "24px" }}
+                    >
+                      ❤︎ {reviewLikes.count}
+                    </button>
+                  ) : (
+                    <span style={{ color: "white", fontSize: "22px" }}>❤︎ {reviewLikes.count}</span>
+                  )}
+                </div>
               )}
+              {reviewPanel}
             </div>
           )}
         </div>

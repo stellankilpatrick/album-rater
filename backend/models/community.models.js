@@ -2,11 +2,11 @@ import pool from "../db/database.js";
 
 export async function getCommunityFeed(userId, limit = 18) {
   const res = await pool.query(
-    `
-    SELECT
+    `SELECT
       CONCAT(r.user_id, '-', al.id) AS activity_id,
       r.user_id,
       u.username,
+      u.pfp,
       al.id AS album_id,
       al.title AS album_title,
       (
@@ -22,10 +22,9 @@ export async function getCommunityFeed(userId, limit = 18) {
     JOIN songs s ON s.id = r.song_id
     JOIN albums al ON al.id = s.album_id
     WHERE f.follower_id = $1
-    GROUP BY r.user_id, al.id, u.username, al.title
+    GROUP BY r.user_id, al.id, u.username, u.pfp, al.title
     ORDER BY updated_at DESC
-    LIMIT $2
-    `,
+    LIMIT $2`,
     [userId, limit]
   );
 
