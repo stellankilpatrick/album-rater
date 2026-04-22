@@ -341,7 +341,7 @@ function TopNav({ effectiveUsername, onLogout }) {
                 }}
                 style={{ background: "none", border: "none", cursor: "pointer", color: "white", position: "relative", fontSize: "20px", padding: 0 }}
               >
-                🔔
+                🕭
                 {unreadCount > 0 && (
                   <span style={{
                     position: "absolute", top: "-4px", right: "-4px",
