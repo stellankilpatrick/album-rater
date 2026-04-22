@@ -80,6 +80,16 @@ export default function AlbumDetail({ user }) {
     }
   }, [album]);
 
+  const handleLikeComment = async (commentId, likedByMe) => {
+    if (likedByMe) {
+      const res = await api.delete("/likes", { data: { targetType: "review_comment", targetId: commentId } });
+      setComments(prev => prev.map(c => c.id === commentId ? { ...c, like_count: res.data.count, liked_by_me: false } : c));
+    } else {
+      const res = await api.post("/likes", { targetType: "review_comment", targetId: commentId });
+      setComments(prev => prev.map(c => c.id === commentId ? { ...c, like_count: res.data.count, liked_by_me: true } : c));
+    }
+  };
+
   const handleRatingChange = (songId, newRating) => {
     setPendingSongs(prev => prev.map(s => s.id === songId ? { ...s, localRating: newRating } : s));
     setHasChanges(true);
@@ -318,24 +328,27 @@ export default function AlbumDetail({ user }) {
         </div>
         <div style={{ position: "relative", zIndex: 3, color: "white" }}>
           {!isMobile && reviewPanel}
-          {!isOwner && album?.ratingId && album?.review && (
-            <button
-              onClick={async () => {
-                if (reviewLikes.likedByMe) {
-                  const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
-                  setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
-                } else {
-                  const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
-                  setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
-                }
-              }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: reviewLikes.likedByMe ? "#e0245e" : "white", fontSize: "14px", marginLeft: "300px"}}
-            >
-              ❤︎⁠ {reviewLikes.count}
-            </button>
-          )}
-          {isOwner && reviewLikes.count > 0 && (
-            <span style={{ color: "white", fontSize: "13px" }}>♥ {reviewLikes.count}</span>
+          {album?.ratingId && (
+            <div style={{ position: "absolute", top: "15px", right: "-25px" }}>
+              {!isOwner ? (
+                <button
+                  onClick={async () => {
+                    if (reviewLikes.likedByMe) {
+                      const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
+                      setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
+                    } else {
+                      const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
+                      setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
+                    }
+                  }}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: reviewLikes.likedByMe ? "#e0245e" : "white", fontSize: "24px" }}
+                >
+                  ❤︎ {reviewLikes.count}
+                </button>
+              ) : (
+                <span style={{ color: "white", fontSize: "22px" }}>❤︎ {reviewLikes.count}</span>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -490,21 +503,35 @@ export default function AlbumDetail({ user }) {
         <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
           {comments.map(c => (
             <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "6px", padding: "8px 12px" }}>
-              <div>
+              <div style={{ flex: 1 }}>
                 <Link to={`/users/${c.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{c.username}</Link>
                 <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
                   {new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                 </span>
                 <div style={{ fontSize: "13px", marginTop: "2px" }}>{c.content}</div>
               </div>
-              {(c.username === user?.username || isOwner) && (
-                <button
-                  onClick={() => handleDeleteComment(c.id)}
-                  style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", padding: "0 0 0 8px" }}
-                >
-                  ×
-                </button>
-              )}
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingLeft: "8px", flexShrink: 0 }}>
+                {c.username !== user?.username ? (
+                  <button
+                    onClick={() => handleLikeComment(c.id, c.liked_by_me)}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: c.liked_by_me ? "#e0245e" : "#999", fontSize: "13px", padding: 0 }}
+                  >
+                    ❤︎ {Number(c.like_count)}
+                  </button>
+                ) : (
+                  Number(c.like_count) > 0 && (
+                    <span style={{ color: "#999", fontSize: "13px" }}>❤︎ {Number(c.like_count)}</span>
+                  )
+                )}
+                {(c.username === user?.username || isOwner) && (
+                  <button
+                    onClick={() => handleDeleteComment(c.id)}
+                    style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", padding: 0 }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
