@@ -9,6 +9,7 @@ import searchRoutes from "./routes/search.routes.js";
 import communityRoutes from "./routes/community.routes.js";
 import likeRoutes from "./routes/like.routes.js";
 import cors from "cors";
+import notificationRoutes from "./routes/notification.routes.js";
 //import router from "./router.js"
 
 const app = express();
@@ -24,6 +25,7 @@ app.use("/songs", songRoutes);
 app.use("/users", userRoutes);
 app.use("/community", communityRoutes);
 app.use("/likes", likeRoutes);
+app.use("/notifications", notificationRoutes)
 
 // Health check
 app.get("/health", (req, res) => res.json({ status: "ok" }));

@@ -118,6 +118,24 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
 
     await syncUserScore10s(req.user.id);
 
+    // notify anyone who recommended this album to this user
+    const { rows: recRows } = await pool.query(
+      `SELECT r.from_user_id, a.title
+   FROM recommendations r
+   JOIN albums a ON a.id = r.album_id
+   WHERE r.to_user_id = $1 AND r.album_id = $2`,
+      [req.user.id, albumId] // use the correct albumId variable for each route
+    );
+    for (const rec of recRows) {
+      await createNotification(pool, {
+        userId: rec.from_user_id,
+        type: "recommendation_rated",
+        fromUserId: req.user.id,
+        albumId,
+        message: `${req.user.username} rated ${rec.title}, which you recommended to them`
+      });
+    }
+
     const album = await getAlbumById(songRows[0].album_id);
     res.json({ success: true, albumRating: album.rating });
   } catch (err) {

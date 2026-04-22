@@ -5,6 +5,16 @@ import pool from "../db/database.js";
 
 const router = express.Router();
 
+// noti helper function
+async function createNotification(pool, { userId, type, fromUserId, albumId, message }) {
+  if (userId === fromUserId) return; // never notify yourself
+  await pool.query(
+    `INSERT INTO notifications (user_id, type, from_user_id, album_id, message)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [userId, type, fromUserId, albumId ?? null, message]
+  );
+}
+
 router.get("/", requireAuth, async (req, res) => {
   try {
     const feed = await getCommunityFeed(req.user.id);
@@ -121,6 +131,16 @@ router.post("/recommendations", requireAuth, async (req, res) => {
        VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
       [req.user.id, toUserId, albumId]
     );
+
+    // after inserting the recommendation
+    const { rows: albumRows } = await pool.query(`SELECT title FROM albums WHERE id = $1`, [albumId]);
+    await createNotification(pool, {
+      userId: toUserId,
+      type: "recommendation",
+      fromUserId: req.user.id,
+      albumId: Number(albumId),
+      message: `${req.user.username} recommended ${albumRows[0].title} to you`
+    });
 
     res.json({ success: true });
   } catch (err) {

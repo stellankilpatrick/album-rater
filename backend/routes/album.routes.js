@@ -31,6 +31,16 @@ router.param("username", async (req, res, next, username) => {
   }
 });
 
+// notification helper function
+async function createNotification(pool, { userId, type, fromUserId, albumId, message }) {
+  if (userId === fromUserId) return; // never notify yourself
+  await pool.query(
+    `INSERT INTO notifications (user_id, type, from_user_id, album_id, message)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [userId, type, fromUserId, albumId ?? null, message]
+  );
+}
+
 //////////////////////////////////////////////////////////////////////
 /////
 ///// PUBLIC ROUTES
@@ -456,6 +466,24 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
 
     await syncUserScore10s(req.user.id);
 
+    // notify anyone who recommended this album to this user
+    const { rows: recRows } = await pool.query(
+      `SELECT r.from_user_id, a.title
+        FROM recommendations r
+        JOIN albums a ON a.id = r.album_id
+        WHERE r.to_user_id = $1 AND r.album_id = $2`,
+      [req.user.id, albumId] // use the correct albumId variable for each route
+    );
+    for (const rec of recRows) {
+      await createNotification(pool, {
+        userId: rec.from_user_id,
+        type: "recommendation_rated",
+        fromUserId: req.user.id,
+        albumId,
+        message: `${req.user.username} rated ${rec.title}, which you recommended to them`
+      });
+    }
+
     const album = await getAlbumDetailsPublic(req.params.id);
     res.json(album);
   } catch (err) {
@@ -645,6 +673,18 @@ router.post("/:albumId/users/:username/comments", requireAuth, async (req, res) 
        RETURNING id, content, created_at`,
       [req.user.id, req.params.albumId, req.profileUser.id, content.trim()]
     );
+
+    if (req.user.id !== req.profileUser.id) {
+      const { rows: albumRows } = await pool.query(`SELECT title FROM albums WHERE id = $1`, [req.params.albumId]);
+      await createNotification(pool, {
+        userId: req.profileUser.id,
+        type: "comment",
+        fromUserId: req.user.id,
+        albumId: Number(req.params.albumId),
+        message: `${req.user.username} commented on your review of ${albumRows[0].title}`
+      });
+    }
+
     res.json({ ...rows[0], username: req.user.username });
   } catch (err) {
     console.error(err);

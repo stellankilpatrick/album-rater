@@ -4,6 +4,16 @@ import { requireAuth } from "../auth/auth.middleware.js";
 
 const router = express.Router();
 
+// noti helper funct
+async function createNotification(pool, { userId, type, fromUserId, albumId, message }) {
+  if (userId === fromUserId) return; // never notify yourself
+  await pool.query(
+    `INSERT INTO notifications (user_id, type, from_user_id, album_id, message)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [userId, type, fromUserId, albumId ?? null, message]
+  );
+}
+
 async function getLikeCount(targetType, targetId) {
   const { rows } = await pool.query(
     `SELECT COUNT(*) AS count FROM likes WHERE target_type = $1 AND target_id = $2`,
@@ -60,18 +70,19 @@ router.post("/", requireAuth, async (req, res) => {
       [req.user.id, targetType, targetId]
     );
 
-    // send notification
-    //if (owner) {
-      //const message = targetType === "album_review"
-        //? `${req.user.username} liked your review of ${owner.title}`
-       // : `${req.user.username} liked your comment on ${owner.title}`;
+    if (owner && owner.user_id !== req.user.id) {
+      const message = targetType === "album_review"
+        ? `${req.user.username} liked your review of ${owner.title}`
+        : `${req.user.username} liked your comment`;
 
-      //await pool.query(
-       // `INSERT INTO notifications (user_id, type, from_user_id, message)
-        // VALUES ($1, 'like', $2, $3)`,
-        //[owner.user_id, req.user.id, message]
-      //);
-    //}
+      await createNotification(pool, {
+        userId: owner.user_id,
+        type: "like",
+        fromUserId: req.user.id,
+        albumId: targetType === "album_review" ? targetId : null,
+        message
+      });
+    }
 
     res.json({ count: await getLikeCount(targetType, targetId) });
   } catch (err) {

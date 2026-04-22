@@ -13,6 +13,10 @@ function TopNav({ effectiveUsername, onLogout }) {
   const [communityOpen, setCommunityOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
+  const [notifications, setNotifications] = useState([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef(null);
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener("resize", handleResize);
@@ -54,6 +58,32 @@ function TopNav({ effectiveUsername, onLogout }) {
     setDropdownResults(null);
     setMenuOpen(false);
   };
+
+  useEffect(() => {
+    api.get("/notifications").then(res => setNotifications(res.data));
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const markAllRead = () => {
+    api.patch("/notifications/read-all");
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const deleteNotif = (id) => {
+    api.delete(`/notifications/${id}`);
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   // Add album form in header
   const [addAlbumOpen, setAddAlbumOpen] = useState(false);
@@ -303,6 +333,69 @@ function TopNav({ effectiveUsername, onLogout }) {
             {links}
             <div style={{ marginLeft: "auto" }} />
             {SearchBox}
+            <div ref={notifRef} style={{ position: "relative" }}>
+              <button
+                onClick={() => {
+                  setNotifOpen(o => !o);
+                  if (!notifOpen) markAllRead();
+                }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "white", position: "relative", fontSize: "20px", padding: 0 }}
+              >
+                🔔
+                {unreadCount > 0 && (
+                  <span style={{
+                    position: "absolute", top: "-4px", right: "-4px",
+                    backgroundColor: "red", borderRadius: "50%",
+                    width: "16px", height: "16px", fontSize: "10px",
+                    display: "flex", alignItems: "center", justifyContent: "center"
+                  }}>
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {notifOpen && (
+                <div style={{
+                  position: "absolute", top: "100%", right: 0,
+                  backgroundColor: "#111", border: "1px solid #333",
+                  borderRadius: "4px", zIndex: 200, width: "320px",
+                  maxHeight: "400px", overflowY: "auto"
+                }}>
+                  {notifications.length === 0
+                    ? <div style={{ padding: "12px", color: "#999", fontSize: "13px" }}>No notifications</div>
+                    : notifications.map(n => (
+                      <div key={n.id} style={{
+                        display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+                        padding: "10px 12px", borderBottom: "1px solid #222",
+                        backgroundColor: n.read ? "transparent" : "rgba(255,255,255,0.05)"
+                      }}>
+                        <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", flex: 1 }}>
+                          {n.from_pfp && (
+                            <img src={n.from_pfp} alt="" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                          )}
+                          <Link
+                            to={n.album_id ? `/albums/${n.album_id}` : `/users/${n.from_username}`}
+                            onClick={() => setNotifOpen(false)}
+                            style={{ fontSize: "13px", color: "white", flex: 1 }}
+                          >
+                            {n.message}
+                            <div style={{ fontSize: "11px", color: "#999", marginTop: "2px" }}>
+                              {new Date(n.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            </div>
+                          </Link>
+                        </div>
+                        <button
+                          onClick={() => deleteNotif(n.id)}
+                          style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", flexShrink: 0 }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))
+                  }
+                </div>
+              )}
+            </div>
             <button onClick={handleSignOut} style={{ color: "white", backgroundColor: "black", border: "1px solid white", cursor: "pointer" }}>
               Sign out
             </button>
