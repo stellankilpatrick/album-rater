@@ -25,7 +25,7 @@ async function getLikeCount(targetType, targetId) {
 async function getOwner(targetType, targetId) {
   if (targetType === "album_review") {
     const { rows } = await pool.query(
-      `SELECT ar.user_id, a.title FROM album_ratings ar
+      `SELECT ar.user_id, ar.album_id, a.title FROM album_ratings ar
        JOIN albums a ON a.id = ar.album_id
        WHERE ar.id = $1`,
       [targetId]
