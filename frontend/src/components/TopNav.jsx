@@ -358,7 +358,7 @@ function TopNav({ effectiveUsername, onLogout }) {
                 <div style={{
                   position: "absolute", top: "100%", right: 0,
                   backgroundColor: "#111", border: "1px solid #333",
-                  borderRadius: "4px", zIndex: 200, width: "320px",
+                  borderRadius: "4px", zIndex: 200, width: "400px",
                   maxHeight: "400px", overflowY: "auto"
                 }}>
                   {notifications.length === 0
