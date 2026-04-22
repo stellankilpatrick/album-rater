@@ -481,7 +481,7 @@ export default function AlbumDetail({ user }) {
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
             <button style={{ minWidth: "30px", borderRadius: "4px" }}>
               <Link to={`/albums/${album.id}`} style={{ textDecoration: "none", fontSize: "14px" }}>
-                All ratings of {album.title}
+                All ratings of <i>{album.title}</i>
               </Link>
             </button>
             {album.artistIds?.map((id, i) => (

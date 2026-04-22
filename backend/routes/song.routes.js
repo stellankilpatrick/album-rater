@@ -113,6 +113,8 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
     );
     if (!songRows[0]) return res.status(404).json({ error: "Song not found" });
 
+    const albumId = songRows[0].album_id;
+
     // sync album_ratings
     await updateAlbumRatingForUser(req.user.id, songRows[0].album_id);
 
