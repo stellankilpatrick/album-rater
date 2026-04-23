@@ -102,6 +102,16 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Rating must be 0, 1, 2, or null" });
     }
 
+    // 1. GET albumId FIRST
+    const { rows: songRows } = await pool.query(
+      `SELECT album_id FROM songs WHERE id = $1`,
+      [songId]
+    );
+    if (!songRows[0]) return res.status(404).json({ error: "Song not found" });
+
+    const albumId = songRows[0].album_id;
+
+    // 2. CHECK if first album rating (BEFORE update)
     const { rows: existingAlbumRating } = await pool.query(
       `SELECT 1 FROM album_ratings WHERE album_id = $1 AND user_id = $2`,
       [albumId, req.user.id]
@@ -109,6 +119,7 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
 
     const isFirstAlbumRating = existingAlbumRating.length === 0;
 
+    // 3. INSERT / UPDATE song rating
     if (rating === null) {
       await pool.query(
         `DELETE FROM song_ratings WHERE song_id = $1 AND user_id = $2`,
@@ -124,28 +135,20 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
       );
     }
 
-    const { rows: songRows } = await pool.query(
-      `SELECT album_id FROM songs WHERE id = $1`,
-      [songId]
-    );
-    if (!songRows[0]) return res.status(404).json({ error: "Song not found" });
-
-    const albumId = songRows[0].album_id;
-
-    // sync album_ratings
-    await updateAlbumRatingForUser(req.user.id, songRows[0].album_id);
-
+    // 4. UPDATE album rating
+    await updateAlbumRatingForUser(req.user.id, albumId);
     await syncUserScore10s(req.user.id);
 
-    // notify anyone who recommended this album to this user
-    const { rows: recRows } = await pool.query(
-      `SELECT r.from_user_id, a.title
-   FROM recommendations r
-   JOIN albums a ON a.id = r.album_id
-   WHERE r.to_user_id = $1 AND r.album_id = $2`,
-      [req.user.id, albumId] // use the correct albumId variable for each route
-    );
+    // 5. NOTIFY only if first time
     if (isFirstAlbumRating) {
+      const { rows: recRows } = await pool.query(
+        `SELECT r.from_user_id, a.title
+         FROM recommendations r
+         JOIN albums a ON a.id = r.album_id
+         WHERE r.to_user_id = $1 AND r.album_id = $2`,
+        [req.user.id, albumId]
+      );
+
       for (const rec of recRows) {
         await createNotification(pool, {
           userId: rec.from_user_id,
@@ -157,8 +160,9 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
       }
     }
 
-    const album = await getAlbumById(songRows[0].album_id);
+    const album = await getAlbumById(albumId);
     res.json({ success: true, albumRating: album.rating });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to rate song" });
