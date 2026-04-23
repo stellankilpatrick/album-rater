@@ -15,7 +15,8 @@ export async function getCommunityFeed(userId, limit = 18) {
         JOIN artists ar ON ar.id = aa.artist_id
         WHERE aa.album_id = al.id
       ) AS artist_name,
-      MAX(r.updated_at) AS updated_at
+      MAX(r.updated_at) AS updated_at,
+      MIN(r.created_at) AS created_at
     FROM song_ratings r
     JOIN follows f ON f.following_id = r.user_id
     JOIN users u ON u.id = r.user_id

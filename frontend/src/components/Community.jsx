@@ -72,7 +72,9 @@ export default function Community() {
                                     <Link to={`/users/${item.username}`}>
                                         <strong>{item.username}</strong>
                                     </Link>
-                                    {" updated "}
+                                    {" "}
+                                    {Math.abs(new Date(item.updated_at) - new Date(item.created_at)) < 60000 ? "rated" : "updated"}
+                                    {" "}
                                     <Link to={`/albums/${item.album_id}/users/${item.username}`}>
                                         <strong>{item.album_title}</strong>
                                     </Link>
