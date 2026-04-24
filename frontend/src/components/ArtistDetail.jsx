@@ -73,7 +73,9 @@ export default function ArtistDetail({ user }) {
                         />
                     )}
                     <h1 style={{ margin: 0, fontSize: isMobile ? "1.3rem" : undefined }}>
-                        {effectiveUsername}'s Top Albums by {artist.name}
+                        <Link to={`/users/${effectiveUsername}`}>
+                            {effectiveUsername}
+                        </Link>'s Top Albums by {artist.name}
                     </h1>
                 </div>
             </div>
@@ -89,7 +91,7 @@ export default function ArtistDetail({ user }) {
             )}
 
             <button style={{ marginLeft: "8px" }}>
-                <Link to={`/artists/${artist.id}`} style={{ marginBottom: "10px"}}>
+                <Link to={`/artists/${artist.id}`} style={{ marginBottom: "10px" }}>
                     All albums by {artist.name}
                 </Link>
             </button>
