@@ -23,6 +23,9 @@ export default function ProfilePage({ user }) {
     const isMe = user.username === effectiveUsername;
     const [isFollowing, setIsFollowing] = useState(false);
 
+    const [bio, setBio] = useState(null);
+    const [bioInput, setBioInput] = useState("");
+
     const toggleFollow = async () => {
         if (isFollowing) {
             await api.delete(`/users/${effectiveUsername}/follow`);
@@ -67,6 +70,14 @@ export default function ProfilePage({ user }) {
         api.get(`/users/${effectiveUsername}/banner`).then(res => {
             setBanner(res.data.banner);
             setBannerInput(res.data.banner ?? "");
+        });
+    }, [effectiveUsername]);
+
+    // fetch bio
+    useEffect(() => {
+        api.get(`/users/${effectiveUsername}/bio`).then(res => {
+            setBio(res.data.bio);
+            setBioInput(res.data.bio ?? "");
         });
     }, [effectiveUsername]);
 
@@ -192,6 +203,7 @@ export default function ProfilePage({ user }) {
                                     if (editingPfp || editingBanner) {
                                         savePfp();
                                         saveBanner();
+                                        api.put(`/users/${effectiveUsername}/bio`, { bio: bioInput }).then(() => setBio(bioInput));
                                         setEditingPfp(false);
                                         setEditingBanner(false);
                                     } else {
@@ -202,7 +214,11 @@ export default function ProfilePage({ user }) {
                                     {editingPfp || editingBanner ? "Save Changes" : "Edit Profile"}
                                 </button>
                                 {(editingPfp || editingBanner) && (
-                                    <button onClick={() => { setEditingPfp(false); setEditingBanner(false); }}>
+                                    <button onClick={() => {
+                                        setEditingPfp(false);
+                                        setEditingBanner(false);
+                                        setBioInput(bio ?? ""); // reset on cancel
+                                    }}>
                                         Cancel
                                     </button>
                                 )}
@@ -234,6 +250,24 @@ export default function ProfilePage({ user }) {
                             <strong>{ratingCounts.artists}</strong> {ratingCounts.artists === 1 ? "Artist" : "Artists"}
                         </div>
                     </div>
+                    {/* Bio */}
+                    {editingPfp ? (
+                        <div>
+                            <textarea
+                                value={bioInput}
+                                onChange={e => setBioInput(e.target.value)}
+                                maxLength={300}
+                                rows={3}
+                                placeholder="Write a bio..."
+                                style={{ width: "100%", resize: "vertical", backgroundColor: "#111", color: "white", border: "1px solid #333", borderRadius: "4px", padding: "8px" }}
+                            />
+                            <div style={{ fontSize: "12px", color: "#999", textAlign: "right" }}>{bioInput.length}/300</div>
+                        </div>
+                    ) : (
+                        <p style={{ color: "#ccc", margin: 0 }}>
+                            {bio || (isMe ? "No bio yet." : "")}
+                        </p>
+                    )}
                 </div>
             </div>
 

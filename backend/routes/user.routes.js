@@ -132,6 +132,34 @@ router.put("/:username/banner", requireAuth, async (req, res) => {
   }
 });
 
+router.get("/:username/bio", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT bio FROM users WHERE username = $1`,
+      [req.params.username]
+    );
+    res.json({ bio: rows[0]?.bio ?? null });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.put("/:username/bio", requireAuth, async (req, res) => {
+  const { username } = req.params;
+  const { bio } = req.body;
+  if (req.user.username !== username) return res.status(403).json({ error: "Forbidden" });
+  if (typeof bio !== "string") return res.status(400).json({ error: "Invalid bio" });
+
+  try {
+    await pool.query(`UPDATE users SET bio = $1 WHERE username = $2`, [bio, username]);
+    res.json({ success: true, bio });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update bio" });
+  }
+});
+
 // ---------------------
 // Followers / Following / Friends / Follow status
 // ---------------------
