@@ -567,10 +567,15 @@ export default function AlbumDetailPublic({ user }) {
               <>
                 <h3>Reviews by others:</h3>
                 <ul style={{ listStyle: "none", padding: 0 }}>
-                  {followingReviews.map(r => (
+                  {followingReviews.sort((a, b) => (b.score10 ?? -1) - (a.score10 ?? -1)).map(r => (
                     <li key={r.id}>
-                      <Link to={`/albums/${albumId}/users/${r.username}`}>{r.username}
-                      {" "} <b>{r.score10 != null ? r.score10.toFixed(1) : "N/A"}</b></Link>
+                      <Link to={`/albums/${albumId}/users/${r.username}`} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        {r.pfp
+                          ? <img src={r.pfp} alt={r.username} style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />
+                          : <div style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "#444" }} />
+                        }
+                        {r.username} <b>{r.score10 != null ? r.score10.toFixed(1) : "N/A"}</b>
+                      </Link>
                     </li>
                   ))}
                 </ul>

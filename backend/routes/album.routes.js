@@ -541,11 +541,11 @@ router.delete("/:id/users/:username", requireAuth, async (req, res) => {
 router.get("/:albumId/following-reviews", requireAuth, async (req, res) => {
   try {
     const reviewsRes = await pool.query(
-      `SELECT u.id, u.username, ar.rating, ar.score10
-      FROM follows f
-      JOIN album_ratings ar ON ar.user_id = f.following_id
-      JOIN users u ON u.id = ar.user_id
-      WHERE f.follower_id = $1 AND ar.album_id = $2`,
+      `SELECT u.id, u.username, u.pfp, ar.rating, ar.score10
+        FROM follows f
+        JOIN album_ratings ar ON ar.user_id = f.following_id
+        JOIN users u ON u.id = ar.user_id
+        WHERE f.follower_id = $1 AND ar.album_id = $2`,
       [req.user.id, req.params.albumId]
     );
 
