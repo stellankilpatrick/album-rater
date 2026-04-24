@@ -7,19 +7,10 @@ import {
   getFollowers, getFollowing, getFriends, isFollowing,
   getFollowCounts, getRatingCounts, getProfilePic
 } from "../models/user.models.js";
+import { createNotification } from "../routes/notification.routes.js"
 import pool from "../db/database.js";
 
 const router = express.Router();
-
-// notification helper function
-async function createNotification(pool, { userId, type, fromUserId, albumId, message }) {
-  if (userId === fromUserId) return; // never notify yourself
-  await pool.query(
-    `INSERT INTO notifications (user_id, type, from_user_id, album_id, message)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [userId, type, fromUserId, albumId ?? null, message]
-  );
-}
 
 router.param("username", async (req, res, next, username) => {
   try {

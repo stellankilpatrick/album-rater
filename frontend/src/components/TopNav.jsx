@@ -107,8 +107,8 @@ function TopNav({ effectiveUsername, onLogout }) {
   const getNotifLink = (n) => {
     if (n.type === "recommendation") return `/albums/${n.album_id}`;
     if (n.type === "recommendation_rated") return `/albums/${n.album_id}/users/${n.from_username}`;
-    if (n.type === "like" && n.album_id) return `/albums/${n.album_id}/users/${effectiveUsername}`;
-    if (n.album_id) return `/albums/${n.album_id}/users/${effectiveUsername}`
+    if (n.type === "like" && n.album_id) return `/albums/${n.album_id}/users/${n.target_username ?? effectiveUsername}`;
+    if (n.album_id) return `/albums/${n.album_id}/users/${effectiveUsername}`;
     return `/users/${n.from_username}`;
   };
 

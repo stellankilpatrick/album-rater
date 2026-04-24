@@ -3,6 +3,7 @@ import pool from "../db/database.js";
 import { requireAuth } from "../auth/auth.middleware.js";
 import { getAlbumById, updateAlbumRatingForUser, syncUserScore10s } from "../models/album.models.js";
 import { updateSongComment } from "../models/song.models.js";
+import { createNotification } from "../routes/notification.routes.js"
 
 const router = express.Router();
 
@@ -22,16 +23,6 @@ router.param("username", async (req, res, next, username) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
-// noti helper funct
-async function createNotification(pool, { userId, type, fromUserId, albumId, message }) {
-  if (userId === fromUserId) return; // never notify yourself
-  await pool.query(
-    `INSERT INTO notifications (user_id, type, from_user_id, album_id, message)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [userId, type, fromUserId, albumId ?? null, message]
-  );
-}
 
 // ---------------------
 // CREATE SONG

@@ -11,6 +11,8 @@ import {
   getAlbumOverallRank, updateAlbumReview, syncUserScore10s
 } from "../models/album.models.js";
 import { addSongsToAlbum } from "../models/song.models.js";
+import { createNotification } from "../routes/notification.routes.js"
+
 
 const router = express.Router();
 
@@ -30,16 +32,6 @@ router.param("username", async (req, res, next, username) => {
     res.status(500).json({ error: "Failed to fetch user" });
   }
 });
-
-// notification helper function
-async function createNotification(pool, { userId, type, fromUserId, albumId, message }) {
-  if (userId === fromUserId) return; // never notify yourself
-  await pool.query(
-    `INSERT INTO notifications (user_id, type, from_user_id, album_id, message)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [userId, type, fromUserId, albumId ?? null, message]
-  );
-}
 
 //////////////////////////////////////////////////////////////////////
 /////

@@ -4,6 +4,7 @@ import {
   getArtistAlbumsWithTotal, getAllRatedArtists, getUserArtistStats,
   getUserRatedAlbumsByArtist, attachUserAlbumStats, updateArtistName
 } from "../models/artist.models.js";
+import { createNotification } from "../routes/notification.routes.js"
 import pool from "../db/database.js";
 
 const router = Router();
@@ -25,16 +26,6 @@ router.param("username", async (req, res, next, username) => {
     res.status(500).json({ error: "Failed to load user" });
   }
 });
-
-// noti helper funct
-async function createNotification(pool, { userId, type, fromUserId, albumId, message }) {
-  if (userId === fromUserId) return; // never notify yourself
-  await pool.query(
-    `INSERT INTO notifications (user_id, type, from_user_id, album_id, message)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [userId, type, fromUserId, albumId ?? null, message]
-  );
-}
 
 //////////////////////////////////////////////////////////////////////
 // PUBLIC ROUTES
