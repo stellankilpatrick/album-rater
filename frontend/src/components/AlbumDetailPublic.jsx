@@ -557,8 +557,8 @@ export default function AlbumDetailPublic({ user }) {
           <div style={{ flex: 2 }}>
             {myReview?.score10 != null && myReview?.userRating != null && (
               <h3>
-                Your rating: <Link to={`/albums/${albumId}/users/${effectiveUsername}`}>
-                  {myReview.score10.toFixed(1)}
+                <Link to={`/albums/${albumId}/users/${effectiveUsername}`}>
+                  Your rating: {myReview.score10.toFixed(1)}
                 </Link>
               </h3>
             )}
@@ -569,8 +569,8 @@ export default function AlbumDetailPublic({ user }) {
                 <ul style={{ listStyle: "none", padding: 0 }}>
                   {followingReviews.map(r => (
                     <li key={r.id}>
-                      <Link to={`/albums/${albumId}/users/${r.username}`}>{r.username}</Link>
-                      {" "} <b>{r.score10 != null ? r.score10.toFixed(1) : "N/A"}</b>
+                      <Link to={`/albums/${albumId}/users/${r.username}`}>{r.username}
+                      {" "} <b>{r.score10 != null ? r.score10.toFixed(1) : "N/A"}</b></Link>
                     </li>
                   ))}
                 </ul>
