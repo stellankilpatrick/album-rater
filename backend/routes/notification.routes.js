@@ -5,7 +5,7 @@ import { requireAuth } from "../auth/auth.middleware.js";
 const router = express.Router();
 
 // noti helper function
-async function createNotification(pool, { userId, type, fromUserId, albumId, targetUsername=null, message }) {
+export async function createNotification(pool, { userId, type, fromUserId, albumId, targetUsername=null, message }) {
   if (userId === fromUserId) return;
   await pool.query(
     `INSERT INTO notifications (user_id, type, from_user_id, album_id, target_username, message)
