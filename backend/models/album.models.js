@@ -277,7 +277,7 @@ export async function getAlbumDetailsPublic(albumId) {
 
   const tracksRes = await pool.query(
     `SELECT
-      s.id, s.track_number AS num, s.title,
+      s.id, s.track_number AS num, s.title, s.featured,
       COALESCE(ROUND(AVG(sr.rating)::numeric,2),0) AS "avgScore",
       COUNT(sr.rating) AS "totalRatings",
       SUM(CASE WHEN sr.rating = 0 THEN 1 ELSE 0 END) AS "skipCount"
@@ -463,7 +463,7 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
 
   const tracksRes = await pool.query(
     `SELECT
-      s.id, s.track_number AS num, s.title,
+      s.id, s.track_number AS num, s.title, s.featured,
       ROUND(AVG(sr.rating)::numeric,2) AS "avgScore",
       ur.rating AS rating,
       ur.comment AS comment
