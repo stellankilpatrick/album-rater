@@ -383,6 +383,7 @@ router.get("/:id/users/:username", requireAuth, async (req, res) => {
       id: t.id,
       num: t.num,
       title: t.title,
+      featured: t.featured,
       localRating: t.rating,
       comment: t.comment,
       review: t.review
