@@ -19,9 +19,9 @@ export async function addSongsToAlbum(albumId, songs) {
       if (!song.num || song.num <= 0) throw new Error("Invalid track number");
 
       await client.query(
-        `INSERT INTO songs (album_id, title, track_number)
-         VALUES ($1, $2, $3)`,
-        [albumId, song.title, song.num]
+        `INSERT INTO songs (album_id, title, track_number, featured)
+          VALUES ($1, $2, $3, $4)`,
+        [albumId, song.title, song.num, song.featured ?? null]
       );
     }
     await client.query("COMMIT");
@@ -41,7 +41,7 @@ export async function addSongsToAlbum(albumId, songs) {
   const album = albumResult[0];
 
   const { rows: songsRows } = await pool.query(
-    `SELECT id, title, track_number AS num 
+    `SELECT id, title, track_number AS num, featured
      FROM songs 
      WHERE album_id = $1 
      ORDER BY track_number`,

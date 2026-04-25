@@ -81,6 +81,21 @@ router.patch("/:id/title", requireAuth, async (req, res) => {
   }
 });
 
+// update song featured artists
+router.patch("/:id/featured", requireAuth, async (req, res) => {
+  const { featured } = req.body;
+  try {
+    const { rows } = await pool.query(
+      `UPDATE songs SET featured = $1 WHERE id = $2 RETURNING *`,
+      [featured ?? null, req.params.id]
+    );
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update featured artists" });
+  }
+});
+
 // ---------------------
 // RATE SONG
 // ---------------------

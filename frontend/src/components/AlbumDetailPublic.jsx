@@ -100,6 +100,12 @@ export default function AlbumDetailPublic({ user }) {
     } catch (err) { console.error(err); }
   };
 
+  const saveSongFeatured = async (song) => {
+    try {
+      await api.patch(`/songs/${song.id}/featured`, { featured: song.featured ?? null });
+    } catch (err) { console.error(err); }
+  };
+
   const saveCover = async () => {
     const trimmedCover = editCover.trim();
     if (!trimmedCover || trimmedCover === album.coverArt) return;
@@ -507,17 +513,27 @@ export default function AlbumDetailPublic({ user }) {
                         wordBreak: "break-word"
                       }}>
                         {isEditing ? (
-                          <input
-                            type="text"
-                            value={song.title}
-                            autoFocus={editingSongId === song.id}
-                            onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, title: e.target.value } : s))}
-                            onBlur={() => saveSongTitle(song)}
-                            onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingSongId(null); }}
-                            onFocus={() => setEditingSongId(song.id)}
-                          />
+                          <>
+                            <input
+                              type="text"
+                              value={song.title}
+                              autoFocus={editingSongId === song.id}
+                              onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, title: e.target.value } : s))}
+                              onBlur={() => saveSongTitle(song)}
+                              onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingSongId(null); }}
+                              onFocus={() => setEditingSongId(song.id)}
+                            />
+                            <input
+                              type="text"
+                              value={song.featured ?? ""}
+                              placeholder="Featured artists"
+                              onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, featured: e.target.value } : s))}
+                              onBlur={() => saveSongFeatured(song)}
+                              onKeyDown={e => { if (e.key === "Enter") e.target.blur(); }}
+                            />
+                          </>
                         ) : (
-                          <span>{song.title}</span>
+                          <span>{song.title}{song.featured ? <span style={{ fontSize: "0.8em", color: "#aaa" }}> (ft. {song.featured})</span> : ""}</span>
                         )}
                       </td>
 

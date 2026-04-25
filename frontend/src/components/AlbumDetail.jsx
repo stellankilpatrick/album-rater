@@ -381,7 +381,7 @@ export default function AlbumDetail({ user }) {
                 <tr key={song.id}>
                   <td style={{ paddingRight: "12px", width: "30px" }}>{song.num}</td>
                   <td style={{ paddingRight: "12px", maxWidth: isMobile ? "250px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {song.title}
+                    {song.title}{song.featured ? <span style={{ fontSize: "0.8em", color: "#aaa" }}> (ft. {song.featured})</span> : ""}
                   </td>
                   <td style={{ paddingRight: "24px" }}>
                     <select
