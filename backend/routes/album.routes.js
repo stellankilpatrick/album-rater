@@ -638,7 +638,7 @@ router.get("/users/:username/genres", requireAuth, async (req, res) => {
 router.get("/:albumId/users/:username/comments", requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT c.id, c.content, c.created_at, u.username,
+      `SELECT c.id, c.content, c.created_at, c.parent_id, u.username,
               COUNT(l.id) AS like_count,
               BOOL_OR(l.user_id = $3) AS liked_by_me
        FROM album_review_comments c
@@ -657,14 +657,14 @@ router.get("/:albumId/users/:username/comments", requireAuth, async (req, res) =
 });
 
 router.post("/:albumId/users/:username/comments", requireAuth, async (req, res) => {
-  const { content } = req.body;
+  const { content, parentId } = req.body;
   if (!content?.trim()) return res.status(400).json({ error: "Comment cannot be empty" });
   try {
     const { rows } = await pool.query(
-      `INSERT INTO album_review_comments (user_id, album_id, reviewed_user_id, content)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, content, created_at`,
-      [req.user.id, req.params.albumId, req.profileUser.id, content.trim()]
+      `INSERT INTO album_review_comments (user_id, album_id, reviewed_user_id, content, parent_id)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, content, created_at, parent_id`,
+      [req.user.id, req.params.albumId, req.profileUser.id, content.trim(), parentId ?? null]
     );
 
     if (req.user.id !== req.profileUser.id) {
@@ -676,6 +676,25 @@ router.post("/:albumId/users/:username/comments", requireAuth, async (req, res) 
         albumId: Number(req.params.albumId),
         message: `${req.user.username} commented on your review of ${albumRows[0].title}`
       });
+    }
+
+    // ADD THIS:
+    if (parentId) {
+      const { rows: parentRows } = await pool.query(
+        `SELECT user_id FROM album_review_comments WHERE id = $1`,
+        [parentId]
+      );
+      const parentAuthorId = parentRows[0]?.user_id;
+      if (parentAuthorId && parentAuthorId !== req.user.id) {
+        await createNotification(pool, {
+          userId: parentAuthorId,
+          type: "reply",
+          fromUserId: req.user.id,
+          albumId: Number(req.params.albumId),
+          targetUsername: req.profileUser.username,
+          message: `${req.user.username} replied to your comment`
+        });
+      }
     }
 
     res.json({ ...rows[0], username: req.user.username });

@@ -32,6 +32,8 @@ export default function AlbumDetail({ user }) {
 
   const [comments, setComments] = useState([]);
   const [commentInput, setCommentInput] = useState("");
+  const [replyingTo, setReplyingTo] = useState(null); // comment id
+  const [replyInput, setReplyInput] = useState("");
 
   useEffect(() => {
     if (user) api.get(`albums/${albumId}/users/${effectiveUsername}/mutuals`).then(res => setFriends(res.data));
@@ -89,6 +91,21 @@ export default function AlbumDetail({ user }) {
       setComments(prev => prev.map(c => c.id === commentId ? { ...c, like_count: res.data.count, liked_by_me: true } : c));
     }
   };
+
+  const handlePostReply = async (parentId) => {
+    if (!replyInput.trim()) return;
+    const res = await api.post(`/albums/${albumId}/users/${effectiveUsername}/comments`, {
+      content: replyInput,
+      parentId
+    });
+    setComments(prev => [...prev, res.data]);
+    setReplyInput("");
+    setReplyingTo(null);
+  };
+
+  // split into top-level and replies
+  const topLevel = comments.filter(c => !c.parent_id);
+  const replies = comments.filter(c => c.parent_id);
 
   const handleRatingChange = (songId, newRating) => {
     setPendingSongs(prev => prev.map(s => s.id === songId ? { ...s, localRating: newRating } : s));
@@ -507,37 +524,94 @@ export default function AlbumDetail({ user }) {
         <h3 style={{ marginBottom: "8px" }}>Comments</h3>
         {comments.length === 0 && <div style={{ color: "#999", fontSize: "13px" }}>No comments yet.</div>}
         <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
-          {comments.map(c => (
-            <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "6px", padding: "8px 12px" }}>
-              <div style={{ flex: 1 }}>
-                <Link to={`/users/${c.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{c.username}</Link>
-                <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
-                  {new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                </span>
-                <div style={{ fontSize: "13px", marginTop: "2px" }}>{c.content}</div>
+          {topLevel.map(c => (
+            <div key={c.id}>
+              {/* existing comment JSX, just add a Reply button */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "6px", padding: "8px 12px" }}>
+                <div style={{ flex: 1 }}>
+                  <Link to={`/users/${c.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{c.username}</Link>
+                  <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
+                    {new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </span>
+                  <div style={{ fontSize: "13px", marginTop: "2px" }}>{c.content}</div>
+                  {user && (
+                    <button
+                      onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyInput(""); }}
+                      style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "12px", padding: "4px 0 0 0" }}
+                    >
+                      {replyingTo === c.id ? "Cancel" : "Reply"}
+                    </button>
+                  )}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingLeft: "8px", flexShrink: 0 }}>
+                  {c.username !== user?.username ? (
+                    <button
+                      onClick={() => handleLikeComment(c.id, c.liked_by_me)}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: c.liked_by_me ? "#e0245e" : "#999", fontSize: "13px", padding: 0 }}
+                    >
+                      ❤︎ {Number(c.like_count)}
+                    </button>
+                  ) : (
+                    Number(c.like_count) > 0 && <span style={{ color: "#999", fontSize: "13px" }}>❤︎ {Number(c.like_count)}</span>
+                  )}
+                  {(c.username === user?.username || isOwner) && (
+                    <button
+                      onClick={() => handleDeleteComment(c.id)}
+                      style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", padding: 0 }}
+                    >×</button>
+                  )}
+                </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingLeft: "8px", flexShrink: 0 }}>
-                {c.username !== user?.username ? (
-                  <button
-                    onClick={() => handleLikeComment(c.id, c.liked_by_me)}
-                    style={{ background: "none", border: "none", cursor: "pointer", color: c.liked_by_me ? "#e0245e" : "#999", fontSize: "13px", padding: 0 }}
-                  >
-                    ❤︎ {Number(c.like_count)}
+
+              {/* Reply input */}
+              {replyingTo === c.id && (
+                <div style={{ display: "flex", gap: "8px", marginTop: "6px", marginLeft: "24px" }}>
+                  <input
+                    type="text"
+                    value={replyInput}
+                    onChange={e => setReplyInput(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && handlePostReply(c.id)}
+                    placeholder={`Reply to ${c.username}...`}
+                    maxLength={200}
+                    autoFocus
+                    style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
+                  />
+                  <button onClick={() => handlePostReply(c.id)} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
+                    Post
                   </button>
-                ) : (
-                  Number(c.like_count) > 0 && (
-                    <span style={{ color: "#999", fontSize: "13px" }}>❤︎ {Number(c.like_count)}</span>
-                  )
-                )}
-                {(c.username === user?.username || isOwner) && (
-                  <button
-                    onClick={() => handleDeleteComment(c.id)}
-                    style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", padding: 0 }}
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
+                </div>
+              )}
+
+              {/* Replies */}
+              {replies.filter(r => r.parent_id === c.id).map(r => (
+                <div key={r.id} style={{ marginLeft: "24px", marginTop: "6px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.03)", borderRadius: "6px", padding: "8px 12px" }}>
+                  <div style={{ flex: 1 }}>
+                    <Link to={`/users/${r.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{r.username}</Link>
+                    <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
+                      {new Date(r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </span>
+                    <div style={{ fontSize: "13px", marginTop: "2px" }}>{r.content}</div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingLeft: "8px", flexShrink: 0 }}>
+                    {r.username !== user?.username ? (
+                      <button
+                        onClick={() => handleLikeComment(r.id, r.liked_by_me)}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: r.liked_by_me ? "#e0245e" : "#999", fontSize: "13px", padding: 0 }}
+                      >
+                        ❤︎ {Number(r.like_count)}
+                      </button>
+                    ) : (
+                      Number(r.like_count) > 0 && <span style={{ color: "#999", fontSize: "13px" }}>❤︎ {Number(r.like_count)}</span>
+                    )}
+                    {(r.username === user?.username || isOwner) && (
+                      <button
+                        onClick={() => handleDeleteComment(r.id)}
+                        style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", padding: 0 }}
+                      >×</button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           ))}
         </div>

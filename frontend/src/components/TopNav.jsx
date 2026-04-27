@@ -108,6 +108,7 @@ function TopNav({ effectiveUsername, onLogout }) {
     if (n.type === "recommendation") return `/albums/${n.album_id}`;
     if (n.type === "recommendation_rated") return `/albums/${n.album_id}/users/${n.from_username}`;
     if (n.type === "like" && n.album_id) return `/albums/${n.album_id}/users/${n.target_username ?? effectiveUsername}`;
+    if (n.type === "reply") return `/albums/${n.album_id}/users/${n.target_username}`;
     if (n.album_id) return `/albums/${n.album_id}/users/${effectiveUsername}`;
     return `/users/${n.from_username}`;
   };
@@ -366,7 +367,7 @@ function TopNav({ effectiveUsername, onLogout }) {
                 <div style={{
                   position: "absolute", top: "100%", right: 0,
                   backgroundColor: "#111", border: "1px solid #333",
-                  borderRadius: "4px", zIndex: 200, width: "400px",
+                  borderRadius: "4px", zIndex: 200, width: "500px",
                   maxHeight: "400px", overflowY: "auto"
                 }}>
                   {notifications.length === 0
