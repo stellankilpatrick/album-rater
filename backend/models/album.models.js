@@ -453,7 +453,7 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
     JOIN artists ar ON ar.id = aa.artist_id
     LEFT JOIN album_ratings alr ON alr.album_id = a.id AND alr.user_id = $1
     WHERE a.id = $2
-    GROUP BY a.id, alr.rating, alr.rated_songs, alr.review, alr.id`,
+    GROUP BY a.id, alr.rating, alr.rated_songs, alr.review, alr.id, alr.untracked`,
     [userId, albumId]
   );
 
