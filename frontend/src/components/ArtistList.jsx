@@ -115,7 +115,7 @@ export default function ArtistList({ user }) {
                             )}
                             <div style={{ fontWeight: 500, fontSize: isMobile ? "13px" : "14px" }}>{i + 1}. {a.name}</div>
                             <div style={{ fontSize: isMobile ? "11px" : "13px" }}>
-                                {a.albumCount} albums · {Math.round(a.totalScore, 1)} points
+                                {a.albumCount} albums · {a.avgScore10 != null ? a.avgScore10.toFixed(1) : "N/A"} avg
                             </div>
                         </div>
                     ))}

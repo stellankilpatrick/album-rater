@@ -244,24 +244,37 @@ export async function getUserArtistStats(userId) {
     [userId]
   );
 
+  // fetch score10s for this user
+  const score10Res = await pool.query(
+    `SELECT album_id, score10 FROM album_ratings WHERE user_id = $1 AND score10 IS NOT NULL`,
+    [userId]
+  );
+  const score10Map = new Map(score10Res.rows.map(r => [r.album_id, r.score10]));
+
   const artistMap = new Map();
   for (const row of res.rows) {
     if (!artistMap.has(row.id)) {
-      artistMap.set(row.id, { id: row.id, name: row.name, image: row.image, albums: [] });
+      artistMap.set(row.id, { id: row.id, name: row.name, image: row.image, albums: [], score10s: [] });
     }
     const rating = row.ratedSongs > 0 ? Math.pow(row.ratingSum, 2) / row.ratedSongs : 0;
     artistMap.get(row.id).albums.push(rating);
+    const s10 = score10Map.get(row.album_id);
+    if (s10 != null) artistMap.get(row.id).score10s.push(s10);
   }
 
   return Array.from(artistMap.values()).map(artist => {
     const sorted = artist.albums.slice().sort((a, b) => b - a);
     const totalScore = sorted.reduce((sum, rating, i) => sum + rating * Math.pow(0.85, i), 0);
+    const avgScore10 = artist.score10s.length > 0
+      ? artist.score10s.reduce((a, b) => a + b, 0) / artist.score10s.length
+      : null;
     return {
       id: artist.id,
       name: artist.name,
       image: artist.image,
       albumCount: artist.albums.length,
-      totalScore
+      totalScore,
+      avgScore10
     };
   }).sort((a, b) => b.totalScore - a.totalScore);
 }

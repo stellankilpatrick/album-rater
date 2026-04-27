@@ -107,7 +107,6 @@ export default function ArtistDetail({ user }) {
                             <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Album</th>
                             <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Released</th>
                             <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Rating</th>
-                            <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Points</th>
                             <th style={{ borderBottom: "1px solid #ccc", textAlign: "left" }}>Rate</th>
                         </tr>
                     </thead>
@@ -123,7 +122,6 @@ export default function ArtistDetail({ user }) {
                                 <td style={{ padding: "4px 8px" }}><i>{album.title}</i></td>
                                 <td style={{ padding: "4px 8px" }}>{album.releaseDate ? album.releaseDate.slice(0, 4) : ""}</td>
                                 <td style={{ padding: "4px 8px" }}>{album.score10?.toFixed(1)}</td>
-                                <td style={{ padding: "4px 8px" }}>{Math.round(album.rating)}</td>
                                 <td style={{ padding: "4px 8px" }}>{album.rate}</td>
                             </tr>
                         ))}
