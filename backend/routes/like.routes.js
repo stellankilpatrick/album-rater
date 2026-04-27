@@ -24,8 +24,10 @@ async function getOwner(targetType, targetId) {
     return rows[0] ?? null;
   } else if (targetType === "review_comment") {
     const { rows } = await pool.query(
-      `SELECT c.user_id, c.album_id AS "albumId", a.title FROM album_review_comments c
+      `SELECT c.user_id, c.album_id AS "albumId", a.title, u.username AS "reviewedUsername"
+     FROM album_review_comments c
      JOIN albums a ON a.id = c.album_id
+     JOIN users u ON u.id = c.reviewed_user_id
      WHERE c.id = $1`,
       [targetId]
     );
