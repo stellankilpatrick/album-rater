@@ -150,8 +150,8 @@ export default function AlbumDetail({ user }) {
       }
 
       // Save review
-      if (pendingReview !== review && pendingReview.trim()) {
-        await api.patch(`/albums/${albumId}/review/users/${effectiveUsername}`, { review: pendingReview });
+      if (pendingReview !== review) {
+        await api.patch(`/albums/${albumId}/review/users/${effectiveUsername}`, { review: pendingReview.trim() || null });
       }
 
       setSongs(pendingSongs);
