@@ -614,6 +614,21 @@ router.patch("/:id/review/users/:username", requireAuth, async (req, res) => {
   }
 });
 
+// tracked/untracked
+router.patch("/:albumId/users/:username/untracked", requireAuth, async (req, res) => {
+  const { untracked } = req.body;
+  try {
+    await pool.query(
+      `UPDATE album_ratings SET untracked = $1 WHERE album_id = $2 AND user_id = $3`,
+      [untracked, req.params.albumId, req.user.id]
+    );
+    res.json({ success: true, untracked });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update untracked status" });
+  }
+});
+
 router.get("/users/:username/genres", requireAuth, async (req, res) => {
   try {
     const userId = req.profileUser.id;

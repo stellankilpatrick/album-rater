@@ -35,6 +35,8 @@ export default function AlbumDetail({ user }) {
   const [replyingTo, setReplyingTo] = useState(null); // comment id
   const [replyInput, setReplyInput] = useState("");
 
+  const [untracked, setUntracked] = useState(false);
+
   useEffect(() => {
     if (user) api.get(`albums/${albumId}/users/${effectiveUsername}/mutuals`).then(res => setFriends(res.data));
   }, [user]);
@@ -56,6 +58,16 @@ export default function AlbumDetail({ user }) {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    if (album?.untracked != null) setUntracked(album.untracked);
+  }, [album]);
+
+  const toggleUntracked = async () => {
+    const newVal = !untracked;
+    await api.patch(`/albums/${albumId}/users/${effectiveUsername}/untracked`, { untracked: newVal });
+    setUntracked(newVal);
+  };
 
   useEffect(() => {
     if (!effectiveUsername) return;
@@ -514,6 +526,15 @@ export default function AlbumDetail({ user }) {
                 border: "none", borderRadius: "4px", cursor: "pointer", width: "fit-content"
               }}>
                 Delete Album Rating
+              </button>
+            )}
+            {isOwner && (
+              <button
+                onClick={toggleUntracked}
+                title={untracked ? "Click to track this album" : "Click to hide from activity feed"}
+                style={{ borderRadius: "4px", cursor: "pointer", width: "fit-content", background: untracked ? "grey" : "white" }}
+              >
+                {untracked ? "Untracked" : "Tracked"}
               </button>
             )}
           </div>
