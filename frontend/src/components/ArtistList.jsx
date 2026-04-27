@@ -65,6 +65,7 @@ export default function ArtistList({ user }) {
                             <th></th>
                             <th onClick={() => handleSort("name")}>Artist</th>
                             <th onClick={() => handleSort("albumCount")}>Albums</th>
+                            <th onClick={() => handleSort("avgScore10")}>Avg Rating</th>
                             <th onClick={() => handleSort("totalScore")}>Points</th>
                         </tr>
                     </thead>
@@ -83,6 +84,7 @@ export default function ArtistList({ user }) {
                                     </Link>
                                 </td>
                                 <td>{a.albumCount ?? 0}</td>
+                                <td>{a.avgScore10 != null ? a.avgScore10.toFixed(1) : "N/A"}</td>
                                 <td>{Math.round(a.totalScore ?? 0)}</td>
                             </tr>
                         ))}
