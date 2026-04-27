@@ -14,15 +14,27 @@ export default function ArtistDetailPublic({ user }) {
   const [hasRatedArtist, setHasRatedArtist] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState("");
+  const [sortMode, setSortMode] = useState("reviews");
+  const [viewMode, setViewMode] = useState("grid");
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const { username } = useParams();
   const effectiveUsername = username ?? user?.username;
 
   useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (mobile) setViewMode("grid");
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
     fetchArtist();
   }, [artistId]);
 
-  // checks if link to albums rated by you would work
   useEffect(() => {
     if (!user || !artistId) return;
     api.get(`/artists/${artistId}/users/${effectiveUsername}`)
@@ -30,20 +42,15 @@ export default function ArtistDetailPublic({ user }) {
       .catch(() => setHasRatedArtist(false));
   }, [artistId, effectiveUsername]);
 
-
   const fetchArtist = async () => {
     try {
-      const res = await api.get(`/artists/${artistId}`); // public endpoint
-
+      const res = await api.get(`/artists/${artistId}`);
       setArtist(res.data.artist);
-
-      // normalize release date
       const normalized = res.data.albums.map(a => ({
         ...a,
         releaseDate: a.releaseDate ?? a.release_date ?? "",
         avgScore: a.avgScore ?? 0
       }));
-
       setAlbums(normalized);
       setEditImage(res.data.artist.image || "");
     } catch (err) {
@@ -56,9 +63,7 @@ export default function ArtistDetailPublic({ user }) {
   const saveArtistImage = async () => {
     if (!editImage.trim()) return;
     try {
-      const res = await api.patch(`/artists/${artistId}/image`, {
-        image: editImage.trim()
-      });
+      const res = await api.patch(`/artists/${artistId}/image`, { image: editImage.trim() });
       setArtist(res.data);
       setIsEditingImage(false);
     } catch (err) {
@@ -92,23 +97,25 @@ export default function ArtistDetailPublic({ user }) {
   if (loading) return <p>Loading artist...</p>;
   if (!artist) return <p>Artist not found.</p>;
 
+  const sortedAlbums = albums.slice().sort((a, b) => {
+    if (sortMode === "chronological") return new Date(a.releaseDate) - new Date(b.releaseDate);
+    if (sortMode === "reviews") {
+      const diff = (b.ratingCount ?? 0) - (a.ratingCount ?? 0);
+      return diff !== 0 ? diff : (b.avgScore ?? 0) - (a.avgScore ?? 0);
+    }
+    return 0;
+  });
+
   return (
     <div>
-
       <div style={{ marginBottom: "12px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
           {artist.image && !isEditingImage && (
             <img
               src={artist.image}
               alt={`${artist.name} cover`}
               onClick={() => setIsEditingImage(true)}
-              style={{
-                width: "200px",
-                height: "200px",
-                objectFit: "cover",
-                borderRadius: "50%",
-                cursor: "pointer"
-              }}
+              style={{ width: isMobile ? "80px" : "200px", height: isMobile ? "80px" : "200px", objectFit: "cover", borderRadius: "50%", cursor: "pointer" }}
             />
           )}
 
@@ -126,7 +133,7 @@ export default function ArtistDetailPublic({ user }) {
             </div>
           ) : (
             <h1
-              style={{ margin: 0, cursor: "pointer" }}
+              style={{ margin: 0, cursor: "pointer", fontSize: isMobile ? "1.3rem" : undefined }}
               onClick={() => { setEditName(artist.name); setIsEditingName(true); }}
             >
               Albums by {artist.name}
@@ -153,13 +160,23 @@ export default function ArtistDetailPublic({ user }) {
         )}
       </div>
 
-      {hasRatedArtist && (
-        <button>
-          <Link to={`/artists/${artist.id}/users/${effectiveUsername}`} style={{}}>
-            Your rated albums by {artist.name}
-          </Link>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
+        <button onClick={() => setSortMode(prev => prev === "chronological" ? "reviews" : "chronological")}>
+          {sortMode === "chronological" ? "Sort: Chronological" : "Sort: Reviews"}
         </button>
-      )}
+        {!isMobile && (
+          <button onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")}>
+            {viewMode === "list" ? "Grid View" : "List View"}
+          </button>
+        )}
+        {hasRatedArtist && (
+          <button>
+            <Link to={`/artists/${artist.id}/users/${effectiveUsername}`}>
+              Your rated albums by {artist.name}
+            </Link>
+          </button>
+        )}
+      </div>
 
       {albums.length === 0 ? (
         <div>
@@ -167,20 +184,13 @@ export default function ArtistDetailPublic({ user }) {
           {user && (
             <button
               onClick={deleteArtist}
-              style={{
-                backgroundColor: "red",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                padding: "0.3rem 0.6rem",
-                cursor: "pointer"
-              }}
+              style={{ backgroundColor: "red", color: "white", border: "none", borderRadius: "4px", padding: "0.3rem 0.6rem", cursor: "pointer" }}
             >
               Delete artist
             </button>
           )}
         </div>
-      ) : (
+      ) : viewMode === "list" ? (
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
@@ -193,37 +203,50 @@ export default function ArtistDetailPublic({ user }) {
             </tr>
           </thead>
           <tbody>
-            {albums
-              .slice()
-              .sort((a, b) => (b.avgScore || 0) - (a.avgScore || 0))
-              .map((album, i) => (
-                <tr
-                  key={album.id}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => navigate(`/albums/${album.id}`)}
-                >
-                  <td>{i + 1}</td>
-                  <td style={{ textAlign: "left" }}>
-                    {album.albumCoverArt && (
-                      <img
-                        src={album.albumCoverArt}
-                        alt={album.title}
-                        style={{ width: "22px", height: "22px", objectFit: "cover", borderRadius: "3px" }}
-                      />
-                    )}
-                  </td>
-                  <td style={{ padding: "4px 8px" }}><i>{album.title}</i></td>
-                  <td style={{ padding: "4px 8px" }}>
-                    {album.releaseDate ? album.releaseDate.slice(0, 4) : ""}
-                  </td>
-                  <td style={{ padding: "4px 8px" }}>
-                    {(album.avgScore ?? 0).toFixed(1)}
-                  </td>
-                  <td style={{ padding: "4px 8px" }}>{album.ratingCount ?? 0}</td>
-                </tr>
-              ))}
+            {sortedAlbums.map((album, i) => (
+              <tr key={album.id} style={{ cursor: "pointer" }} onClick={() => navigate(`/albums/${album.id}`)}>
+                <td>{i + 1}</td>
+                <td>
+                  {album.albumCoverArt && (
+                    <img src={album.albumCoverArt} alt={album.title} style={{ width: "22px", height: "22px", objectFit: "cover", borderRadius: "3px" }} />
+                  )}
+                </td>
+                <td style={{ padding: "4px 8px" }}><i>{album.title}</i></td>
+                <td style={{ padding: "4px 8px" }}>{album.releaseDate ? album.releaseDate.slice(0, 4) : ""}</td>
+                <td style={{ padding: "4px 8px" }}>{(album.avgScore ?? 0).toFixed(1)}</td>
+                <td style={{ padding: "4px 8px" }}>{album.ratingCount ?? 0}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
+      ) : (
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(auto-fill, minmax(200px, 1fr))",
+          gap: isMobile ? "10px" : "16px"
+        }}>
+          {sortedAlbums.map((album, i) => (
+            <div
+              key={album.id}
+              style={{ cursor: "pointer", textAlign: "center" }}
+              onClick={() => navigate(`/albums/${album.id}`)}
+            >
+              {(album.albumCoverArt || album.coverArt) && (
+                <img
+                  src={album.albumCoverArt || album.coverArt}
+                  alt={album.title}
+                  style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: "6px", marginBottom: "4px" }}
+                />
+              )}
+              <div style={{ fontSize: isMobile ? "11px" : "15px", fontWeight: 500 }}>
+                <i>{album.title}</i> · {album.releaseDate?.slice(0, 4)}
+              </div>
+              <div style={{ fontSize: isMobile ? "10px" : "14px", color: "#888" }}>
+                {album.ratingCount ?? 0} reviews · {(album.avgScore ?? 0).toFixed(1)} avg
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
