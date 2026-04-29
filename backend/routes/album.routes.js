@@ -682,8 +682,9 @@ router.post("/:albumId/users/:username/comments", requireAuth, async (req, res) 
       [req.user.id, req.params.albumId, req.profileUser.id, content.trim(), parentId ?? null]
     );
 
+    const { rows: albumRows } = await pool.query(`SELECT title FROM albums WHERE id = $1`, [req.params.albumId]);
+
     if (req.user.id !== req.profileUser.id) {
-      const { rows: albumRows } = await pool.query(`SELECT title FROM albums WHERE id = $1`, [req.params.albumId]);
       await createNotification(pool, {
         userId: req.profileUser.id,
         type: "comment",
@@ -693,7 +694,6 @@ router.post("/:albumId/users/:username/comments", requireAuth, async (req, res) 
       });
     }
 
-    // ADD THIS:
     if (parentId) {
       const { rows: parentRows } = await pool.query(
         `SELECT user_id FROM album_review_comments WHERE id = $1`,
@@ -707,7 +707,7 @@ router.post("/:albumId/users/:username/comments", requireAuth, async (req, res) 
           fromUserId: req.user.id,
           albumId: Number(req.params.albumId),
           targetUsername: req.profileUser.username,
-          message: `${req.user.username} replied to your comment`
+          message: `${req.user.username} replied to your comment on ${albumRows[0].title}`
         });
       }
     }

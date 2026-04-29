@@ -66,7 +66,7 @@ router.post("/", requireAuth, async (req, res) => {
     if (owner && owner.user_id !== req.user.id) {
       const message = targetType === "album_review"
         ? `${req.user.username} liked your review of ${owner.title}`
-        : `${req.user.username} liked your comment`;
+        : `${req.user.username} liked your comment on ${owner.title}`;
 
       await createNotification(pool, {
         userId: owner.user_id,
