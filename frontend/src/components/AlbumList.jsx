@@ -141,7 +141,7 @@ export default function AlbumList({ user }) {
                             <div style={{ position: "relative" }}>
                                 <button
                                     className={`filter-btn${filters.artists.length > 0 ? " active" : ""}`}
-                                    onClick={() => setShowDropdown(!showDropdown)}
+                                    onClick={() => { setShowGenreDropdown(false); setShowDropdown(v => !v); }}
                                 >
                                     Artists{filters.artists.length > 0 ? ` (${filters.artists.length})` : ""}
                                 </button>
@@ -170,7 +170,7 @@ export default function AlbumList({ user }) {
                             <div style={{ position: "relative" }}>
                                 <button
                                     className={`filter-btn${filters.genres.length > 0 ? " active" : ""}`}
-                                    onClick={() => setShowGenreDropdown(!showGenreDropdown)}
+                                    onClick={() => { setShowDropdown(false); setShowGenreDropdown(v => !v); }}
                                 >
                                     Genres{filters.genres.length > 0 ? ` (${filters.genres.length})` : ""}
                                 </button>
