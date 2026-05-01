@@ -102,31 +102,28 @@ export default function AlbumsPublic({ user }) {
       <h1>All Rated Albums</h1>
 
       {/* Filters */}
-      <div style={{ marginBottom: "20px", padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }}>
-        <h3>Filters</h3>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "flex-start" }}>
+      <div className="filter-bar">
+        <div className="filter-bar-row">
           <div style={{ position: "relative" }}>
-            <button onClick={() => setShowDropdown(!showDropdown)} style={{ padding: "5px 10px", cursor: "pointer" }}>
-              Artists ({filters.artists.length})
+            <button
+              className={`filter-btn${filters.artists.length > 0 ? " active" : ""}`}
+              onClick={() => setShowDropdown(!showDropdown)}
+            >
+              Artists{filters.artists.length > 0 ? ` (${filters.artists.length})` : ""}
             </button>
             {showDropdown && (
-              <div style={{
-                position: "absolute", top: "100%", left: 0, background: "white",
-                border: "1px solid #ccc", borderRadius: "4px", padding: "10px",
-                zIndex: 1000, minWidth: "200px", maxHeight: "300px", overflowY: "auto",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-              }}>
+              <div className="filter-dropdown-panel">
                 <input
+                  className="filter-dropdown-search"
                   type="text"
                   placeholder="Search artists..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{ width: "100%", padding: "5px", marginBottom: "10px", boxSizing: "border-box" }}
                 />
                 {filteredArtists.map(artist => (
-                  <div key={artist} style={{ padding: "3px 0" }}>
-                    <label style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
-                      <input type="checkbox" checked={filters.artists.includes(artist)} onChange={() => toggleArtist(artist)} style={{ marginRight: "8px" }} />
+                  <div key={artist} className="filter-dropdown-item">
+                    <label>
+                      <input type="checkbox" checked={filters.artists.includes(artist)} onChange={() => toggleArtist(artist)} />
                       {artist}
                     </label>
                   </div>
@@ -135,17 +132,15 @@ export default function AlbumsPublic({ user }) {
             )}
           </div>
 
-          <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
-            <input type="number" placeholder="Min year" value={filters.minYear} onChange={(e) => handleYearChange("minYear", e.target.value)} style={{ padding: "5px", width: "90px" }} />
-            <span>to</span>
-            <input type="number" placeholder="Max year" value={filters.maxYear} onChange={(e) => handleYearChange("maxYear", e.target.value)} style={{ padding: "5px", width: "90px" }} />
+          <div className="filter-year-row">
+            <input className="filter-input" type="number" placeholder="Min year" value={filters.minYear} onChange={(e) => handleYearChange("minYear", e.target.value)} />
+            <span>–</span>
+            <input className="filter-input" type="number" placeholder="Max year" value={filters.maxYear} onChange={(e) => handleYearChange("maxYear", e.target.value)} />
           </div>
 
-          <button onClick={clearFilters} style={{ padding: "5px 10px" }}>Clear Filters</button>
+          <button className="filter-btn" onClick={clearFilters}>Clear Filters</button>
         </div>
-        <p style={{ marginTop: "10px", fontSize: "14px", color: "#666" }}>
-          Showing {Math.min(100, sortedAlbums.length)} of {albums.length} albums
-        </p>
+        <p className="filter-meta">Showing {Math.min(100, sortedAlbums.length)} of {albums.length} albums</p>
       </div>
 
       {!isMobile && (

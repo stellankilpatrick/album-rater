@@ -135,32 +135,29 @@ export default function AlbumList({ user }) {
             ) : (
                 <>
                     {/* Filters */}
-                    <div style={{ marginBottom: "15px", padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }}>
-                        <h3 style={{ margin: "2px 0 8px 0" }}>Filters</h3>
-                        <div style={{ display: "flex", gap: "5px", flexWrap: "wrap", alignItems: "flex-start" }}>
+                    <div className="filter-bar">
+                        <div className="filter-bar-row">
                             {/* Artist dropdown */}
                             <div style={{ position: "relative" }}>
-                                <button onClick={() => setShowDropdown(!showDropdown)} style={{ padding: "3px 5px", cursor: "pointer" }}>
-                                    Artists ({filters.artists.length})
+                                <button
+                                    className={`filter-btn${filters.artists.length > 0 ? " active" : ""}`}
+                                    onClick={() => setShowDropdown(!showDropdown)}
+                                >
+                                    Artists{filters.artists.length > 0 ? ` (${filters.artists.length})` : ""}
                                 </button>
                                 {showDropdown && (
-                                    <div style={{
-                                        position: "absolute", top: "100%", left: 0, background: "white",
-                                        border: "1px solid #ccc", borderRadius: "4px", padding: "10px",
-                                        zIndex: 1000, minWidth: "200px", maxHeight: "300px", overflowY: "auto",
-                                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-                                    }}>
+                                    <div className="filter-dropdown-panel">
                                         <input
+                                            className="filter-dropdown-search"
                                             type="text"
                                             placeholder="Search artists..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
-                                            style={{ width: "100%", padding: "5px", marginBottom: "10px", boxSizing: "border-box" }}
                                         />
                                         {filteredArtists.map(artist => (
-                                            <div key={artist} style={{ padding: "3px 0" }}>
-                                                <label style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
-                                                    <input type="checkbox" checked={filters.artists.includes(artist)} onChange={() => toggleArtist(artist)} style={{ marginRight: "8px" }} />
+                                            <div key={artist} className="filter-dropdown-item">
+                                                <label>
+                                                    <input type="checkbox" checked={filters.artists.includes(artist)} onChange={() => toggleArtist(artist)} />
                                                     {artist}
                                                 </label>
                                             </div>
@@ -171,29 +168,27 @@ export default function AlbumList({ user }) {
 
                             {/* Genre dropdown */}
                             <div style={{ position: "relative" }}>
-                                <button onClick={() => setShowGenreDropdown(!showGenreDropdown)} style={{ padding: "3px 5px", cursor: "pointer" }}>
-                                    Genres ({filters.genres.length})
+                                <button
+                                    className={`filter-btn${filters.genres.length > 0 ? " active" : ""}`}
+                                    onClick={() => setShowGenreDropdown(!showGenreDropdown)}
+                                >
+                                    Genres{filters.genres.length > 0 ? ` (${filters.genres.length})` : ""}
                                 </button>
                                 {showGenreDropdown && (
-                                    <div style={{
-                                        position: "absolute", top: "100%", left: 0, background: "white",
-                                        border: "1px solid #ccc", borderRadius: "4px", padding: "10px",
-                                        zIndex: 1000, minWidth: "200px", maxHeight: "300px", overflowY: "auto",
-                                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-                                    }}>
+                                    <div className="filter-dropdown-panel">
                                         <input
+                                            className="filter-dropdown-search"
                                             type="text"
                                             placeholder="Search genres..."
                                             value={genreSearchTerm}
                                             onChange={(e) => setGenreSearchTerm(e.target.value)}
-                                            style={{ width: "100%", padding: "5px", marginBottom: "10px", boxSizing: "border-box" }}
                                         />
                                         {availableGenres
                                             .filter(g => g.name.toLowerCase().includes(genreSearchTerm.toLowerCase()))
                                             .map(g => (
-                                                <div key={g.id} style={{ padding: "3px 0" }}>
-                                                    <label style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
-                                                        <input type="checkbox" checked={filters.genres.includes(g.name)} onChange={() => toggleGenre(g.name)} style={{ marginRight: "8px" }} />
+                                                <div key={g.id} className="filter-dropdown-item">
+                                                    <label>
+                                                        <input type="checkbox" checked={filters.genres.includes(g.name)} onChange={() => toggleGenre(g.name)} />
                                                         {g.name}
                                                     </label>
                                                 </div>
@@ -203,17 +198,15 @@ export default function AlbumList({ user }) {
                             </div>
 
                             {/* Year range */}
-                            <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-                                <input type="number" placeholder="Min year" value={filters.minYear} onChange={(e) => handleYearChange("minYear", e.target.value)} style={{ padding: "3px", width: "90px" }} />
-                                <span>to</span>
-                                <input type="number" placeholder="Max year" value={filters.maxYear} onChange={(e) => handleYearChange("maxYear", e.target.value)} style={{ padding: "3px", width: "90px" }} />
+                            <div className="filter-year-row">
+                                <input className="filter-input" type="number" placeholder="Min year" value={filters.minYear} onChange={(e) => handleYearChange("minYear", e.target.value)} />
+                                <span>–</span>
+                                <input className="filter-input" type="number" placeholder="Max year" value={filters.maxYear} onChange={(e) => handleYearChange("maxYear", e.target.value)} />
                             </div>
 
-                            <button onClick={clearFilters} style={{ padding: "3px 5px" }}>Clear Filters</button>
+                            <button className="filter-btn" onClick={clearFilters}>Clear Filters</button>
                         </div>
-                        <p style={{ marginTop: "4px", fontSize: "14px", color: "#666" }}>
-                            Showing {sortedAlbums.length} of {albums.length} albums
-                        </p>
+                        <p className="filter-meta">Showing {sortedAlbums.length} of {albums.length} albums</p>
                     </div>
 
                     {/* Toggle button — hidden on mobile */}
