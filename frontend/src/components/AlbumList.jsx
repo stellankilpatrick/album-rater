@@ -125,7 +125,7 @@ export default function AlbumList({ user }) {
     );
 
     return (
-        <div>
+        <div className="page-pad">
             <h1>{effectiveUsername}'s Top Albums</h1>
 
             {loading ? (
@@ -211,7 +211,7 @@ export default function AlbumList({ user }) {
 
                     {/* Toggle button — hidden on mobile */}
                     {!isMobile && (
-                        <button onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")} style={{ marginBottom: "10px" }}>
+                        <button className="ui-btn" style={{ marginBottom: "10px" }} onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")}>
                             {viewMode === "list" ? "Grid View" : "List View"}
                         </button>
                     )}

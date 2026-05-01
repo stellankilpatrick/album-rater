@@ -98,7 +98,7 @@ export default function AlbumsPublic({ user }) {
   if (loading) return <p>Loading albums...</p>;
 
   return (
-    <>
+    <div className="page-pad">
       <h1>All Rated Albums</h1>
 
       {/* Filters */}
@@ -144,7 +144,7 @@ export default function AlbumsPublic({ user }) {
       </div>
 
       {!isMobile && (
-        <button onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")} style={{ marginBottom: "15px" }}>
+        <button className="ui-btn" style={{ marginBottom: "15px" }} onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")}>
           {viewMode === "list" ? "Grid View" : "List View"}
         </button>
       )}
@@ -209,6 +209,6 @@ export default function AlbumsPublic({ user }) {
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }

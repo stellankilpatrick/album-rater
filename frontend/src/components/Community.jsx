@@ -47,7 +47,7 @@ export default function Community() {
     if (loading) return <p>Loading…</p>;
 
     return (
-        <div className="community">
+        <div className="community page-pad">
             <h1>Community</h1>
             <div style={{
                 display: "flex",
