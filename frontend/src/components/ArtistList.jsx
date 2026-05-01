@@ -45,13 +45,14 @@ export default function ArtistList({ user }) {
     };
 
     return (
-        <div>
+        <div className="page-pad">
             <h1>{effectiveUsername}'s Top Artists</h1>
 
             {!isMobile && (
                 <button
-                    onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")}
+                    className="ui-btn"
                     style={{ marginBottom: "15px" }}
+                    onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")}
                 >
                     {viewMode === "list" ? "Grid View" : "List View"}
                 </button>

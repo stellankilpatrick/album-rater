@@ -128,7 +128,7 @@ export default function ProfilePage({ user }) {
     if (loading) return <div>Loading...</div>;
 
     return (
-        <div>
+        <div className="page-pad">
             {/* Banner */}
             <div
                 style={{
@@ -137,7 +137,7 @@ export default function ProfilePage({ user }) {
                     backgroundImage: banner ? `url(${banner})` : undefined,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
-                    marginLeft: "calc(-50vw + 50%)",
+                    marginLeft: "calc(-50vw + 50% - 16px)",
                     marginRight: "calc(-50vw + 50%)",
                     marginTop: "-16px",
                     display: "flex",
@@ -148,58 +148,33 @@ export default function ProfilePage({ user }) {
                 {isMe && !banner && <span style={{ color: "#666" }}>Click to add banner</span>}
             </div>
 
-            {isMe && editingBanner && (
-                <div style={{ marginBottom: "12px", visibility: editingBanner ? "visible" : "hidden", height: "32px" }}>
-                    <input
-                        type="text"
-                        value={bannerInput}
-                        onChange={e => setBannerInput(e.target.value)}
-                        placeholder="Paste image URL"
-                        style={{ width: "260px", marginLeft: "400px" }}
-                    />
-                </div>
-            )}
-            <div style={{ display: "flex", alignItems: "center", gap: "24px", marginBottom: "16px" }}>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "24px", marginBottom: "16px" }}>
                 {/* Profile Picture */}
-                <div>
-                    <img
-                        src={pfp}
-                        alt="profile"
-                        style={{
-                            width: "220px",
-                            height: "220px",
-                            objectFit: "cover",
-                            borderRadius: "50%",
-                            marginTop: "-75px",
-                            marginLeft: "20px",
-                        }}
-                    />
-
-                    {isMe && editingPfp && (
-                        <div style={{ marginTop: "8px" }}>
-                            <input
-                                type="text"
-                                value={pfpInput}
-                                onChange={e => setPfpInput(e.target.value)}
-                                placeholder="Paste image URL"
-                                style={{ width: "260px" }}
-                            />
-                        </div>
-                    )}
-                </div>
+                <img
+                    src={pfp}
+                    alt="profile"
+                    style={{
+                        width: "220px",
+                        height: "220px",
+                        objectFit: "cover",
+                        borderRadius: "50%",
+                        marginTop: "-75px",
+                        flexShrink: 0,
+                    }}
+                />
 
                 {/* User Info */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", paddingBottom: "4px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                         <h1 style={{ margin: 0 }}>{effectiveUsername}</h1>
                         {!isMe && (
-                            <button onClick={toggleFollow}>
+                            <button className="ui-btn" onClick={toggleFollow}>
                                 {isFollowing ? "Following" : "Follow"}
                             </button>
                         )}
                         {isMe && (
                             <>
-                                <button onClick={() => {
+                                <button className="ui-btn" onClick={() => {
                                     if (editingPfp || editingBanner) {
                                         savePfp();
                                         saveBanner();
@@ -214,10 +189,10 @@ export default function ProfilePage({ user }) {
                                     {editingPfp || editingBanner ? "Save Changes" : "Edit Profile"}
                                 </button>
                                 {(editingPfp || editingBanner) && (
-                                    <button onClick={() => {
+                                    <button className="ui-btn" onClick={() => {
                                         setEditingPfp(false);
                                         setEditingBanner(false);
-                                        setBioInput(bio ?? ""); // reset on cancel
+                                        setBioInput(bio ?? "");
                                     }}>
                                         Cancel
                                     </button>
@@ -227,49 +202,66 @@ export default function ProfilePage({ user }) {
                     </div>
 
                     <div style={{ display: "flex", gap: "16px" }}>
-                        <Link
-                            to={`/users/${effectiveUsername}/connections#followers`}
-                            style={{ textDecoration: "none", color: "inherit" }}
-                        >
+                        <Link to={`/users/${effectiveUsername}/connections#followers`} style={{ textDecoration: "none", color: "inherit" }}>
                             <strong>{followCounts.followers}</strong> Followers
                         </Link>
-
-                        <Link
-                            to={`/users/${effectiveUsername}/connections#following`}
-                            style={{ textDecoration: "none", color: "inherit" }}
-                        >
+                        <Link to={`/users/${effectiveUsername}/connections#following`} style={{ textDecoration: "none", color: "inherit" }}>
                             <strong>{followCounts.following}</strong> Following
                         </Link>
                     </div>
 
                     <div style={{ display: "flex", gap: "16px" }}>
-                        <div>
-                            <strong>{ratingCounts.albums}</strong> {ratingCounts.albums === 1 ? "Album" : "Albums"}
-                        </div>
-                        <div>
-                            <strong>{ratingCounts.artists}</strong> {ratingCounts.artists === 1 ? "Artist" : "Artists"}
-                        </div>
+                        <div><strong>{ratingCounts.albums}</strong> {ratingCounts.albums === 1 ? "Album" : "Albums"}</div>
+                        <div><strong>{ratingCounts.artists}</strong> {ratingCounts.artists === 1 ? "Artist" : "Artists"}</div>
                     </div>
-                    {/* Bio */}
-                    {editingPfp ? (
-                        <div>
-                            <textarea
-                                value={bioInput}
-                                onChange={e => setBioInput(e.target.value)}
-                                maxLength={300}
-                                rows={3}
-                                placeholder="Write a bio..."
-                                style={{ width: "100%", resize: "vertical", backgroundColor: "#111", color: "white", border: "1px solid #333", borderRadius: "4px", padding: "8px" }}
-                            />
-                            <div style={{ fontSize: "12px", color: "#999", textAlign: "right" }}>{bioInput.length}/300</div>
-                        </div>
-                    ) : (
+
+                    {!editingPfp && (
                         <p style={{ color: "#ccc", margin: 0 }}>
                             {bio || (isMe ? "No bio yet." : "")}
                         </p>
                     )}
                 </div>
             </div>
+
+            {/* Edit Profile Panel */}
+            {(editingPfp || editingBanner) && (
+                <div className="edit-profile-panel">
+                    <div>
+                        <label>Profile Picture URL</label>
+                        <input
+                            className="edit-profile-input"
+                            type="text"
+                            value={pfpInput}
+                            onChange={e => setPfpInput(e.target.value)}
+                            placeholder="Paste image URL"
+                        />
+                    </div>
+                    <div>
+                        <label>Banner URL</label>
+                        <input
+                            className="edit-profile-input"
+                            type="text"
+                            value={bannerInput}
+                            onChange={e => setBannerInput(e.target.value)}
+                            placeholder="Paste image URL"
+                        />
+                    </div>
+                    <div>
+                        <label>Bio</label>
+                        <textarea
+                            className="edit-profile-input"
+                            value={bioInput}
+                            onChange={e => setBioInput(e.target.value)}
+                            maxLength={300}
+                            rows={3}
+                            placeholder="Write a bio..."
+                            style={{ resize: "vertical" }}
+                        />
+                        <div style={{ fontSize: "12px", color: "#888", textAlign: "right", marginTop: "2px" }}>{bioInput.length}/300</div>
+                    </div>
+                </div>
+            )}
+
 
             <h3><Link to={`/users/${effectiveUsername}/listen-list`}>Listen List</Link></h3>
 

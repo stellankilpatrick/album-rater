@@ -52,14 +52,13 @@ export default function ArtistsPublic({ user }) {
     if (loading) return <p>Loading artists...</p>;
 
     return (
-        <div>
+        <div className="page-pad">
             <h1>All Rated Artists</h1>
 
             <button
-                onClick={() =>
-                    setViewMode(prev => (prev === "list" ? "grid" : "list"))
-                }
+                className="ui-btn"
                 style={{ marginBottom: "15px" }}
+                onClick={() => setViewMode(prev => (prev === "list" ? "grid" : "list"))}
             >
                 {viewMode === "list" ? "Grid View" : "List View"}
             </button>

@@ -113,26 +113,23 @@ function TopNav({ effectiveUsername, onLogout }) {
     return `/users/${n.from_username}`;
   };
 
-  const navStyle = (path) => ({
-    textDecoration: location.pathname === path ? "underline" : "none",
-    color: "white",
-    fontWeight: location.pathname === path ? "bold" : "normal"
-  });
+  const navClass = (path) =>
+    `nav-link${location.pathname === path ? " nav-link-active" : ""}`;
 
   const links = (
     <>
-      <Link to={`/albums/users/${effectiveUsername}`} style={navStyle(`/albums/users/${effectiveUsername}`)}>Album Rankings</Link>
-      <Link to={`/artists/users/${effectiveUsername}`} style={navStyle(`/artists/users/${effectiveUsername}`)}>Artist Rankings</Link>
-      <Link to="/albums" style={navStyle("/albums")}>Albums</Link>
-      <Link to="/artists" style={navStyle("/artists")}>Artists</Link>
+      <Link to={`/albums/users/${effectiveUsername}`} className={navClass(`/albums/users/${effectiveUsername}`)}>Album Rankings</Link>
+      <Link to={`/artists/users/${effectiveUsername}`} className={navClass(`/artists/users/${effectiveUsername}`)}>Artist Rankings</Link>
+      <Link to="/albums" className={navClass("/albums")}>Albums</Link>
+      <Link to="/artists" className={navClass("/artists")}>Artists</Link>
       <div style={{ position: "relative" }}
         onMouseEnter={() => setAddAlbumOpen(true)}
         onMouseLeave={() => setAddAlbumOpen(false)}
       >
         {isMobile ? (
-          <Link to="/albums/new" style={navStyle("/albums/new")}>Add Album</Link>
+          <Link to="/albums/new" className={navClass("/albums/new")}>Add Album</Link>
         ) : (
-          <span style={{ ...navStyle("/albums/new"), cursor: "default" }}>Add Album</span>
+          <span className={navClass("/albums/new")}>Add Album</span>
         )}
         {addAlbumOpen && (
           <div style={{
@@ -180,7 +177,7 @@ function TopNav({ effectiveUsername, onLogout }) {
         onMouseEnter={() => setCommunityOpen(true)}
         onMouseLeave={() => setCommunityOpen(false)}
       >
-        <Link to="/community" style={navStyle("/community")}>Community</Link>
+        <Link to="/community" className={navClass("/community")}>Community</Link>
         {communityOpen && (
           <div style={{
             position: "absolute",
@@ -194,22 +191,8 @@ function TopNav({ effectiveUsername, onLogout }) {
             minWidth: "180px",
             padding: "4px 0",
           }}>
-            <Link
-              to="/community"
-              style={{ display: "block", padding: "8px 12px", color: "white" }}
-              onMouseEnter={e => e.currentTarget.style.backgroundColor = "#222"}
-              onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
-            >
-              Feed
-            </Link>
-            <Link
-              to="/community/recommendations"
-              style={{ display: "block", padding: "8px 12px", color: "white" }}
-              onMouseEnter={e => e.currentTarget.style.backgroundColor = "#222"}
-              onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
-            >
-              Recommendations
-            </Link>
+            <Link to="/community" className="nav-dropdown-item">Feed</Link>
+            <Link to="/community/recommendations" className="nav-dropdown-item">Recommendations</Link>
           </div>
         )}
       </div>
@@ -218,7 +201,7 @@ function TopNav({ effectiveUsername, onLogout }) {
         onMouseEnter={() => setProfileOpen(true)}
         onMouseLeave={() => setProfileOpen(false)}
       >
-        <Link to={`/users/${effectiveUsername}`} style={navStyle(`/users/${effectiveUsername}`)}>Profile</Link>
+        <Link to={`/users/${effectiveUsername}`} className={navClass(`/users/${effectiveUsername}`)}>Profile</Link>
         {profileOpen && (
           <div style={{
             position: "absolute",
@@ -232,14 +215,7 @@ function TopNav({ effectiveUsername, onLogout }) {
             minWidth: "180px",
             padding: "4px 0",
           }}>
-            <Link
-              to={`/users/${effectiveUsername}/listen-list`}
-              style={{ display: "block", padding: "8px 12px", color: "white" }}
-              onMouseEnter={e => e.currentTarget.style.backgroundColor = "#222"}
-              onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
-            >
-              Listen List
-            </Link>
+            <Link to={`/users/${effectiveUsername}/listen-list`} className="nav-dropdown-item">Listen List</Link>
           </div>
         )}
       </div>
@@ -281,9 +257,8 @@ function TopNav({ effectiveUsername, onLogout }) {
                     key={item.id}
                     to={type === "albums" ? `/albums/${item.id}` : type === "artists" ? `/artists/${item.id}` : `/users/${item.username}`}
                     onClick={() => { setQuery(""); setDropdownResults(null); }}
-                    style={{ display: "block", padding: "6px 12px", color: "white", textDecoration: "none" }}
-                    onMouseEnter={e => e.currentTarget.style.backgroundColor = "#222"}
-                    onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+                    className="nav-dropdown-item"
+                    style={{ padding: "6px 12px" }}
                   >
                     {type === "albums" ? <><i>{item.title}</i> — {item.artist}</> : type === "artists" ? item.name : item.username}
                   </Link>
@@ -332,9 +307,7 @@ function TopNav({ effectiveUsername, onLogout }) {
 
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "12px" }}>
               {SearchBox}
-              <button onClick={handleSignOut} style={{ color: "white", backgroundColor: "black", border: "1px solid white", cursor: "pointer" }}>
-                Sign out
-              </button>
+              <button onClick={handleSignOut} className="nav-signout">Sign out</button>
             </div>
           </>
         ) : (
@@ -344,11 +317,11 @@ function TopNav({ effectiveUsername, onLogout }) {
             {SearchBox}
             <div ref={notifRef} style={{ position: "relative" }}>
               <button
+                className="nav-bell"
                 onClick={() => {
                   setNotifOpen(o => !o);
                   if (!notifOpen) markAllRead();
                 }}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "white", position: "relative", fontSize: "20px", padding: 0 }}
               >
                 🕭
                 {unreadCount > 0 && (
@@ -373,11 +346,11 @@ function TopNav({ effectiveUsername, onLogout }) {
                   {notifications.length === 0
                     ? <div style={{ padding: "12px", color: "#999", fontSize: "13px" }}>No notifications</div>
                     : notifications.map(n => (
-                      <div key={n.id} style={{
-                        display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-                        padding: "10px 12px", borderBottom: "1px solid #222",
-                        backgroundColor: n.read ? "transparent" : "rgba(255,255,255,0.05)"
-                      }}>
+                      <div
+                        key={n.id}
+                        className="nav-notif-item"
+                        style={{ backgroundColor: n.read ? "transparent" : "rgba(255,255,255,0.05)" }}
+                      >
                         <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", flex: 1 }}>
                           {n.from_pfp && (
                             <img src={n.from_pfp} alt="" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
@@ -393,21 +366,14 @@ function TopNav({ effectiveUsername, onLogout }) {
                             </div>
                           </Link>
                         </div>
-                        <button
-                          onClick={() => deleteNotif(n.id)}
-                          style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", flexShrink: 0 }}
-                        >
-                          ×
-                        </button>
+                        <button className="nav-notif-delete" onClick={() => deleteNotif(n.id)}>×</button>
                       </div>
                     ))
                   }
                 </div>
               )}
             </div>
-            <button onClick={handleSignOut} style={{ color: "white", backgroundColor: "black", border: "1px solid white", cursor: "pointer" }}>
-              Sign out
-            </button>
+            <button onClick={handleSignOut} className="nav-signout">Sign out</button>
           </>
         )}
       </div>
@@ -437,12 +403,7 @@ function TopNav({ effectiveUsername, onLogout }) {
             <Link
               key={to}
               to={to}
-              style={{
-                ...navStyle(to),
-                padding: "14px 16px",
-                borderBottom: "1px solid #222",
-                fontSize: "16px"
-              }}
+              className={location.pathname === to ? "nav-mobile-link nav-mobile-link-active" : "nav-mobile-link"}
             >
               {label}
             </Link>
