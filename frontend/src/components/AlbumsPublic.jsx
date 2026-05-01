@@ -6,9 +6,12 @@ export default function AlbumsPublic({ user }) {
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState({ key: "ratingCount", direction: "desc" });
-  const [filters, setFilters] = useState({ artists: [], minYear: "", maxYear: "" });
+  const [filters, setFilters] = useState({ artists: [], genres: [], minYear: "", maxYear: "" });
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [availableGenres, setAvailableGenres] = useState([]);
+  const [genreSearchTerm, setGenreSearchTerm] = useState("");
+  const [showGenreDropdown, setShowGenreDropdown] = useState(false);
 
   const { username } = useParams();
   const effectiveUsername = username ?? user?.username;
@@ -41,16 +44,23 @@ export default function AlbumsPublic({ user }) {
     fetchAlbums();
   }, []);
 
+  useEffect(() => {
+    api.get("/albums/genres/all")
+      .then(res => setAvailableGenres(res.data))
+      .catch(err => console.error(err));
+  }, []);
+
   const uniqueArtists = [...new Set(albums.map(a => a.artist))].sort();
 
   const filteredAlbums = albums.filter(album => {
     const matchesArtist = filters.artists.length === 0 || filters.artists.includes(album.artist);
+    const matchesGenre = filters.genres.length === 0 || filters.genres.some(g => album.genres?.includes(g));
     const albumYear = parseInt(album.releaseDate?.slice(0, 4) || "0");
     const minYear = filters.minYear ? parseInt(filters.minYear) : null;
     const maxYear = filters.maxYear ? parseInt(filters.maxYear) : null;
     const matchesMinYear = !minYear || albumYear >= minYear;
     const matchesMaxYear = !maxYear || albumYear <= maxYear;
-    return matchesArtist && matchesMinYear && matchesMaxYear;
+    return matchesArtist && matchesGenre && matchesMinYear && matchesMaxYear;
   });
 
   const sortedAlbums = [...filteredAlbums].sort((a, b) => {
@@ -85,8 +95,17 @@ export default function AlbumsPublic({ user }) {
     setFilters(prev => ({ ...prev, [type]: value }));
   };
 
+  const toggleGenre = (genre) => {
+    setFilters(prev => ({
+      ...prev,
+      genres: prev.genres.includes(genre)
+        ? prev.genres.filter(g => g !== genre)
+        : [...prev.genres, genre]
+    }));
+  };
+
   const clearFilters = () => {
-    setFilters({ artists: [], minYear: "", maxYear: "" });
+    setFilters({ artists: [], genres: [], minYear: "", maxYear: "" });
   };
 
   const filteredArtists = uniqueArtists.filter(artist =>
@@ -107,7 +126,7 @@ export default function AlbumsPublic({ user }) {
           <div style={{ position: "relative" }}>
             <button
               className={`filter-btn${filters.artists.length > 0 ? " active" : ""}`}
-              onClick={() => setShowDropdown(!showDropdown)}
+              onClick={() => { setShowGenreDropdown(false); setShowDropdown(v => !v); }}
             >
               Artists{filters.artists.length > 0 ? ` (${filters.artists.length})` : ""}
             </button>
@@ -128,6 +147,36 @@ export default function AlbumsPublic({ user }) {
                     </label>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+
+          <div style={{ position: "relative" }}>
+            <button
+              className={`filter-btn${filters.genres.length > 0 ? " active" : ""}`}
+              onClick={() => { setShowDropdown(false); setShowGenreDropdown(v => !v); }}
+            >
+              Genres{filters.genres.length > 0 ? ` (${filters.genres.length})` : ""}
+            </button>
+            {showGenreDropdown && (
+              <div className="filter-dropdown-panel">
+                <input
+                  className="filter-dropdown-search"
+                  type="text"
+                  placeholder="Search genres..."
+                  value={genreSearchTerm}
+                  onChange={(e) => setGenreSearchTerm(e.target.value)}
+                />
+                {availableGenres
+                  .filter(g => g.name.toLowerCase().includes(genreSearchTerm.toLowerCase()))
+                  .map(g => (
+                    <div key={g.id} className="filter-dropdown-item">
+                      <label>
+                        <input type="checkbox" checked={filters.genres.includes(g.name)} onChange={() => toggleGenre(g.name)} />
+                        {g.name}
+                      </label>
+                    </div>
+                  ))}
               </div>
             )}
           </div>
