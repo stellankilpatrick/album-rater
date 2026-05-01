@@ -17,6 +17,7 @@ export default function AddSongForm({ albumId, onAdd, nextNum }) {
       .then(res => {
         onAdd(res.data);
         setTitle("");
+        setFeatured("");
       }).catch(err => console.error(err));
   };
 
