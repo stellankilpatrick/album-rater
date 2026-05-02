@@ -712,7 +712,7 @@ router.post("/:albumId/users/:username/comments", requireAuth, async (req, res) 
       }
     }
 
-    res.json({ ...rows[0], username: req.user.username });
+    res.json({ ...rows[0], username: req.user.username, like_count: 0, liked_by_me: false });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to post comment" });

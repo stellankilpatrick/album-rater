@@ -104,10 +104,11 @@ export default function AlbumDetail({ user }) {
     }
   };
 
-  const handlePostReply = async (parentId) => {
+  const handlePostReply = async (parentId, replyToUsername) => {
     if (!replyInput.trim()) return;
+    const content = replyToUsername ? `@${replyToUsername} ${replyInput}` : replyInput;
     const res = await api.post(`/albums/${albumId}/users/${effectiveUsername}/comments`, {
-      content: replyInput,
+      content,
       parentId
     });
     setComments(prev => [...prev, res.data]);
@@ -541,13 +542,16 @@ export default function AlbumDetail({ user }) {
         </div>
       </div>
       {/* ===== COMMENTS ===== */}
+      {/* ===== COMMENTS ===== */}
       <div style={{ marginBottom: "24px", maxWidth: "600px" }}>
         <h3 style={{ marginBottom: "8px" }}>Comments</h3>
-        {comments.length === 0 && <div style={{ color: "#999", fontSize: "13px" }}>No comments yet.</div>}
+        {comments.filter(c => !c.parent_id).length === 0 && (
+          <div style={{ color: "#999", fontSize: "13px" }}>No comments yet.</div>
+        )}
         <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
-          {topLevel.map(c => (
+          {comments.filter(c => !c.parent_id).map(c => (
             <div key={c.id}>
-              {/* existing comment JSX, just add a Reply button */}
+              {/* Top-level comment */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "6px", padding: "8px 12px" }}>
                 <div style={{ flex: 1 }}>
                   <Link to={`/users/${c.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{c.username}</Link>
@@ -555,14 +559,12 @@ export default function AlbumDetail({ user }) {
                     {new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                   </span>
                   <div style={{ fontSize: "13px", marginTop: "2px" }}>{c.content}</div>
-                  {user && (
-                    <button
-                      onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyInput(""); }}
-                      style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "12px", padding: "4px 0 0 0" }}
-                    >
-                      {replyingTo === c.id ? "Cancel" : "Reply"}
-                    </button>
-                  )}
+                  <button
+                    onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyInput(""); }}
+                    style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "11px", padding: "4px 0 0 0" }}
+                  >
+                    {replyingTo === c.id ? "Cancel" : "Reply"}
+                  </button>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingLeft: "8px", flexShrink: 0 }}>
                   {c.username !== user?.username ? (
@@ -573,13 +575,17 @@ export default function AlbumDetail({ user }) {
                       ❤︎ {Number(c.like_count)}
                     </button>
                   ) : (
-                    Number(c.like_count) > 0 && <span style={{ color: "#999", fontSize: "13px" }}>❤︎ {Number(c.like_count)}</span>
+                    Number(c.like_count) > 0 && (
+                      <span style={{ color: "#999", fontSize: "13px" }}>❤︎ {Number(c.like_count)}</span>
+                    )
                   )}
                   {(c.username === user?.username || isOwner) && (
                     <button
                       onClick={() => handleDeleteComment(c.id)}
                       style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", padding: 0 }}
-                    >×</button>
+                    >
+                      ×
+                    </button>
                   )}
                 </div>
               </div>
@@ -592,45 +598,75 @@ export default function AlbumDetail({ user }) {
                     value={replyInput}
                     onChange={e => setReplyInput(e.target.value)}
                     onKeyDown={e => e.key === "Enter" && handlePostReply(c.id)}
-                    placeholder={`Reply to ${c.username}...`}
+                    placeholder="Write a reply..."
                     maxLength={200}
                     autoFocus
                     style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
                   />
                   <button onClick={() => handlePostReply(c.id)} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
-                    Post
+                    Reply
                   </button>
                 </div>
               )}
 
               {/* Replies */}
-              {replies.filter(r => r.parent_id === c.id).map(r => (
-                <div key={r.id} style={{ marginLeft: "24px", marginTop: "6px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.03)", borderRadius: "6px", padding: "8px 12px" }}>
-                  <div style={{ flex: 1 }}>
-                    <Link to={`/users/${r.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{r.username}</Link>
-                    <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
-                      {new Date(r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                    </span>
-                    <div style={{ fontSize: "13px", marginTop: "2px" }}>{r.content}</div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingLeft: "8px", flexShrink: 0 }}>
-                    {r.username !== user?.username ? (
+              {comments.filter(r => r.parent_id === c.id).map(reply => (
+                <div key={reply.id}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.03)", borderRadius: "6px", padding: "8px 12px", marginTop: "4px", marginLeft: "24px" }}>
+                    <div style={{ flex: 1 }}>
+                      <Link to={`/users/${reply.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{reply.username}</Link>
+                      <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
+                        {new Date(reply.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </span>
+                      <div style={{ fontSize: "13px", marginTop: "2px" }}>{reply.content}</div>
                       <button
-                        onClick={() => handleLikeComment(r.id, r.liked_by_me)}
-                        style={{ background: "none", border: "none", cursor: "pointer", color: r.liked_by_me ? "#e0245e" : "#999", fontSize: "13px", padding: 0 }}
+                        onClick={() => { setReplyingTo(replyingTo === `${c.id}-${reply.id}` ? null : `${c.id}-${reply.id}`); setReplyInput(""); }}
+                        style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "11px", padding: "4px 0 0 0" }}
                       >
-                        ❤︎ {Number(r.like_count)}
+                        {replyingTo === `${c.id}-${reply.id}` ? "Cancel" : "Reply"}
                       </button>
-                    ) : (
-                      Number(r.like_count) > 0 && <span style={{ color: "#999", fontSize: "13px" }}>❤︎ {Number(r.like_count)}</span>
-                    )}
-                    {(r.username === user?.username || isOwner) && (
-                      <button
-                        onClick={() => handleDeleteComment(r.id)}
-                        style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", padding: 0 }}
-                      >×</button>
-                    )}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingLeft: "8px", flexShrink: 0 }}>
+                      {reply.username !== user?.username ? (
+                        <button
+                          onClick={() => handleLikeComment(reply.id, reply.liked_by_me)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: reply.liked_by_me ? "#e0245e" : "#999", fontSize: "13px", padding: 0 }}
+                        >
+                          ❤︎ {Number(reply.like_count)}
+                        </button>
+                      ) : (
+                        Number(reply.like_count) > 0 && (
+                          <span style={{ color: "#999", fontSize: "13px" }}>❤︎ {Number(reply.like_count)}</span>
+                        )
+                      )}
+                      {(reply.username === user?.username || isOwner) && (
+                        <button
+                          onClick={() => handleDeleteComment(reply.id)}
+                          style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", padding: 0 }}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
                   </div>
+
+                  {replyingTo === `${c.id}-${reply.id}` && (
+                    <div style={{ display: "flex", gap: "8px", marginTop: "6px", marginLeft: "48px" }}>
+                      <input
+                        type="text"
+                        value={replyInput}
+                        onChange={e => setReplyInput(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && handlePostReply(c.id, reply.username)}
+                        placeholder={`Reply to ${reply.username}...`}
+                        maxLength={200}
+                        autoFocus
+                        style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
+                      />
+                      <button onClick={() => handlePostReply(c.id, reply.username)} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
+                        Reply
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
