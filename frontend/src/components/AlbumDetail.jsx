@@ -185,7 +185,7 @@ export default function AlbumDetail({ user }) {
           <img
             src={url}
             alt=""
-            style={{ maxWidth: "200px", maxHeight: "200px", borderRadius: "4px", objectFit: "cover" }}
+            style={{ maxWidth: "150px", maxHeight: "150px", borderRadius: "4px", objectFit: "cover" }}
             onError={e => { e.target.style.display = "none"; }}
           />
         </div>
