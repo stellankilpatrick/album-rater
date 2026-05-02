@@ -6,9 +6,12 @@ export default function AlbumsPublic({ user }) {
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState({ key: "ratingCount", direction: "desc" });
-  const [filters, setFilters] = useState({ artists: [], minYear: "", maxYear: "" });
+  const [filters, setFilters] = useState({ artists: [], genres: [], minYear: "", maxYear: "" });
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [availableGenres, setAvailableGenres] = useState([]);
+  const [genreSearchTerm, setGenreSearchTerm] = useState("");
+  const [showGenreDropdown, setShowGenreDropdown] = useState(false);
 
   const { username } = useParams();
   const effectiveUsername = username ?? user?.username;
@@ -41,16 +44,23 @@ export default function AlbumsPublic({ user }) {
     fetchAlbums();
   }, []);
 
+  useEffect(() => {
+    api.get("/albums/genres/all")
+      .then(res => setAvailableGenres(res.data))
+      .catch(err => console.error(err));
+  }, []);
+
   const uniqueArtists = [...new Set(albums.map(a => a.artist))].sort();
 
   const filteredAlbums = albums.filter(album => {
     const matchesArtist = filters.artists.length === 0 || filters.artists.includes(album.artist);
+    const matchesGenre = filters.genres.length === 0 || filters.genres.some(g => album.genres?.includes(g));
     const albumYear = parseInt(album.releaseDate?.slice(0, 4) || "0");
     const minYear = filters.minYear ? parseInt(filters.minYear) : null;
     const maxYear = filters.maxYear ? parseInt(filters.maxYear) : null;
     const matchesMinYear = !minYear || albumYear >= minYear;
     const matchesMaxYear = !maxYear || albumYear <= maxYear;
-    return matchesArtist && matchesMinYear && matchesMaxYear;
+    return matchesArtist && matchesGenre && matchesMinYear && matchesMaxYear;
   });
 
   const sortedAlbums = [...filteredAlbums].sort((a, b) => {
@@ -85,8 +95,17 @@ export default function AlbumsPublic({ user }) {
     setFilters(prev => ({ ...prev, [type]: value }));
   };
 
+  const toggleGenre = (genre) => {
+    setFilters(prev => ({
+      ...prev,
+      genres: prev.genres.includes(genre)
+        ? prev.genres.filter(g => g !== genre)
+        : [...prev.genres, genre]
+    }));
+  };
+
   const clearFilters = () => {
-    setFilters({ artists: [], minYear: "", maxYear: "" });
+    setFilters({ artists: [], genres: [], minYear: "", maxYear: "" });
   };
 
   const filteredArtists = uniqueArtists.filter(artist =>
@@ -98,35 +117,32 @@ export default function AlbumsPublic({ user }) {
   if (loading) return <p>Loading albums...</p>;
 
   return (
-    <>
+    <div className="page-pad">
       <h1>All Rated Albums</h1>
 
       {/* Filters */}
-      <div style={{ marginBottom: "20px", padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }}>
-        <h3>Filters</h3>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "flex-start" }}>
+      <div className="filter-bar">
+        <div className="filter-bar-row">
           <div style={{ position: "relative" }}>
-            <button onClick={() => setShowDropdown(!showDropdown)} style={{ padding: "5px 10px", cursor: "pointer" }}>
-              Artists ({filters.artists.length})
+            <button
+              className={`filter-btn${filters.artists.length > 0 ? " active" : ""}`}
+              onClick={() => { setShowGenreDropdown(false); setShowDropdown(v => !v); }}
+            >
+              Artists{filters.artists.length > 0 ? ` (${filters.artists.length})` : ""}
             </button>
             {showDropdown && (
-              <div style={{
-                position: "absolute", top: "100%", left: 0, background: "white",
-                border: "1px solid #ccc", borderRadius: "4px", padding: "10px",
-                zIndex: 1000, minWidth: "200px", maxHeight: "300px", overflowY: "auto",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-              }}>
+              <div className="filter-dropdown-panel">
                 <input
+                  className="filter-dropdown-search"
                   type="text"
                   placeholder="Search artists..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{ width: "100%", padding: "5px", marginBottom: "10px", boxSizing: "border-box" }}
                 />
                 {filteredArtists.map(artist => (
-                  <div key={artist} style={{ padding: "3px 0" }}>
-                    <label style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
-                      <input type="checkbox" checked={filters.artists.includes(artist)} onChange={() => toggleArtist(artist)} style={{ marginRight: "8px" }} />
+                  <div key={artist} className="filter-dropdown-item">
+                    <label>
+                      <input type="checkbox" checked={filters.artists.includes(artist)} onChange={() => toggleArtist(artist)} />
                       {artist}
                     </label>
                   </div>
@@ -135,21 +151,49 @@ export default function AlbumsPublic({ user }) {
             )}
           </div>
 
-          <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
-            <input type="number" placeholder="Min year" value={filters.minYear} onChange={(e) => handleYearChange("minYear", e.target.value)} style={{ padding: "5px", width: "90px" }} />
-            <span>to</span>
-            <input type="number" placeholder="Max year" value={filters.maxYear} onChange={(e) => handleYearChange("maxYear", e.target.value)} style={{ padding: "5px", width: "90px" }} />
+          <div style={{ position: "relative" }}>
+            <button
+              className={`filter-btn${filters.genres.length > 0 ? " active" : ""}`}
+              onClick={() => { setShowDropdown(false); setShowGenreDropdown(v => !v); }}
+            >
+              Genres{filters.genres.length > 0 ? ` (${filters.genres.length})` : ""}
+            </button>
+            {showGenreDropdown && (
+              <div className="filter-dropdown-panel">
+                <input
+                  className="filter-dropdown-search"
+                  type="text"
+                  placeholder="Search genres..."
+                  value={genreSearchTerm}
+                  onChange={(e) => setGenreSearchTerm(e.target.value)}
+                />
+                {availableGenres
+                  .filter(g => g.name.toLowerCase().includes(genreSearchTerm.toLowerCase()))
+                  .map(g => (
+                    <div key={g.id} className="filter-dropdown-item">
+                      <label>
+                        <input type="checkbox" checked={filters.genres.includes(g.name)} onChange={() => toggleGenre(g.name)} />
+                        {g.name}
+                      </label>
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
 
-          <button onClick={clearFilters} style={{ padding: "5px 10px" }}>Clear Filters</button>
+          <div className="filter-year-row">
+            <input className="filter-input" type="number" placeholder="Min year" value={filters.minYear} onChange={(e) => handleYearChange("minYear", e.target.value)} />
+            <span>–</span>
+            <input className="filter-input" type="number" placeholder="Max year" value={filters.maxYear} onChange={(e) => handleYearChange("maxYear", e.target.value)} />
+          </div>
+
+          <button className="filter-btn" onClick={clearFilters}>Clear Filters</button>
         </div>
-        <p style={{ marginTop: "10px", fontSize: "14px", color: "#666" }}>
-          Showing {Math.min(100, sortedAlbums.length)} of {albums.length} albums
-        </p>
+        <p className="filter-meta">Showing {Math.min(100, sortedAlbums.length)} of {albums.length} albums</p>
       </div>
 
       {!isMobile && (
-        <button onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")} style={{ marginBottom: "15px" }}>
+        <button className="ui-btn" style={{ marginBottom: "15px" }} onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")}>
           {viewMode === "list" ? "Grid View" : "List View"}
         </button>
       )}
@@ -214,6 +258,6 @@ export default function AlbumsPublic({ user }) {
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }
