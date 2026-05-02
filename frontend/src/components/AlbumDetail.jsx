@@ -173,6 +173,27 @@ export default function AlbumDetail({ user }) {
     }
   };
 
+  const renderCommentContent = (content) => {
+    const imageRegex = /(https?:\/\/\S+\.(?:jpg|jpeg|png|gif|webp|svg)(\?\S*)?)/i;
+    const match = content.match(imageRegex);
+    if (match) {
+      const url = match[1];
+      const text = content.replace(url, "").trim();
+      return (
+        <div>
+          {text && <div style={{ fontSize: "13px", marginBottom: "4px" }}>{text}</div>}
+          <img
+            src={url}
+            alt=""
+            style={{ maxWidth: "200px", maxHeight: "200px", borderRadius: "4px", objectFit: "cover" }}
+            onError={e => { e.target.style.display = "none"; }}
+          />
+        </div>
+      );
+    }
+    return <div style={{ fontSize: "13px" }}>{content}</div>;
+  };
+
   const [reviewLikes, setReviewLikes] = useState({ count: 0, likedByMe: false, ratingId: null });
 
   // after album loads
@@ -542,7 +563,6 @@ export default function AlbumDetail({ user }) {
         </div>
       </div>
       {/* ===== COMMENTS ===== */}
-      {/* ===== COMMENTS ===== */}
       <div style={{ marginBottom: "24px", maxWidth: "600px" }}>
         <h3 style={{ marginBottom: "8px" }}>Comments</h3>
         {comments.filter(c => !c.parent_id).length === 0 && (
@@ -558,7 +578,7 @@ export default function AlbumDetail({ user }) {
                   <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
                     {new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                   </span>
-                  <div style={{ fontSize: "13px", marginTop: "2px" }}>{c.content}</div>
+                  <div style={{ fontSize: "13px", marginTop: "2px" }}>{renderCommentContent(c.content)}</div>
                   <button
                     onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyInput(""); }}
                     style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "11px", padding: "4px 0 0 0" }}
@@ -593,7 +613,7 @@ export default function AlbumDetail({ user }) {
               {/* Reply input */}
               {replyingTo === c.id && (
                 <div style={{ display: "flex", gap: "8px", marginTop: "6px", marginLeft: "24px" }}>
-                  <input
+                  <textarea
                     type="text"
                     value={replyInput}
                     onChange={e => setReplyInput(e.target.value)}
@@ -618,7 +638,7 @@ export default function AlbumDetail({ user }) {
                       <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
                         {new Date(reply.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </span>
-                      <div style={{ fontSize: "13px", marginTop: "2px" }}>{reply.content}</div>
+                      <div style={{ fontSize: "13px", marginTop: "2px" }}>{renderCommentContent(reply.content)}</div>
                       <button
                         onClick={() => { setReplyingTo(replyingTo === `${c.id}-${reply.id}` ? null : `${c.id}-${reply.id}`); setReplyInput(""); }}
                         style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "11px", padding: "4px 0 0 0" }}
@@ -652,11 +672,10 @@ export default function AlbumDetail({ user }) {
 
                   {replyingTo === `${c.id}-${reply.id}` && (
                     <div style={{ display: "flex", gap: "8px", marginTop: "6px", marginLeft: "48px" }}>
-                      <input
+                      <textarea
                         type="text"
                         value={replyInput}
                         onChange={e => setReplyInput(e.target.value)}
-                        onKeyDown={e => e.key === "Enter" && handlePostReply(c.id, reply.username)}
                         placeholder={`Reply to ${reply.username}...`}
                         maxLength={200}
                         autoFocus
@@ -673,11 +692,10 @@ export default function AlbumDetail({ user }) {
           ))}
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
-          <input
+          <textarea
             type="text"
             value={commentInput}
             onChange={e => setCommentInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && handlePostComment()}
             placeholder="Add a comment..."
             maxLength={200}
             style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
