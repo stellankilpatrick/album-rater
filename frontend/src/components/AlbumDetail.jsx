@@ -289,7 +289,7 @@ export default function AlbumDetail({ user }) {
       ) : (
         album?.review && (
           <p style={{ margin: isMobile ? 0 : "0 30px 0 0", fontSize: "13px", color: "white", fontStyle: "italic" }}>
-            "{album.review}"
+            "{renderCommentContent(album.review)}"
           </p>
         )
       )}
