@@ -191,7 +191,7 @@ export default function AlbumDetail({ user }) {
         </div>
       );
     }
-    return <div style={{ fontSize: "13px" }}>{content}</div>;
+    return <span style={{ fontSize: "13px" }}>{content}</span>;
   };
 
   const [reviewLikes, setReviewLikes] = useState({ count: 0, likedByMe: false, ratingId: null });
