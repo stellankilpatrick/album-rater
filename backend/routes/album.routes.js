@@ -4,7 +4,7 @@ import { requireAuth } from "../auth/auth.middleware.js";
 import {
   getAlbumDetailsPublic, createAlbum,
   getAllAlbumsPublic, updateAlbumTitle, updateAlbumArtist, updateAlbumCover,
-  getUserRatedAlbums, updateAlbumRatingForUser, getUserAlbumScoreSingle, getAlbumDetailsPrivate,
+  getUserRatedAlbums, updateAlbumRatingForUser, getAlbumDetailsPrivate,
   getUserAlbumScores, updateAlbumReleaseDate, deleteUserAlbumRating,
   getAlbumGenres, getAllGenres, addGenreToAlbum, removeGenreFromAlbum,
   getAlbumGenreRank, getAlbumYearRank, getAlbumDecadeRank, getAlbumArtistRank,
