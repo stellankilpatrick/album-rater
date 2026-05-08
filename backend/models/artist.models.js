@@ -161,7 +161,34 @@ export async function getUserRatedAlbumsByArtist(userId, artistId) {
   }));
 }
 
-export async function attachUserAlbumStats(albums, userId, power = 0.5) {
+function getOptimalPower(likePercentage) {
+  if (likePercentage <= 0 || likePercentage >= 1) return 1;
+  return Math.log(0.5) / Math.log(1 - likePercentage);
+}
+
+// helper model to find correct power
+export async function getUserPower(userId) {
+  const { rows } = await pool.query(
+    `SELECT
+      COUNT(*) FILTER (WHERE liked = true) AS likes,
+      COUNT(*) FILTER (WHERE liked IS NOT NULL) AS total
+     FROM album_ratings
+     WHERE user_id = $1`,
+    [userId]
+  );
+
+  const likes = Number(rows[0].likes);
+  const total = Number(rows[0].total);
+
+  if (total < 30) return 0.5;
+
+  const likePercentage = likes / total;
+
+  return getOptimalPower(likePercentage);
+}
+
+export async function attachUserAlbumStats(albums, userId) {
+    const power = await getUserPower(userId);
   // Step 1: get ALL rated albums for this user to compute global percentiles
   const allRes = await pool.query(
     `SELECT
