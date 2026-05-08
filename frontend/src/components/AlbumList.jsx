@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../api/api";
-import { useNavigate, Navigate, useParams } from "react-router-dom";
+import { useNavigate, Navigate, useParams, useSearchParams } from "react-router-dom";
 
 export default function AlbumList({ user }) {
     const [albums, setAlbums] = useState([]);
@@ -12,9 +12,18 @@ export default function AlbumList({ user }) {
     const [availableGenres, setAvailableGenres] = useState([]);
     const [genreSearchTerm, setGenreSearchTerm] = useState("");
     const [showGenreDropdown, setShowGenreDropdown] = useState(false);
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const [viewMode, setViewMode] = useState(window.innerWidth <= 768 ? "grid" : "grid");
+
+    // Read filters directly from URL
+    const sortKey = searchParams.get("sort") ?? "score10";
+    const sortDir = searchParams.get("dir") ?? "desc";
+    const selectedArtists = searchParams.getAll("artist");
+    const selectedGenres = searchParams.getAll("genre");
+    const minYear = searchParams.get("minYear") ?? "";
+    const maxYear = searchParams.get("maxYear") ?? "";
 
     useEffect(() => {
         const handleResize = () => {
@@ -62,62 +71,85 @@ export default function AlbumList({ user }) {
             .catch(err => console.error(err));
     }, [effectiveUsername]);
 
-    const uniqueArtists = [...new Set(albums.map(a => a.artist))].sort();
+    const uniqueArtists = [...new Set(
+        albums
+            .flatMap(a => a.artist ? a.artist.split(' & ').map(artist => artist.trim()) : [])
+    )]
+        .sort();
 
     const filteredAlbums = albums.filter(album => {
-        const matchesArtist = filters.artists.length === 0 || filters.artists.includes(album.artist);
-        const matchesGenre = filters.genres.length === 0 || filters.genres.some(g => album.genres?.includes(g));
-        const albumYear = parseInt(album.releaseDate.slice(0, 4));
-        const minYear = filters.minYear ? parseInt(filters.minYear) : null;
-        const maxYear = filters.maxYear ? parseInt(filters.maxYear) : null;
-        const matchesMinYear = !minYear || albumYear >= minYear;
-        const matchesMaxYear = !maxYear || albumYear <= maxYear;
-        return matchesArtist && matchesMinYear && matchesMaxYear && matchesGenre;
+        // Split artists and check if any selected artist is in this album
+        const albumArtists = album.artist ? album.artist.split(' & ').map(a => a.trim()) : [];
+        const matchesArtist = selectedArtists.length === 0 ||
+            selectedArtists.some(selected => albumArtists.includes(selected));
+
+        const matchesGenre = selectedGenres.length === 0 || selectedGenres.some(g => album.genres?.includes(g));
+        const albumYear = parseInt(album.releaseDate?.slice(0, 4));
+        const min = minYear ? parseInt(minYear) : null;
+        const max = maxYear ? parseInt(maxYear) : null;
+        return matchesArtist && matchesGenre
+            && (!min || albumYear >= min)
+            && (!max || albumYear <= max);
     });
 
     const sortedAlbums = [...filteredAlbums].sort((a, b) => {
-        const key = sortConfig.key;
-        if (a[key] < b[key]) return sortConfig.direction === "asc" ? -1 : 1;
-        if (a[key] > b[key]) return sortConfig.direction === "asc" ? 1 : -1;
+        if (a[sortKey] < b[sortKey]) return sortDir === "asc" ? -1 : 1;
+        if (a[sortKey] > b[sortKey]) return sortDir === "asc" ? 1 : -1;
         return 0;
     });
 
+    // Helper to update one or more params without wiping others
+    const updateParams = (updates) => {
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            Object.entries(updates).forEach(([key, value]) => {
+                if (value === null || value === "" || (Array.isArray(value) && value.length === 0)) {
+                    next.delete(key);
+                } else if (Array.isArray(value)) {
+                    next.delete(key);
+                    value.forEach(v => next.append(key, v));
+                } else {
+                    next.set(key, value);
+                }
+            });
+            return next;
+        });
+    };
+
     const handleSort = (key) => {
-        setSortConfig((prev) => ({
-            key,
-            direction: prev.key === key && prev.direction === "desc" ? "asc" : "desc",
-        }));
+        const newDir = sortKey === key && sortDir === "desc" ? "asc" : "desc";
+        updateParams({ sort: key, dir: newDir });
     };
 
     const getSortArrow = (key) => {
-        if (sortConfig.key !== key) return "";
-        return sortConfig.direction === "asc" ? " ↑" : " ↓";
+        if (sortKey !== key) return "";
+        return sortDir === "asc" ? " ↑" : " ↓";
     };
 
     const toggleArtist = (artist) => {
-        setFilters(prev => ({
-            ...prev,
-            artists: prev.artists.includes(artist)
-                ? prev.artists.filter(a => a !== artist)
-                : [...prev.artists, artist]
-        }));
+        const next = selectedArtists.includes(artist)
+            ? selectedArtists.filter(a => a !== artist)
+            : [...selectedArtists, artist];
+        updateParams({ artist: next });
     };
 
     const toggleGenre = (genre) => {
-        setFilters(prev => ({
-            ...prev,
-            genres: prev.genres.includes(genre)
-                ? prev.genres.filter(g => g !== genre)
-                : [...prev.genres, genre]
-        }));
+        const next = selectedGenres.includes(genre)
+            ? selectedGenres.filter(g => g !== genre)
+            : [...selectedGenres, genre];
+        updateParams({ genre: next });
     };
 
     const handleYearChange = (type, value) => {
-        setFilters(prev => ({ ...prev, [type]: value }));
+        updateParams({ [type]: value });
     };
 
     const clearFilters = () => {
-        setFilters({ artists: [], genres: [], minYear: "", maxYear: "" });
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            ["artist", "genre", "minYear", "maxYear"].forEach(k => next.delete(k));
+            return next;
+        });
     };
 
     const filteredArtists = uniqueArtists.filter(artist =>
@@ -140,10 +172,10 @@ export default function AlbumList({ user }) {
                             {/* Artist dropdown */}
                             <div style={{ position: "relative" }}>
                                 <button
-                                    className={`filter-btn${filters.artists.length > 0 ? " active" : ""}`}
+                                    className={`filter-btn${selectedArtists.length > 0 ? " active" : ""}`}
                                     onClick={() => { setShowGenreDropdown(false); setShowDropdown(v => !v); }}
                                 >
-                                    Artists{filters.artists.length > 0 ? ` (${filters.artists.length})` : ""}
+                                    Artists{selectedArtists.length > 0 ? ` (${selectedArtists.length})` : ""}
                                 </button>
                                 {showDropdown && (
                                     <div className="filter-dropdown-panel">
@@ -157,7 +189,7 @@ export default function AlbumList({ user }) {
                                         {filteredArtists.map(artist => (
                                             <div key={artist} className="filter-dropdown-item">
                                                 <label>
-                                                    <input type="checkbox" checked={filters.artists.includes(artist)} onChange={() => toggleArtist(artist)} />
+                                                    <input type="checkbox" checked={selectedArtists.includes(artist)} onChange={() => toggleArtist(artist)} />
                                                     {artist}
                                                 </label>
                                             </div>
@@ -169,10 +201,10 @@ export default function AlbumList({ user }) {
                             {/* Genre dropdown */}
                             <div style={{ position: "relative" }}>
                                 <button
-                                    className={`filter-btn${filters.genres.length > 0 ? " active" : ""}`}
+                                    className={`filter-btn${selectedGenres.length > 0 ? " active" : ""}`}
                                     onClick={() => { setShowDropdown(false); setShowGenreDropdown(v => !v); }}
                                 >
-                                    Genres{filters.genres.length > 0 ? ` (${filters.genres.length})` : ""}
+                                    Genres{selectedGenres.length > 0 ? ` (${selectedGenres.length})` : ""}
                                 </button>
                                 {showGenreDropdown && (
                                     <div className="filter-dropdown-panel">
@@ -188,7 +220,7 @@ export default function AlbumList({ user }) {
                                             .map(g => (
                                                 <div key={g.id} className="filter-dropdown-item">
                                                     <label>
-                                                        <input type="checkbox" checked={filters.genres.includes(g.name)} onChange={() => toggleGenre(g.name)} />
+                                                        <input type="checkbox" checked={selectedGenres.includes(g.name)} onChange={() => toggleGenre(g.name)} />
                                                         {g.name}
                                                     </label>
                                                 </div>
@@ -199,9 +231,9 @@ export default function AlbumList({ user }) {
 
                             {/* Year range */}
                             <div className="filter-year-row">
-                                <input className="filter-input" type="number" placeholder="Min year" value={filters.minYear} onChange={(e) => handleYearChange("minYear", e.target.value)} />
+                                <input className="filter-input" type="number" placeholder="Min year" value={minYear} onChange={(e) => handleYearChange("minYear", e.target.value)} />
                                 <span>–</span>
-                                <input className="filter-input" type="number" placeholder="Max year" value={filters.maxYear} onChange={(e) => handleYearChange("maxYear", e.target.value)} />
+                                <input className="filter-input" type="number" placeholder="Max year" value={maxYear} onChange={(e) => handleYearChange("maxYear", e.target.value)} />
                             </div>
 
                             <button className="filter-btn" onClick={clearFilters}>Clear Filters</button>
@@ -273,7 +305,7 @@ export default function AlbumList({ user }) {
                                         style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: "6px" }}
                                     />
                                     <div style={{ fontSize: isMobile ? "11px" : "14px", fontWeight: 500 }}>
-                                        {i+1}. <i>{album.title}</i> · {album.score10.toFixed(1)}
+                                        {i + 1}. <i>{album.title}</i> · {album.score10.toFixed(1)}
                                     </div>
                                     <div style={{ fontSize: isMobile ? "10px" : "13px", color: "#888" }}>
                                         {album.artist}

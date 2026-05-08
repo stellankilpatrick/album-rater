@@ -505,28 +505,50 @@ export default function AlbumDetail({ user }) {
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
             <h3 style={{ margin: 0 }}>Ranks</h3>
             {ranks.year?.rank != null && (
-              <div style={{ fontSize: "16px" }}>
-                <strong style={{ fontSize: "28px" }}>{ordinal(ranks.year.rank)} </strong>
-                <span style={{ color: "#999" }}>of {ranks.year.total} <strong style={{ fontSize: "15px" }}>{album.releaseDate?.slice(0, 4)}</strong> albums</span>
-              </div>
+              <Link
+                to={`/albums/users/${effectiveUsername}?minYear=${album.releaseDate?.slice(0, 4)}&maxYear=${album.releaseDate?.slice(0, 4)}`}
+                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+              >
+                <div style={{ fontSize: "16px" }}>
+                  <strong style={{ fontSize: "28px" }}>{ordinal(ranks.year.rank)} </strong>
+                  <span style={{ color: "#999" }}>of {ranks.year.total} <strong style={{ fontSize: "15px" }}>{album.releaseDate?.slice(0, 4)}</strong> albums</span>
+                </div>
+              </Link>
             )}
             {ranks.decade?.rank != null && (
-              <div style={{ fontSize: "16px" }}>
-                <strong style={{ fontSize: "28px" }}>{ordinal(ranks.decade.rank)} </strong>
-                <span style={{ color: "#999" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> albums</span>
-              </div>
+              <Link
+                to={`/albums/users/${effectiveUsername}?minYear=${Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}&maxYear=${Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10 + 9}`}
+                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+              >
+                <div style={{ fontSize: "16px" }}>
+                  <strong style={{ fontSize: "28px" }}>{ordinal(ranks.decade.rank)} </strong>
+                  <span style={{ color: "#999" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> albums</span>
+                </div>
+              </Link>
             )}
             {Array.isArray(ranks.artist) && ranks.artist.map(a => a.rank != null && (
-              <div key={a.name} style={{ fontSize: "16px" }}>
-                <strong style={{ fontSize: "28px" }}>{ordinal(a.rank)} </strong>
-                <span style={{ color: "#999" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> albums</span>
-              </div>
+              <Link
+                key={a.name}
+                to={`/albums/users/${effectiveUsername}?artist=${encodeURIComponent(a.name)}`}
+                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+              >
+                <div style={{ fontSize: "16px" }}>
+                  <strong style={{ fontSize: "28px" }}>{ordinal(a.rank)} </strong>
+                  <span style={{ color: "#999" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> albums</span>
+                </div>
+              </Link>
             ))}
             {genres.map(g => ranks[`genre_${g.name}`]?.rank != null && (
-              <div key={g.name} style={{ fontSize: "16px" }}>
-                <strong style={{ fontSize: "28px" }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
-                <span style={{ color: "#999" }}>of {ranks[`genre_${g.name}`].total} <strong style={{ fontSize: "15px" }}>{g.name}</strong> albums</span>
-              </div>
+              <Link
+                key={g.name}
+                to={`/albums/users/${effectiveUsername}?genre=${encodeURIComponent(g.name)}`}
+                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+              >
+                <div style={{ fontSize: "16px" }}>
+                  <strong style={{ fontSize: "28px" }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
+                  <span style={{ color: "#999" }}>of {ranks[`genre_${g.name}`].total} <strong style={{ fontSize: "15px" }}>{g.name}</strong> albums</span>
+                </div>
+              </Link>
             ))}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
