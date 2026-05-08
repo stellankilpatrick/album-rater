@@ -428,7 +428,7 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
       return res.status(403).json({ error: "Forbidden" });
     }
 
-    const { ratings } = req.body; // [{ songId, rating }]
+    const { ratings } = req.body;
     if (!Array.isArray(ratings)) return res.status(400).json({ error: "Invalid ratings" });
 
     const client = await pool.connect();
@@ -449,6 +449,12 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
       // update album_ratings table
       await updateAlbumRatingForUser(req.user.id, Number(req.params.id));
 
+      const liked = ratings.some(r => r.rating >= 1);
+      await client.query(
+        `UPDATE album_ratings SET liked = $1 WHERE user_id = $2 AND album_id = $3`,
+        [liked, req.user.id, Number(req.params.id)]
+      );
+
       await client.query("COMMIT");
     } catch (err) {
       await client.query("ROLLBACK");
@@ -465,14 +471,14 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
         FROM recommendations r
         JOIN albums a ON a.id = r.album_id
         WHERE r.to_user_id = $1 AND r.album_id = $2`,
-      [req.user.id, albumId] // use the correct albumId variable for each route
+      [req.user.id, Number(req.params.id)]
     );
     for (const rec of recRows) {
       await createNotification(pool, {
         userId: rec.from_user_id,
         type: "recommendation_rated",
         fromUserId: req.user.id,
-        albumId,
+        albumId: Number(req.params.id),
         message: `${req.user.username} rated ${rec.title}, which you recommended to them`
       });
     }

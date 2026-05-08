@@ -489,8 +489,7 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
 export async function getUserAlbumScores(userId, power = 0.5) {
   // Pull all albums the user has rated
   const res = await pool.query(
-    `
-    SELECT
+    `SELECT
       a.id AS album_id,
       COALESCE(SUM(sr.rating), 0) AS total_rating,
       COUNT(sr.rating) FILTER (WHERE sr.rating IS NOT NULL) AS rated_songs
@@ -499,8 +498,7 @@ export async function getUserAlbumScores(userId, power = 0.5) {
     LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
     GROUP BY a.id
     HAVING COUNT(sr.rating) FILTER (WHERE sr.rating IS NOT NULL) > 0
-    ORDER BY total_rating DESC
-    `,
+    ORDER BY total_rating DESC`,
     [userId]
   );
 
@@ -851,6 +849,11 @@ export async function updateAlbumReview(userId, albumId, review) {
   return result.rows[0];
 }
 
+function getOptimalPower(likePercentage) {
+  if (likePercentage <= 0 || likePercentage >= 1) return 1;
+  return Math.log(0.5) / Math.log(likePercentage);
+}
+
 /**
  * Sync score10s
  * @param {} userId 
@@ -860,15 +863,41 @@ export async function syncUserScore10s(userId) {
   const scores = await getUserAlbumScores(userId);
   if (!scores.length) return;
 
-  const values = scores.map((_, i) =>
-    `($${i * 3 + 1}::int, $${i * 3 + 2}::int, $${i * 3 + 3}::real)`
-  ).join(", ");
+  // Get user's like percentage
+  const { rows: likeRows } = await pool.query(
+    `SELECT COUNT(*) FILTER (WHERE liked = true) as likes, COUNT(*) as total
+     FROM album_ratings WHERE user_id = $1`,
+    [userId]
+  );
 
-  const params = scores.flatMap(s => [userId, s.albumId, s.score10]);
+  const total = likeRows[0].total
+  let power = 0.5
+
+  // Only calculate optimal power if user has rated 20+ albums
+  if (total >= 20) {
+    const likePercentage = likeRows[0].likes / total;
+    power = getOptimalPower(likePercentage);
+  }
+  
+  const n = scores.length;
+  const sorted = scores.sort((a, b) => a.rating - b.rating);
+
+  const scoreMap = new Map(
+    sorted.map((a) => {
+      const below = sorted.filter(x => x.rating < a.rating).length;
+      const percentile = n === 1 ? 1 : below / (n - 1);
+      const score10 = Math.pow(percentile, power) * 10;
+      return [a.albumId, score10];
+    })
+  );
+
+  const values = Array.from(scoreMap.entries())
+    .map((_, i) => `($${i * 3 + 1}::int, $${i * 3 + 2}::int, $${i * 3 + 3}::real)`)
+    .join(", ");
+  const params = Array.from(scoreMap.entries()).flatMap(([albumId, score10]) => [userId, albumId, score10]);
 
   await pool.query(
-    `UPDATE album_ratings AS ar
-     SET score10 = v.score10
+    `UPDATE album_ratings AS ar SET score10 = v.score10
      FROM (VALUES ${values}) AS v(user_id, album_id, score10)
      WHERE ar.user_id = v.user_id::int AND ar.album_id = v.album_id::int`,
     params
