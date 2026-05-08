@@ -797,8 +797,8 @@ export async function syncUserScore10s(userId) {
   const total = likeRows[0].total
   let power = 0.5
 
-  // Only calculate optimal power if user has rated 20+ albums
-  if (total >= 20) {
+  // Only calculate optimal power if user has rated 30+ albums
+  if (total >= 30) {
     const likePercentage = likeRows[0].likes / total;
     power = getOptimalPower(likePercentage);
   }
