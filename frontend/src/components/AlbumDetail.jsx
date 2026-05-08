@@ -522,21 +522,31 @@ export default function AlbumDetail({ user }) {
             {isOwner ? "I" : effectiveUsername}
             <button
               onClick={() => {
-                if (liked === true) handleToggleLike(null);
-                else if (liked === false) handleToggleLike(true);
-                else handleToggleLike(true);
+                if (liked === null) handleToggleLike(true);
+                else if (liked === true) handleToggleLike(false);
+                else handleToggleLike(null);
               }}
               style={{
                 border: "none",
-                color: liked === true ? "#1db954" : liked === false ? "#e74c3c" : "#999",
+                background:
+                  liked === true
+                    ? "#1db954"
+                    : liked === false
+                      ? "#e74c3c"
+                      : "#999",
+                color: "white",
                 cursor: "pointer",
                 fontSize: "13px",
                 padding: "0 4px",
-                margin: "0 4px 0 4px",
-                fontWeight: liked ? "bold" : "normal"
+                margin: "0 4px",
+                fontWeight: liked !== null ? "bold" : "normal"
               }}
             >
-              {liked === true ? (isOwner ? "like" : "likes") : liked === false ? (isOwner ? "dislike" : "dislikes") : "add rating"}
+              {liked === true
+                ? (isOwner ? "like" : "likes")
+                : liked === false
+                  ? (isOwner ? "dislike" : "dislikes")
+                  : "add rating"}
             </button>
             this album
           </div>
