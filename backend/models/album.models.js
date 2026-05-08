@@ -753,7 +753,7 @@ export async function updateAlbumReview(userId, albumId, review) {
 
 function getOptimalPower(likePercentage) {
   if (likePercentage <= 0 || likePercentage >= 1) return 1;
-  return Math.log(0.5) / Math.log(likePercentage);
+  return Math.log(0.5) / Math.log(1 - likePercentage);
 }
 
 export async function getUserAlbumScores(userId) {
