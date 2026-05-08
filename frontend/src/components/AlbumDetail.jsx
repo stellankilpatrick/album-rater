@@ -509,38 +509,42 @@ export default function AlbumDetail({ user }) {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, paddingLeft: isMobile ? "10px" : "0" }}>
-          <div style={{ fontSize: "13px" }}>
-            {isOwner ? "I" : effectiveUsername}
-            <button
-              onClick={() => {
-                if (liked === null) handleToggleLike(true);
-                else if (liked === true) handleToggleLike(false);
-                else handleToggleLike(null);
-              }}
-              style={{
-                border: "none",
-                background:
-                  liked === true
-                    ? "#1db954"
-                    : liked === false
-                      ? "#e74c3c"
-                      : "#999",
-                color: "white",
-                cursor: "pointer",
-                fontSize: "13px",
-                padding: "0 4px",
-                margin: "0 4px",
-                fontWeight: liked !== null ? "bold" : "normal"
-              }}
-            >
-              {liked === true
-                ? (isOwner ? "like" : "likes")
-                : liked === false
-                  ? (isOwner ? "dislike" : "dislikes")
-                  : "add rating"}
-            </button>
-            this album
-          </div>
+          {!(liked === null && !isOwner) && (
+            <div style={{ fontSize: "13px" }}>
+              {isOwner ? "I" : effectiveUsername}
+
+              <button
+                onClick={() => {
+                  if (liked === null) handleToggleLike(true);
+                  else if (liked === true) handleToggleLike(false);
+                  else handleToggleLike(null);
+                }}
+                style={{
+                  border: "none",
+                  background:
+                    liked === true
+                      ? "#1db954"
+                      : liked === false
+                        ? "#e74c3c"
+                        : "#999",
+                  color: "white",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  padding: "0 4px",
+                  margin: "0 4px",
+                  fontWeight: liked !== null ? "bold" : "normal"
+                }}
+              >
+                {liked === true
+                  ? (isOwner ? "like" : "likes")
+                  : liked === false
+                    ? (isOwner ? "dislike" : "dislikes")
+                    : "add rating"}
+              </button>
+
+              this album
+            </div>
+          )}
           {friends.length > 0 && user.username === effectiveUsername && (
             <div style={{ marginBottom: "-10px" }}>
               <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
