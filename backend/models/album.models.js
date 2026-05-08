@@ -789,7 +789,7 @@ export async function syncUserScore10s(userId) {
 
   // Get user's like percentage
   const { rows: likeRows } = await pool.query(
-    `SELECT COUNT(*) FILTER (WHERE liked = true) as likes, COUNT(*) as total
+    `SELECT COUNT(*) FILTER (WHERE liked = true) as likes, COUNT(*) FILTER (WHERE liked IS NOT NULL) as total
      FROM album_ratings WHERE user_id = $1`,
     [userId]
   );
