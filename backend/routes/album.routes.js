@@ -345,18 +345,20 @@ router.delete("/:id/genres/:genreId", requireAuth, async (req, res) => {
 // ===============================
 router.get("/users/:username", requireAuth, async (req, res) => {
   try {
-    const power = req.query.power ? Number(req.query.power) : 0.5;
     const userId = req.profileUser.id;
-
     const albums = await getUserRatedAlbums(userId);
 
-    const scores = await getUserAlbumScores(userId, power);
+    // Fetch score10 from database instead of recalculating
+    const { rows: scores } = await pool.query(
+      `SELECT album_id, score10 FROM album_ratings WHERE user_id = $1`,
+      [userId]
+    );
 
-    const scoreMap = new Map(scores.map(s => [s.albumId, s.score10]));
+    const scoreMap = new Map(scores.map(s => [s.album_id, s.score10]));
 
     const enrichedAlbums = albums.map(album => ({
       ...album,
-      score10: Math.min(10, Math.max(1, scoreMap.get(album.id) ?? 1))
+      score10: scoreMap.get(album.id) ?? 0
     }));
 
     res.json(enrichedAlbums);
@@ -377,7 +379,11 @@ router.get("/:id/users/:username", requireAuth, async (req, res) => {
     const album = await getAlbumDetailsPrivate(albumId, userId);
     if (!album) return res.status(404).json({ error: "Album not found" });
 
-    const score = await getUserAlbumScoreSingle(userId, albumId);
+    // Get stored score10 from database
+    const { rows } = await pool.query(
+      `SELECT score10 FROM album_ratings WHERE user_id = $1 AND album_id = $2`,
+      [userId, albumId]
+    );
 
     album.songs = album.tracks.map(t => ({
       id: t.id,
@@ -393,7 +399,7 @@ router.get("/:id/users/:username", requireAuth, async (req, res) => {
 
     res.json({
       ...album,
-      score10: score?.score10 ?? null
+      score10: rows[0]?.score10 ?? null
     });
   } catch (err) {
     console.error(err);
@@ -415,6 +421,36 @@ router.get("/:id/users/:username/mutuals", requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to get mutual friends" });
+  }
+});
+
+
+// LIKE / DISLIKE AN ALBUM
+router.get("/:albumId/users/:username/liked", requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT liked FROM album_ratings WHERE album_id = $1 AND user_id = $2`,
+      [req.params.albumId, req.profileUser.id]
+    );
+    res.json({ liked: rows[0]?.liked ?? null });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch like status" });
+  }
+});
+
+router.patch("/:albumId/users/:username/liked", requireAuth, async (req, res) => {
+  try {
+    const { liked } = req.body;
+    await pool.query(
+      `UPDATE album_ratings SET liked = $1 WHERE album_id = $2 AND user_id = $3`,
+      [liked, req.params.albumId, req.profileUser.id]
+    );
+    await syncUserScore10s(req.user.id);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update like status" });
   }
 });
 

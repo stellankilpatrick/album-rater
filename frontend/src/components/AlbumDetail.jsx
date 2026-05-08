@@ -37,6 +37,8 @@ export default function AlbumDetail({ user }) {
 
   const [untracked, setUntracked] = useState(false);
 
+  const [liked, setLiked] = useState(null); // null = not set, true = like, false = dislike
+
   useEffect(() => {
     if (user) api.get(`albums/${albumId}/users/${effectiveUsername}/mutuals`).then(res => setFriends(res.data));
   }, [user]);
@@ -69,6 +71,7 @@ export default function AlbumDetail({ user }) {
     setUntracked(newVal);
   };
 
+  // fetch album
   useEffect(() => {
     if (!effectiveUsername) return;
     api.get(`/albums/${albumId}/users/${effectiveUsername}`)
@@ -77,6 +80,14 @@ export default function AlbumDetail({ user }) {
         setSongs(res.data.songs);
         setPendingSongs(res.data.songs);
       })
+      .catch(err => console.error(err));
+  }, [albumId, effectiveUsername]);
+
+  // if user liked album
+  useEffect(() => {
+    if (!albumId || !effectiveUsername) return;
+    api.get(`/albums/${albumId}/users/${effectiveUsername}/liked`)
+      .then(res => setLiked(res.data.liked))
       .catch(err => console.error(err));
   }, [albumId, effectiveUsername]);
 
@@ -93,6 +104,11 @@ export default function AlbumDetail({ user }) {
       setPendingReview(album.review);
     }
   }, [album]);
+
+  const handleToggleLike = async (newLiked) => {
+    await api.patch(`/albums/${albumId}/users/${effectiveUsername}/liked`, { liked: newLiked });
+    setLiked(newLiked);
+  };
 
   const handleLikeComment = async (commentId, likedByMe) => {
     if (likedByMe) {
@@ -502,6 +518,28 @@ export default function AlbumDetail({ user }) {
               <button onClick={sendRec} disabled={!selectedFriend}>{recSent ? "Sent!" : "Send"}</button>
             </div>
           )}
+          <div style={{ fontSize: "13px" }}>
+            {isOwner ? "I" : effectiveUsername}
+            <button
+              onClick={() => {
+                if (liked === true) handleToggleLike(null);
+                else if (liked === false) handleToggleLike(true);
+                else handleToggleLike(true);
+              }}
+              style={{
+                border: "none",
+                color: liked === true ? "#1db954" : liked === false ? "#e74c3c" : "#999",
+                cursor: "pointer",
+                fontSize: "13px",
+                padding: "0 4px",
+                margin: "0 4px 0 4px",
+                fontWeight: liked ? "bold" : "normal"
+              }}
+            >
+              {liked === true ? (isOwner ? "like" : "likes") : liked === false ? (isOwner ? "dislike" : "dislikes") : "add rating"}
+            </button>
+            this album
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
             <h3 style={{ margin: 0 }}>Ranks</h3>
             {ranks.year?.rank != null && (
