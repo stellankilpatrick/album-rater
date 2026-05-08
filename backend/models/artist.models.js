@@ -189,7 +189,7 @@ export async function attachUserAlbumStats(albums, userId, power = 0.5) {
     sorted.map((a) => {
       const below = sorted.filter(x => x.rating < a.rating).length;
       const percentile = n === 1 ? 1 : below / (n - 1);
-      const score10 = Math.pow(percentile, power) * 9 + 1;
+      const score10 = Math.pow(percentile, power) * 10;
       return [a.id, score10];
     })
   );
