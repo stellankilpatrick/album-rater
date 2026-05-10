@@ -55,6 +55,19 @@ export default function AlbumDetail({ user }) {
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
   };
 
+  const timeAgo = (date) => {
+    const timestamp = new Date(date).getTime();
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
+    return "just now";
+  };
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener("resize", handleResize);
@@ -650,7 +663,7 @@ export default function AlbumDetail({ user }) {
                 <div style={{ flex: 1 }}>
                   <Link to={`/users/${c.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{c.username}</Link>
                   <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
-                    {new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    {timeAgo(c.created_at)}
                   </span>
                   <div style={{ fontSize: "13px", marginTop: "2px" }}>{renderCommentContent(c.content)}</div>
                   <button
@@ -710,7 +723,7 @@ export default function AlbumDetail({ user }) {
                     <div style={{ flex: 1 }}>
                       <Link to={`/users/${reply.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{reply.username}</Link>
                       <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
-                        {new Date(reply.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        {timeAgo(c.created_at)}
                       </span>
                       <div style={{ fontSize: "13px", marginTop: "2px" }}>{renderCommentContent(reply.content)}</div>
                       <button

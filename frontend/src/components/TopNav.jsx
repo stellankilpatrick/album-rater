@@ -85,6 +85,19 @@ function TopNav({ effectiveUsername, onLogout }) {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  const timeAgo = (date) => {
+    const timestamp = new Date(date).getTime();
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
+    return "just now";
+  };
+
   // Add album form in header
   const [addAlbumOpen, setAddAlbumOpen] = useState(false);
   const [albumTitle, setAlbumTitle] = useState("");
@@ -362,7 +375,7 @@ function TopNav({ effectiveUsername, onLogout }) {
                           >
                             {n.message}
                             <div style={{ fontSize: "11px", color: "#999", marginTop: "2px" }}>
-                              {new Date(n.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                              {timeAgo(n.created_at)}
                             </div>
                           </Link>
                         </div>
