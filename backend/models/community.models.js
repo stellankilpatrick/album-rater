@@ -53,7 +53,7 @@ export async function getAnniversaryAlbums(userId) {
     AND EXTRACT(WEEK FROM a.release_date::date)
         = EXTRACT(WEEK FROM CURRENT_DATE)
     AND ar.user_id = $1
-    AND ar.liked IN NOT FALSE
+    AND ar.liked IS NOT FALSE
   GROUP BY a.id
   ORDER BY a.release_date ASC`,
     [userId]
