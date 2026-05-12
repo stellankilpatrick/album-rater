@@ -39,23 +39,23 @@ export async function getCommunityFeed(userId, limit = 18) {
 export async function getAnniversaryAlbums(userId) {
   const res = await pool.query(
     `SELECT
-      a.id,
-      a.title,
-      a.release_date AS "releaseDate",
-      a.cover_art AS "coverArt",
-      STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
-      ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds"
-    FROM albums a
-    JOIN album_artists aa ON aa.album_id = a.id
-    JOIN artists ar ON ar.id = aa.artist_id
-    JOIN album_ratings ar ON ar.album_id = a.id
-    WHERE a.release_date IS NOT NULL
-      AND EXTRACT(WEEK FROM a.release_date::date)
-          = EXTRACT(WEEK FROM CURRENT_DATE)
-      AND ar.user_id = $1
-      AND ar.liked IS NOT 0
-    GROUP BY a.id
-    ORDER BY a.release_date ASC`,
+    a.id,
+    a.title,
+    a.release_date AS "releaseDate",
+    a.cover_art AS "coverArt",
+    STRING_AGG(artist.name, ' & ' ORDER BY artist.name) AS artist,
+    ARRAY_AGG(artist.id ORDER BY artist.name) AS "artistIds"
+  FROM albums a
+  JOIN album_artists aa ON aa.album_id = a.id
+  JOIN artists artist ON artist.id = aa.artist_id
+  JOIN album_ratings ar ON ar.album_id = a.id
+  WHERE a.release_date IS NOT NULL
+    AND EXTRACT(WEEK FROM a.release_date::date)
+        = EXTRACT(WEEK FROM CURRENT_DATE)
+    AND ar.user_id = $1
+    AND ar.liked != 0
+  GROUP BY a.id
+  ORDER BY a.release_date ASC`,
     [userId]
   );
 
