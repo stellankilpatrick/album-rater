@@ -320,6 +320,64 @@ function TopNav({ effectiveUsername, onLogout }) {
 
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "12px" }}>
               {SearchBox}
+              <div ref={notifRef} style={{ position: "relative" }}>
+                <button
+                  className="nav-bell"
+                  onClick={() => {
+                    setNotifOpen(o => !o);
+                    if (!notifOpen) markAllRead();
+                  }}
+                >
+                  🕭
+                  {unreadCount > 0 && (
+                    <span style={{
+                      position: "absolute", top: "-4px", right: "-4px",
+                      backgroundColor: "red", borderRadius: "50%",
+                      width: "16px", height: "16px", fontSize: "10px",
+                      display: "flex", alignItems: "center", justifyContent: "center"
+                    }}>
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {notifOpen && (
+                  <div style={{
+                    position: "absolute", top: "100%", right: 0,
+                    backgroundColor: "#111", border: "1px solid #333",
+                    borderRadius: "4px", zIndex: 200, width: "300px",
+                    maxHeight: "400px", overflowY: "auto"
+                  }}>
+                    {notifications.length === 0
+                      ? <div style={{ padding: "12px", color: "#999", fontSize: "13px" }}>No notifications</div>
+                      : notifications.map(n => (
+                        <div
+                          key={n.id}
+                          className="nav-notif-item"
+                          style={{ backgroundColor: n.read ? "transparent" : "rgba(255,255,255,0.05)" }}
+                        >
+                          <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", flex: 1 }}>
+                            {n.from_pfp && (
+                              <img src={n.from_pfp} alt="" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                            )}
+                            <Link
+                              to={getNotifLink(n)}
+                              onClick={() => setNotifOpen(false)}
+                              style={{ fontSize: "13px", color: "white", flex: 1 }}
+                            >
+                              {n.message}
+                              <div style={{ fontSize: "11px", color: "#999", marginTop: "2px" }}>
+                                {timeAgo(n.created_at)}
+                              </div>
+                            </Link>
+                          </div>
+                          <button className="nav-notif-delete" onClick={() => deleteNotif(n.id)}>×</button>
+                        </div>
+                      ))
+                    }
+                  </div>
+                )}
+              </div>
               <button onClick={handleSignOut} className="nav-signout">Sign out</button>
             </div>
           </>
