@@ -260,7 +260,6 @@ export default function AlbumList({ user }) {
                                     <th onClick={() => handleSort("artist")}>Artist{getSortArrow("artist")}</th>
                                     <th onClick={() => handleSort("releaseDate")}>Released{getSortArrow("releaseDate")}</th>
                                     <th onClick={() => handleSort("score10")}>Rating{getSortArrow("score10")}</th>
-                                    <th onClick={() => handleSort("rating")}>Points{getSortArrow("rating")}</th>
                                     <th>Tracks</th>
                                 </tr>
                             </thead>
@@ -281,7 +280,6 @@ export default function AlbumList({ user }) {
                                         </td>
                                         <td>{album.releaseDate?.slice(0, 4)}</td>
                                         <td>{album.score10.toFixed(1)}</td>
-                                        <td>{Math.round(album.rating)}</td>
                                         <td>{album.rate}</td>
                                     </tr>
                                 ))}
