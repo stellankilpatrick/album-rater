@@ -245,7 +245,7 @@ router.patch("/:id/release-date", requireAuth, async (req, res) => {
 // ---------------------
 router.post("/new", requireAuth, async (req, res) => {
   try {
-    const { title, artist, releaseDate, songs = [], cover_art: coverArt, rating } = req.body;
+    const { title, artist, releaseDate, songs = [], coverArt, rating } = req.body;
     if (!title || !artist) return res.status(400).json({ error: "Title and artist required" });
         console.log("Received:", { title, artist, releaseDate, coverArt }); // add this
 
