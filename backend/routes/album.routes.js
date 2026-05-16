@@ -245,9 +245,9 @@ router.patch("/:id/release-date", requireAuth, async (req, res) => {
 // ---------------------
 router.post("/new", requireAuth, async (req, res) => {
   try {
-    console.log(req.body); // add this
     const { title, artist, releaseDate, songs = [], cover_art: coverArt, rating } = req.body;
     if (!title || !artist) return res.status(400).json({ error: "Title and artist required" });
+        console.log("Received:", { title, artist, releaseDate, coverArt }); // add this
 
     // Create album (make sure createAlbum is async and uses Postgres)
     const album = await createAlbum({ title, artist, releaseDate, songs, cover_art: coverArt });
