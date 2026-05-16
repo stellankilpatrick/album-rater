@@ -479,7 +479,10 @@ export default function AlbumDetail({ user }) {
                       <option value={2}>++ Special</option>
                     </select>
                   </td>
-                  <td style={{ wordBreak: "break-word" }}>
+                  <td style={{
+                    whiteSpace: "nowrap",
+                    minWidth: isMobile ? "150px" : "auto"
+                  }}>
                     {isOwner ? (
                       <div style={{ display: "flex", flexDirection: "column" }}>
                         <input
@@ -490,12 +493,13 @@ export default function AlbumDetail({ user }) {
                           onBlur={() => setFocusedSongId(null)}
                           placeholder="Add a note..."
                           maxLength={75}
-                          style={{ 
-                            border: "none", 
-                            background: "transparent", 
-                            width: "520px", 
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            width: "520px",
                             whiteSpace: "nowrap",
-                            color: "#D3D3D3" }}
+                            color: "#D3D3D3"
+                          }}
                         />
                       </div>
                     ) : (
