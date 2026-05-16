@@ -139,11 +139,7 @@ function TopNav({ effectiveUsername, onLogout }) {
         onMouseEnter={() => setAddAlbumOpen(true)}
         onMouseLeave={() => setAddAlbumOpen(false)}
       >
-        {isMobile ? (
-          <Link to="/albums/new" className={navClass("/albums/new")}>Add Album</Link>
-        ) : (
-          <span className={navClass("/albums/new")}>Add Album</span>
-        )}
+        {(<Link to="/albums/new" className={navClass("/albums/new")}>Add Album</Link>)}
         {addAlbumOpen && (
           <div style={{
             position: "absolute",

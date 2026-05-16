@@ -667,7 +667,10 @@ export default function AlbumDetail({ user }) {
                   </span>
                   <div style={{ fontSize: "13px", marginTop: "2px" }}>{renderCommentContent(c.content)}</div>
                   <button
-                    onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyInput(""); }}
+                    onClick={() => {
+                      setReplyingTo(replyingTo === c.id ? null : c.id);
+                      setReplyInput(replyingTo === c.id ? "" : `@${c.username} `);
+                    }}
                     style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "11px", padding: "4px 0 0 0" }}
                   >
                     {replyingTo === c.id ? "Cancel" : "Reply"}
@@ -704,13 +707,13 @@ export default function AlbumDetail({ user }) {
                     type="text"
                     value={replyInput}
                     onChange={e => setReplyInput(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && handlePostReply(c.id)}
-                    placeholder="Write a reply..."
+                    onKeyDown={e => e.key === "Enter" && handlePostReply(c.id, c.username)}
+                    placeholder={`Reply to ${c.username}...`}
                     maxLength={200}
                     autoFocus
                     style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
                   />
-                  <button onClick={() => handlePostReply(c.id)} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
+                  <button onClick={() => handlePostReply(c.id, c.username)} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
                     Reply
                   </button>
                 </div>
@@ -727,7 +730,10 @@ export default function AlbumDetail({ user }) {
                       </span>
                       <div style={{ fontSize: "13px", marginTop: "2px" }}>{renderCommentContent(reply.content)}</div>
                       <button
-                        onClick={() => { setReplyingTo(replyingTo === `${c.id}-${reply.id}` ? null : `${c.id}-${reply.id}`); setReplyInput(""); }}
+                        onClick={() => {
+                          setReplyingTo(replyingTo === `${c.id}-${reply.id}` ? null : `${c.id}-${reply.id}`);
+                          setReplyInput(replyingTo === `${c.id}-${reply.id}` ? "" : `@${reply.username} `);
+                        }}
                         style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "11px", padding: "4px 0 0 0" }}
                       >
                         {replyingTo === `${c.id}-${reply.id}` ? "Cancel" : "Reply"}
