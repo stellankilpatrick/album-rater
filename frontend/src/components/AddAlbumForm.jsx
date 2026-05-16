@@ -11,6 +11,7 @@ export default function AddAlbumForm({ onAdd }) {
 
     const handleSubmit = e => {
         e.preventDefault();
+        console.log({ title, artist, releaseDate, coverArt }); // add this
         api.post("/albums/new", { title, artist, releaseDate, coverArt })
             .then(res => {
                 const album = { ...res.data, id: res.data.id ?? res.data.albumId };

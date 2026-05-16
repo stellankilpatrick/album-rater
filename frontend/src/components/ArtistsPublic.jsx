@@ -111,8 +111,8 @@ export default function ArtistsPublic({ user }) {
                 <div
                     style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-                        gap: "22px"
+                        gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                        gap: "8px"
                     }}
                 >
                     {displayedArtists.map(artist => (
@@ -126,17 +126,18 @@ export default function ArtistsPublic({ user }) {
                                     src={artist.image}
                                     alt={artist.name}
                                     style={{
-                                        width: "140px",
-                                        height: "140px",
+                                        width: "200px",
+                                        height: "200px",
                                         objectFit: "cover",
                                         borderRadius: "50%",
-                                        marginBottom: "8px"
+                                        marginBottom: "4px",
+                                        aspectRatio: "1 / 1"
                                     }}
                                 />
                             )}
-                            <div style={{ fontWeight: 500 }}>{artist.name}</div>
-                            <div style={{ fontSize: "13px" }}>
-                                {artist.albumCount} albums · {artist.ratingCount} reviews
+                            <div style={{ fontWeight: 500, fontSize: "15px" }}>{artist.name}</div>
+                            <div style={{ fontSize: "12px" }}>
+                                {artist.ratingCount} reviews · {artist.avgRating.toFixed(1)} avg
                             </div>
                         </div>
                     ))}

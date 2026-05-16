@@ -140,46 +140,6 @@ function TopNav({ effectiveUsername, onLogout }) {
         onMouseLeave={() => setAddAlbumOpen(false)}
       >
         {(<Link to="/albums/new" className={navClass("/albums/new")}>Add Album</Link>)}
-        {addAlbumOpen && (
-          <div style={{
-            position: "absolute",
-            top: "100%",
-            left: 0,
-            backgroundColor: "#111",
-            border: "1px solid #333",
-            borderRadius: "4px",
-            zIndex: 200,
-            padding: "12px",
-            minWidth: "260px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "8px"
-          }}>
-            <input
-              type="text"
-              value={albumTitle}
-              onChange={e => setAlbumTitle(e.target.value)}
-              placeholder="Album title"
-              style={{ padding: "4px 8px" }}
-            />
-            <input
-              type="text"
-              value={albumArtist}
-              onChange={e => setAlbumArtist(e.target.value)}
-              placeholder="Artist"
-              style={{ padding: "4px 8px" }}
-            />
-            <input
-              type="date"
-              value={albumReleaseDate}
-              onChange={e => setAlbumReleaseDate(e.target.value)}
-              style={{ padding: "4px 8px" }}
-            />
-            <button onClick={handleAddAlbum} style={{ padding: "4px 8px", cursor: "pointer" }}>
-              Add Album
-            </button>
-          </div>
-        )}
       </div>
       <div
         style={{ position: "relative" }}

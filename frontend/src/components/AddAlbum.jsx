@@ -8,7 +8,7 @@ export default function AddAlbum({ user }) {
     const { username } = useParams();
 
     // Determine which username to use
-    const effectiveUsername =  user?.username;
+    const effectiveUsername = user?.username;
 
     // Redirect if no user is available
     if (!effectiveUsername) {
@@ -21,7 +21,7 @@ export default function AddAlbum({ user }) {
     };
 
     return (
-        <div className="add-album-page">
+        <div className="add-album-page" style={{ textAlign: "center" }}>
             <h1>Add a New Album</h1>
 
             <AddAlbumForm onAdd={handleAdd} />
