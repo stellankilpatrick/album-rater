@@ -490,7 +490,12 @@ export default function AlbumDetail({ user }) {
                           onBlur={() => setFocusedSongId(null)}
                           placeholder="Add a note..."
                           maxLength={75}
-                          style={{ border: "none", background: "transparent", width: "520px", color: "#D3D3D3" }}
+                          style={{ 
+                            border: "none", 
+                            background: "transparent", 
+                            width: "520px", 
+                            whiteSpace: "nowrap",
+                            color: "#D3D3D3" }}
                         />
                       </div>
                     ) : (
