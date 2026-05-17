@@ -232,6 +232,34 @@ export default function AlbumDetail({ user }) {
       .then(res => setReviewLikes({ ...res.data, ratingId: album.ratingId }));
   }, [album]);
 
+  // if try to close out tab while editing
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasChanges]);
+
+  useEffect(() => {
+    if (!hasChanges) return;
+
+    const handlePopState = () => {
+      if (!window.confirm("You have unsaved changes. Are you sure you want to leave?")) {
+        window.history.pushState(null, null, window.location.pathname);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.history.pushState(null, null, window.location.pathname);
+
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [hasChanges]);
+
   useEffect(() => {
     if (!albumId || !effectiveUsername) return;
     api.get(`/albums/${albumId}/users/${effectiveUsername}/comments`)
@@ -247,6 +275,7 @@ export default function AlbumDetail({ user }) {
   };
 
   const handleDeleteComment = async (commentId) => {
+    if (!window.confirm("Delete this comment?")) return;
     await api.delete(`/albums/${albumId}/users/${effectiveUsername}/comments/${commentId}`);
     setComments(prev => prev.filter(c => c.id !== commentId));
   };
