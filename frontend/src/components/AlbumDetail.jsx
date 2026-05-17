@@ -446,90 +446,245 @@ export default function AlbumDetail({ user }) {
         display: "flex", flexDirection: isMobile ? "column" : "row",
         gap: "32px", alignItems: "flex-start", paddingLeft: isMobile ? "0" : "10px"
       }}>
-        <div style={{ overflowX: isMobile ? "auto" : "visible", width: isMobile ? "100%" : "auto" }}>
-          <table style={{ borderCollapse: "collapse", flex: "0 0 auto", tableLayout: "auto", width: isMobile ? "100%" : "auto" }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: "left", paddingRight: "12px", width: "30px" }}>#</th>
-                <th style={{ textAlign: "left", paddingRight: "12px", minWidth: isMobile ? "250px" : undefined }}>Title</th>
-                <th style={{ textAlign: "left" }}>Rating</th>
-                <th style={{ textAlign: "left" }}>Comment</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pendingSongs.map(song => (
-                <tr key={song.id}>
-                  <td style={{ paddingRight: "12px", width: "30px" }}>{song.num}</td>
-                  <td style={{ paddingRight: "12px", maxWidth: isMobile ? "250px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {song.title}{song.featured ? <span style={{ fontSize: "0.8em", color: "#aaa" }}> (ft. {song.featured})</span> : ""}
-                  </td>
-                  <td style={{ paddingRight: "24px" }}>
-                    <select
-                      value={song.localRating ?? ""}
-                      disabled={!isOwner}
-                      onChange={isOwner ? e => {
-                        const value = e.target.value === "" ? null : Number(e.target.value);
-                        handleRatingChange(song.id, value);
-                      } : undefined}
-                      style={{ color: isOwner ? "inherit" : "#333", background: isOwner ? "inherit" : "#f0f0f0" }}
-                    >
-                      <option value="">Interlude</option>
-                      <option value={0}>- Skip</option>
-                      <option value={1}>+ Play</option>
-                      <option value={2}>++ Special</option>
-                    </select>
-                  </td>
-                  <td style={{
-                    whiteSpace: "nowrap",
-                    minWidth: isMobile ? "150px" : "auto"
-                  }}>
-                    {isOwner ? (
-                      <div style={{ display: "flex", flexDirection: "column" }}>
-                        <input
-                          type="text"
-                          value={song.comment ?? ""}
-                          onChange={e => handleCommentChange(song.id, e.target.value)}
-                          onFocus={() => setFocusedSongId(song.id)}
-                          onBlur={() => setFocusedSongId(null)}
-                          placeholder="Add a note..."
-                          maxLength={75}
-                          style={{
-                            border: "none",
-                            background: "transparent",
-                            width: "520px",
-                            whiteSpace: "nowrap",
-                            color: "#D3D3D3"
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <span style={{ color: "#D3D3D3", fontSize: "13px" }}>{song.comment ?? ""}</span>
-                    )}
-                  </td>
+        {/* LEFT: Tracklist + Comments */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Tracklist */}
+          <div style={{ overflowX: isMobile ? "auto" : "visible", width: isMobile ? "100%" : "auto" }}>
+            <table style={{ borderCollapse: "collapse", flex: "0 0 auto", tableLayout: "auto", width: isMobile ? "100%" : "auto" }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "left", paddingRight: "12px", width: "30px" }}>#</th>
+                  <th style={{ textAlign: "left", paddingRight: "12px", minWidth: isMobile ? "250px" : undefined }}>Title</th>
+                  <th style={{ textAlign: "left" }}>Rating</th>
+                  <th style={{ textAlign: "left" }}>Comment</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {pendingSongs.map(song => (
+                  <tr key={song.id}>
+                    <td style={{ paddingRight: "12px", width: "30px" }}>{song.num}</td>
+                    <td style={{ paddingRight: "12px", maxWidth: isMobile ? "250px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {song.title}{song.featured ? <span style={{ fontSize: "0.8em", color: "#aaa" }}> (ft. {song.featured})</span> : ""}
+                    </td>
+                    <td style={{ paddingRight: "24px" }}>
+                      <select
+                        value={song.localRating ?? ""}
+                        disabled={!isOwner}
+                        onChange={isOwner ? e => {
+                          const value = e.target.value === "" ? null : Number(e.target.value);
+                          handleRatingChange(song.id, value);
+                        } : undefined}
+                        style={{ color: isOwner ? "inherit" : "#333", background: isOwner ? "inherit" : "#f0f0f0" }}
+                      >
+                        <option value="">Interlude</option>
+                        <option value={0}>- Skip</option>
+                        <option value={1}>+ Play</option>
+                        <option value={2}>++ Special</option>
+                      </select>
+                    </td>
+                    <td style={{
+                      whiteSpace: "nowrap",
+                      minWidth: isMobile ? "150px" : "auto"
+                    }}>
+                      {isOwner ? (
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                          <input
+                            type="text"
+                            value={song.comment ?? ""}
+                            onChange={e => handleCommentChange(song.id, e.target.value)}
+                            onFocus={() => setFocusedSongId(song.id)}
+                            onBlur={() => setFocusedSongId(null)}
+                            placeholder="Add a note..."
+                            maxLength={75}
+                            style={{
+                              border: "none",
+                              background: "transparent",
+                              width: "520px",
+                              whiteSpace: "nowrap",
+                              color: "#D3D3D3"
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <span style={{ color: "#D3D3D3", fontSize: "13px" }}>{song.comment ?? ""}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-          {isOwner && hasChanges && (
-            <button
-              onClick={handleSaveRating}
-              style={{
-                marginTop: "16px",
-                backgroundColor: "#1db954",
-                color: "white",
-                border: "none",
-                borderRadius: "3px",
-                padding: "8px 8px",
-                cursor: "pointer",
-                fontWeight: "bold"
-              }}
-            >
-              Save Rating
-            </button>
-          )}
+            {isOwner && hasChanges && (
+              <button
+                onClick={handleSaveRating}
+                style={{
+                  marginTop: "16px",
+                  backgroundColor: "#1db954",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "3px",
+                  padding: "8px 8px",
+                  cursor: "pointer",
+                  fontWeight: "bold"
+                }}
+              >
+                Save Rating
+              </button>
+            )}
+          </div>
+
+          {/* COMMENTS */}
+          <div style={{ marginBottom: "24px", maxWidth: "600px", marginTop: "32px" }}>
+            <h3 style={{ marginBottom: "8px" }}>Comments</h3>
+            {comments.filter(c => !c.parent_id).length === 0 && (
+              <div style={{ color: "#999", fontSize: "13px" }}>No comments yet.</div>
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
+              {comments.filter(c => !c.parent_id).map(c => (
+                <div key={c.id}>
+                  {/* Top-level comment */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "6px", padding: "8px 12px" }}>
+                    <div style={{ flex: 1 }}>
+                      <Link to={`/users/${c.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{c.username}</Link>
+                      <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
+                        {timeAgo(c.created_at)}
+                      </span>
+                      <div style={{ fontSize: "13px", marginTop: "2px" }}>{renderCommentContent(c.content)}</div>
+                      <button
+                        onClick={() => {
+                          setReplyingTo(replyingTo === c.id ? null : c.id);
+                          setReplyInput(replyingTo === c.id ? "" : `@${c.username} `);
+                        }}
+                        style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "11px", padding: "4px 0 0 0" }}
+                      >
+                        {replyingTo === c.id ? "Cancel" : "Reply"}
+                      </button>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingLeft: "8px", flexShrink: 0 }}>
+                      {c.username !== user?.username ? (
+                        <button
+                          onClick={() => handleLikeComment(c.id, c.liked_by_me)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: c.liked_by_me ? "#e0245e" : "#999", fontSize: "13px", padding: 0 }}
+                        >
+                          ❤︎ {Number(c.like_count)}
+                        </button>
+                      ) : (
+                        Number(c.like_count) > 0 && (
+                          <span style={{ color: "#999", fontSize: "13px" }}>❤︎ {Number(c.like_count)}</span>
+                        )
+                      )}
+                      {(c.username === user?.username || isOwner) && (
+                        <button
+                          onClick={() => handleDeleteComment(c.id)}
+                          style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", padding: 0 }}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Reply input */}
+                  {replyingTo === c.id && (
+                    <div style={{ display: "flex", gap: "8px", marginTop: "6px", marginLeft: "24px" }}>
+                      <textarea
+                        type="text"
+                        value={replyInput}
+                        onChange={e => setReplyInput(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && handlePostReply(c.id, c.username)}
+                        placeholder={`Reply to ${c.username}...`}
+                        maxLength={200}
+                        autoFocus
+                        style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
+                      />
+                      <button onClick={() => handlePostReply(c.id, c.username)} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
+                        Reply
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Replies */}
+                  {comments.filter(r => r.parent_id === c.id).map(reply => (
+                    <div key={reply.id}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.03)", borderRadius: "6px", padding: "8px 12px", marginTop: "4px", marginLeft: "24px" }}>
+                        <div style={{ flex: 1 }}>
+                          <Link to={`/users/${reply.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{reply.username}</Link>
+                          <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
+                            {timeAgo(reply.created_at)}
+                          </span>
+                          <div style={{ fontSize: "13px", marginTop: "2px" }}>{renderCommentContent(reply.content)}</div>
+                          <button
+                            onClick={() => {
+                              setReplyingTo(replyingTo === `${c.id}-${reply.id}` ? null : `${c.id}-${reply.id}`);
+                              setReplyInput(replyingTo === `${c.id}-${reply.id}` ? "" : `@${reply.username} `);
+                            }}
+                            style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "11px", padding: "4px 0 0 0" }}
+                          >
+                            {replyingTo === `${c.id}-${reply.id}` ? "Cancel" : "Reply"}
+                          </button>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingLeft: "8px", flexShrink: 0 }}>
+                          {reply.username !== user?.username ? (
+                            <button
+                              onClick={() => handleLikeComment(reply.id, reply.liked_by_me)}
+                              style={{ background: "none", border: "none", cursor: "pointer", color: reply.liked_by_me ? "#e0245e" : "#999", fontSize: "13px", padding: 0 }}
+                            >
+                              ❤︎ {Number(reply.like_count)}
+                            </button>
+                          ) : (
+                            Number(reply.like_count) > 0 && (
+                              <span style={{ color: "#999", fontSize: "13px" }}>❤︎ {Number(reply.like_count)}</span>
+                            )
+                          )}
+                          {(reply.username === user?.username || isOwner) && (
+                            <button
+                              onClick={() => handleDeleteComment(reply.id)}
+                              style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", padding: 0 }}
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {replyingTo === `${c.id}-${reply.id}` && (
+                        <div style={{ display: "flex", gap: "8px", marginTop: "6px", marginLeft: "48px" }}>
+                          <textarea
+                            type="text"
+                            value={replyInput}
+                            onChange={e => setReplyInput(e.target.value)}
+                            placeholder={`Reply to ${reply.username}...`}
+                            maxLength={200}
+                            autoFocus
+                            style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
+                          />
+                          <button onClick={() => handlePostReply(c.id, reply.username)} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
+                            Reply
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <textarea
+                type="text"
+                value={commentInput}
+                onChange={e => setCommentInput(e.target.value)}
+                placeholder="Add a comment..."
+                maxLength={200}
+                style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
+              />
+              <button onClick={handlePostComment} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
+                Post
+              </button>
+            </div>
+          </div>
         </div>
 
+        {/* RIGHT: Ranks */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, paddingLeft: isMobile ? "10px" : "0" }}>
           {!(liked === null && !isOwner) && (
             <div style={{ fontSize: "13px" }}>
@@ -576,6 +731,7 @@ export default function AlbumDetail({ user }) {
               <button onClick={sendRec} disabled={!selectedFriend}>{recSent ? "Sent!" : "Send"}</button>
             </div>
           )}
+          {/* Ranks */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
             <h3 style={{ margin: 0 }}>Ranks</h3>
             {ranks.year?.rank != null && (
@@ -656,155 +812,6 @@ export default function AlbumDetail({ user }) {
               </button>
             )}
           </div>
-        </div>
-      </div>
-      {/* ===== COMMENTS ===== */}
-      <div style={{ marginBottom: "24px", maxWidth: "600px" }}>
-        <h3 style={{ marginBottom: "8px" }}>Comments</h3>
-        {comments.filter(c => !c.parent_id).length === 0 && (
-          <div style={{ color: "#999", fontSize: "13px" }}>No comments yet.</div>
-        )}
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
-          {comments.filter(c => !c.parent_id).map(c => (
-            <div key={c.id}>
-              {/* Top-level comment */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "6px", padding: "8px 12px" }}>
-                <div style={{ flex: 1 }}>
-                  <Link to={`/users/${c.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{c.username}</Link>
-                  <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
-                    {timeAgo(c.created_at)}
-                  </span>
-                  <div style={{ fontSize: "13px", marginTop: "2px" }}>{renderCommentContent(c.content)}</div>
-                  <button
-                    onClick={() => {
-                      setReplyingTo(replyingTo === c.id ? null : c.id);
-                      setReplyInput(replyingTo === c.id ? "" : `@${c.username} `);
-                    }}
-                    style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "11px", padding: "4px 0 0 0" }}
-                  >
-                    {replyingTo === c.id ? "Cancel" : "Reply"}
-                  </button>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingLeft: "8px", flexShrink: 0 }}>
-                  {c.username !== user?.username ? (
-                    <button
-                      onClick={() => handleLikeComment(c.id, c.liked_by_me)}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: c.liked_by_me ? "#e0245e" : "#999", fontSize: "13px", padding: 0 }}
-                    >
-                      ❤︎ {Number(c.like_count)}
-                    </button>
-                  ) : (
-                    Number(c.like_count) > 0 && (
-                      <span style={{ color: "#999", fontSize: "13px" }}>❤︎ {Number(c.like_count)}</span>
-                    )
-                  )}
-                  {(c.username === user?.username || isOwner) && (
-                    <button
-                      onClick={() => handleDeleteComment(c.id)}
-                      style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", padding: 0 }}
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Reply input */}
-              {replyingTo === c.id && (
-                <div style={{ display: "flex", gap: "8px", marginTop: "6px", marginLeft: "24px" }}>
-                  <textarea
-                    type="text"
-                    value={replyInput}
-                    onChange={e => setReplyInput(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && handlePostReply(c.id, c.username)}
-                    placeholder={`Reply to ${c.username}...`}
-                    maxLength={200}
-                    autoFocus
-                    style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
-                  />
-                  <button onClick={() => handlePostReply(c.id, c.username)} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
-                    Reply
-                  </button>
-                </div>
-              )}
-
-              {/* Replies */}
-              {comments.filter(r => r.parent_id === c.id).map(reply => (
-                <div key={reply.id}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.03)", borderRadius: "6px", padding: "8px 12px", marginTop: "4px", marginLeft: "24px" }}>
-                    <div style={{ flex: 1 }}>
-                      <Link to={`/users/${reply.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{reply.username}</Link>
-                      <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
-                        {timeAgo(reply.created_at)}
-                      </span>
-                      <div style={{ fontSize: "13px", marginTop: "2px" }}>{renderCommentContent(reply.content)}</div>
-                      <button
-                        onClick={() => {
-                          setReplyingTo(replyingTo === `${c.id}-${reply.id}` ? null : `${c.id}-${reply.id}`);
-                          setReplyInput(replyingTo === `${c.id}-${reply.id}` ? "" : `@${reply.username} `);
-                        }}
-                        style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "11px", padding: "4px 0 0 0" }}
-                      >
-                        {replyingTo === `${c.id}-${reply.id}` ? "Cancel" : "Reply"}
-                      </button>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingLeft: "8px", flexShrink: 0 }}>
-                      {reply.username !== user?.username ? (
-                        <button
-                          onClick={() => handleLikeComment(reply.id, reply.liked_by_me)}
-                          style={{ background: "none", border: "none", cursor: "pointer", color: reply.liked_by_me ? "#e0245e" : "#999", fontSize: "13px", padding: 0 }}
-                        >
-                          ❤︎ {Number(reply.like_count)}
-                        </button>
-                      ) : (
-                        Number(reply.like_count) > 0 && (
-                          <span style={{ color: "#999", fontSize: "13px" }}>❤︎ {Number(reply.like_count)}</span>
-                        )
-                      )}
-                      {(reply.username === user?.username || isOwner) && (
-                        <button
-                          onClick={() => handleDeleteComment(reply.id)}
-                          style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "16px", padding: 0 }}
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {replyingTo === `${c.id}-${reply.id}` && (
-                    <div style={{ display: "flex", gap: "8px", marginTop: "6px", marginLeft: "48px" }}>
-                      <textarea
-                        type="text"
-                        value={replyInput}
-                        onChange={e => setReplyInput(e.target.value)}
-                        placeholder={`Reply to ${reply.username}...`}
-                        maxLength={200}
-                        autoFocus
-                        style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
-                      />
-                      <button onClick={() => handlePostReply(c.id, reply.username)} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
-                        Reply
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <textarea
-            type="text"
-            value={commentInput}
-            onChange={e => setCommentInput(e.target.value)}
-            placeholder="Add a comment..."
-            maxLength={200}
-            style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
-          />
-          <button onClick={handlePostComment} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
-            Post
-          </button>
         </div>
       </div>
     </div>
