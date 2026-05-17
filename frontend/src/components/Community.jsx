@@ -6,6 +6,7 @@ export default function Community() {
     const [feed, setFeed] = useState([]);
     const [anniversaryAlbums, setAnniversaryAlbums] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showMyActivity, setShowMyActivity] = useState(false);
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
@@ -18,8 +19,9 @@ export default function Community() {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                const endpoint = showMyActivity ? "/community/my-activity" : "/community";
                 const [feedRes, anniversaryRes] = await Promise.all([
-                    api.get("/community"),
+                    api.get(endpoint),
                     api.get("/community/albums")
                 ]);
                 setFeed(feedRes.data);
@@ -29,7 +31,7 @@ export default function Community() {
             }
         };
         fetchData();
-    }, []);
+    }, [showMyActivity]);
 
     function timeAgo(date) {
         const timestamp = new Date(date).getTime();
@@ -57,7 +59,15 @@ export default function Community() {
             }}>
                 {/* Left: activity feed */}
                 <div style={{ flex: isMobile ? undefined : "1 1 0", minWidth: 0 }}>
-                    <h3 style={{ marginTop: 0 }}>Recent Friend Activity</h3>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                        <h2 style={{ marginTop: 0, marginBottom: 0 }}>{showMyActivity ? "Your" : "Friend"} Recent Activity</h2>
+                        <button
+                            onClick={() => setShowMyActivity(!showMyActivity)}
+                            style={{ padding: "6px 12px", cursor: "pointer" }}
+                        >
+                            {showMyActivity ? "Show Friends" : "Show My Activity"}
+                        </button>
+                    </div>
                     {feed.length === 0 ? (
                         <p>No activity yet. Follow more people.</p>
                     ) : (

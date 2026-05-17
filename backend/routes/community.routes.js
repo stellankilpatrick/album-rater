@@ -1,5 +1,5 @@
 import express from "express";
-import { getAnniversaryAlbums, getCommunityFeed } from "../models/community.models.js";
+import { getAnniversaryAlbums, getCommunityFeed, getMyActivityFeed } from "../models/community.models.js";
 import { requireAuth } from "../auth/auth.middleware.js";
 import pool from "../db/database.js";
 import { createNotification } from "../routes/notification.routes.js"
@@ -24,6 +24,15 @@ router.get("/albums", requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch anniversary albums" });
+  }
+});
+
+router.get("/my-activity", requireAuth, async (req, res) => {
+  try {
+    const feed = await getMyActivityFeed(req.user.id);
+    res.json(feed);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
