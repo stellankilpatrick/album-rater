@@ -735,7 +735,7 @@ export default function AlbumDetail({ user }) {
                     <div style={{ flex: 1 }}>
                       <Link to={`/users/${reply.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{reply.username}</Link>
                       <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
-                        {timeAgo(c.created_at)}
+                        {timeAgo(reply.created_at)}
                       </span>
                       <div style={{ fontSize: "13px", marginTop: "2px" }}>{renderCommentContent(reply.content)}</div>
                       <button
