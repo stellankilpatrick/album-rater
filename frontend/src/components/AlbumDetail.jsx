@@ -135,7 +135,7 @@ export default function AlbumDetail({ user }) {
 
   const handlePostReply = async (parentId, replyToUsername) => {
     if (!replyInput.trim()) return;
-    const content = replyToUsername ? `@${replyToUsername} ${replyInput}` : replyInput;
+    const content = replyInput;
     const res = await api.post(`/albums/${albumId}/users/${effectiveUsername}/comments`, {
       content,
       parentId
