@@ -355,7 +355,7 @@ export default function AlbumDetail({ user }) {
   );
 
   return (
-    <div>
+    <div style={{ paddingBottom: "20px" }}>
       {/* ===== HEADER WITH BLUR ===== */}
       <div style={{
         position: "relative",
@@ -478,8 +478,8 @@ export default function AlbumDetail({ user }) {
         {/* LEFT: Tracklist + Comments */}
         <div style={{ flex: 1, minWidth: 0 }}>
           {/* Tracklist */}
-          <div style={{ overflowX: isMobile ? "auto" : "visible", width: isMobile ? "100%" : "auto" }}>
-            <table style={{ borderCollapse: "collapse", flex: "0 0 auto", tableLayout: "auto", width: isMobile ? "100%" : "auto" }}>
+          <div style={{ overflowX: "auto", width: "100%", maxWidth: isMobile ? "calc(100vw - 32px)" : "100%" }}>
+            <table style={{ borderCollapse: "collapse", tableLayout: "auto", width: "100%" }}>
               <thead>
                 <tr>
                   <th style={{ textAlign: "left", paddingRight: "12px", width: "30px" }}>#</th>
@@ -528,7 +528,7 @@ export default function AlbumDetail({ user }) {
                             style={{
                               border: "none",
                               background: "transparent",
-                              width: "520px",
+                              width: isMobile ? "150px" : "520px",
                               whiteSpace: "nowrap",
                               color: "#D3D3D3"
                             }}
@@ -563,28 +563,28 @@ export default function AlbumDetail({ user }) {
           </div>
 
           {/* COMMENTS */}
-          <div style={{ marginBottom: "24px", maxWidth: "600px", marginTop: "32px" }}>
-            <h3 style={{ marginBottom: "8px" }}>Comments</h3>
+          <div style={{ marginBottom: "24px", maxWidth: isMobile ? "calc(100vw - 32px)" : "600px", marginTop: "32px", marginLeft: isMobile ? "16px" : "0", marginRight: isMobile ? "16px" : "0" }}>
+            <h3 style={{ marginBottom: "8px", fontSize: isMobile ? "16px" : "18px" }}>Comments</h3>
             {comments.filter(c => !c.parent_id).length === 0 && (
-              <div style={{ color: "#999", fontSize: "13px" }}>No comments yet.</div>
+              <div style={{ color: "#999", fontSize: "12px" }}>No comments yet.</div>
             )}
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
               {comments.filter(c => !c.parent_id).map(c => (
                 <div key={c.id}>
                   {/* Top-level comment */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "6px", padding: "8px 12px" }}>
-                    <div style={{ flex: 1 }}>
-                      <Link to={`/users/${c.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{c.username}</Link>
-                      <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Link to={`/users/${c.username}`} style={{ fontWeight: "bold", fontSize: isMobile ? "12px" : "13px" }}>{c.username}</Link>
+                      <span style={{ fontSize: isMobile ? "10px" : "11px", color: "#999", marginLeft: "8px" }}>
                         {timeAgo(c.created_at)}
                       </span>
-                      <div style={{ fontSize: "13px", marginTop: "2px" }}>{renderCommentContent(c.content)}</div>
+                      <div style={{ fontSize: isMobile ? "12px" : "13px", marginTop: "2px", wordBreak: "break-word" }}>{renderCommentContent(c.content)}</div>
                       <button
                         onClick={() => {
                           setReplyingTo(replyingTo === c.id ? null : c.id);
                           setReplyInput(replyingTo === c.id ? "" : `@${c.username} `);
                         }}
-                        style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "11px", padding: "4px 0 0 0" }}
+                        style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: isMobile ? "10px" : "11px", padding: "4px 0 0 0" }}
                       >
                         {replyingTo === c.id ? "Cancel" : "Reply"}
                       </button>
@@ -593,13 +593,13 @@ export default function AlbumDetail({ user }) {
                       {c.username !== user?.username ? (
                         <button
                           onClick={() => handleLikeComment(c.id, c.liked_by_me)}
-                          style={{ background: "none", border: "none", cursor: "pointer", color: c.liked_by_me ? "#e0245e" : "#999", fontSize: "13px", padding: 0 }}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: c.liked_by_me ? "#e0245e" : "#999", fontSize: isMobile ? "12px" : "13px", padding: 0 }}
                         >
                           ❤︎ {Number(c.like_count)}
                         </button>
                       ) : (
                         Number(c.like_count) > 0 && (
-                          <span style={{ color: "#999", fontSize: "13px" }}>❤︎ {Number(c.like_count)}</span>
+                          <span style={{ color: "#999", fontSize: isMobile ? "12px" : "13px" }}>❤︎ {Number(c.like_count)}</span>
                         )
                       )}
                       {(c.username === user?.username || isOwner) && (
@@ -615,7 +615,7 @@ export default function AlbumDetail({ user }) {
 
                   {/* Reply input */}
                   {replyingTo === c.id && (
-                    <div style={{ display: "flex", gap: "8px", marginTop: "6px", marginLeft: "24px" }}>
+                    <div style={{ display: "flex", gap: "8px", marginTop: "6px", marginLeft: isMobile ? "12px" : "24px" }}>
                       <textarea
                         type="text"
                         value={replyInput}
@@ -624,9 +624,9 @@ export default function AlbumDetail({ user }) {
                         placeholder={`Reply to ${c.username}...`}
                         maxLength={200}
                         autoFocus
-                        style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
+                        style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3", fontSize: isMobile ? "12px" : "13px" }}
                       />
-                      <button onClick={() => handlePostReply(c.id, c.username)} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
+                      <button onClick={() => handlePostReply(c.id, c.username)} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer", fontSize: isMobile ? "12px" : "13px", flexShrink: 0 }}>
                         Reply
                       </button>
                     </div>
@@ -635,19 +635,19 @@ export default function AlbumDetail({ user }) {
                   {/* Replies */}
                   {comments.filter(r => r.parent_id === c.id).map(reply => (
                     <div key={reply.id}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.03)", borderRadius: "6px", padding: "8px 12px", marginTop: "4px", marginLeft: "24px" }}>
-                        <div style={{ flex: 1 }}>
-                          <Link to={`/users/${reply.username}`} style={{ fontWeight: "bold", fontSize: "13px" }}>{reply.username}</Link>
-                          <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.03)", borderRadius: "6px", padding: "8px 12px", marginTop: "4px", marginLeft: isMobile ? "12px" : "24px" }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <Link to={`/users/${reply.username}`} style={{ fontWeight: "bold", fontSize: isMobile ? "12px" : "13px" }}>{reply.username}</Link>
+                          <span style={{ fontSize: isMobile ? "10px" : "11px", color: "#999", marginLeft: "8px" }}>
                             {timeAgo(reply.created_at)}
                           </span>
-                          <div style={{ fontSize: "13px", marginTop: "2px" }}>{renderCommentContent(reply.content)}</div>
+                          <div style={{ fontSize: isMobile ? "12px" : "13px", marginTop: "2px", wordBreak: "break-word" }}>{renderCommentContent(reply.content)}</div>
                           <button
                             onClick={() => {
                               setReplyingTo(replyingTo === `${c.id}-${reply.id}` ? null : `${c.id}-${reply.id}`);
                               setReplyInput(replyingTo === `${c.id}-${reply.id}` ? "" : `@${reply.username} `);
                             }}
-                            style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: "11px", padding: "4px 0 0 0" }}
+                            style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: isMobile ? "10px" : "11px", padding: "4px 0 0 0" }}
                           >
                             {replyingTo === `${c.id}-${reply.id}` ? "Cancel" : "Reply"}
                           </button>
@@ -656,13 +656,13 @@ export default function AlbumDetail({ user }) {
                           {reply.username !== user?.username ? (
                             <button
                               onClick={() => handleLikeComment(reply.id, reply.liked_by_me)}
-                              style={{ background: "none", border: "none", cursor: "pointer", color: reply.liked_by_me ? "#e0245e" : "#999", fontSize: "13px", padding: 0 }}
+                              style={{ background: "none", border: "none", cursor: "pointer", color: reply.liked_by_me ? "#e0245e" : "#999", fontSize: isMobile ? "12px" : "13px", padding: 0 }}
                             >
                               ❤︎ {Number(reply.like_count)}
                             </button>
                           ) : (
                             Number(reply.like_count) > 0 && (
-                              <span style={{ color: "#999", fontSize: "13px" }}>❤︎ {Number(reply.like_count)}</span>
+                              <span style={{ color: "#999", fontSize: isMobile ? "12px" : "13px" }}>❤︎ {Number(reply.like_count)}</span>
                             )
                           )}
                           {(reply.username === user?.username || isOwner) && (
@@ -677,7 +677,7 @@ export default function AlbumDetail({ user }) {
                       </div>
 
                       {replyingTo === `${c.id}-${reply.id}` && (
-                        <div style={{ display: "flex", gap: "8px", marginTop: "6px", marginLeft: "48px" }}>
+                        <div style={{ display: "flex", gap: "8px", marginTop: "6px", marginLeft: isMobile ? "24px" : "48px" }}>
                           <textarea
                             type="text"
                             value={replyInput}
@@ -685,9 +685,9 @@ export default function AlbumDetail({ user }) {
                             placeholder={`Reply to ${reply.username}...`}
                             maxLength={200}
                             autoFocus
-                            style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
+                            style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3", fontSize: isMobile ? "12px" : "13px" }}
                           />
-                          <button onClick={() => handlePostReply(c.id, reply.username)} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
+                          <button onClick={() => handlePostReply(c.id, reply.username)} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer", fontSize: isMobile ? "12px" : "13px", flexShrink: 0 }}>
                             Reply
                           </button>
                         </div>
@@ -704,142 +704,142 @@ export default function AlbumDetail({ user }) {
                 onChange={e => setCommentInput(e.target.value)}
                 placeholder="Add a comment..."
                 maxLength={200}
-                style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3" }}
+                style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3", fontSize: isMobile ? "12px" : "13px" }}
               />
-              <button onClick={handlePostComment} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>
+              <button onClick={handlePostComment} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer", fontSize: isMobile ? "12px" : "13px", flexShrink: 0 }}>
                 Post
               </button>
             </div>
           </div>
-        </div>
 
-        {/* RIGHT: Ranks */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, paddingLeft: isMobile ? "10px" : "0" }}>
-          {!(liked === null && !isOwner) && (
-            <div style={{ fontSize: "13px" }}>
-              {isOwner ? "I" : effectiveUsername}
+          {/* RIGHT: Ranks */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, paddingLeft: isMobile ? "10px" : "0" }}>
+            {!(liked === null && !isOwner) && (
+              <div style={{ fontSize: "13px" }}>
+                {isOwner ? "I" : effectiveUsername}
 
-              <button
-                onClick={() => {
-                  if (liked === null) handleToggleLike(true);
-                  else if (liked === true) handleToggleLike(false);
-                  else handleToggleLike(null);
-                }}
-                style={{
-                  border: "none",
-                  background:
-                    liked === true
-                      ? "#1db954"
-                      : liked === false
-                        ? "#e74c3c"
-                        : "#999",
-                  color: "white",
-                  cursor: "pointer",
-                  fontSize: "13px",
-                  padding: "0 4px",
-                  margin: "0 4px",
-                  fontWeight: liked !== null ? "bold" : "normal"
-                }}
-              >
-                {liked === true
-                  ? (isOwner ? "like" : "likes")
-                  : liked === false
-                    ? (isOwner ? "dislike" : "dislikes")
-                    : "add rating"}
-              </button>
+                <button
+                  onClick={() => {
+                    if (liked === null) handleToggleLike(true);
+                    else if (liked === true) handleToggleLike(false);
+                    else handleToggleLike(null);
+                  }}
+                  style={{
+                    border: "none",
+                    background:
+                      liked === true
+                        ? "#1db954"
+                        : liked === false
+                          ? "#e74c3c"
+                          : "#999",
+                    color: "white",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    padding: "0 4px",
+                    margin: "0 4px",
+                    fontWeight: liked !== null ? "bold" : "normal"
+                  }}
+                >
+                  {liked === true
+                    ? (isOwner ? "like" : "likes")
+                    : liked === false
+                      ? (isOwner ? "dislike" : "dislikes")
+                      : "add rating"}
+                </button>
 
-              this album
-            </div>
-          )}
-          {friends.length > 0 && user.username === effectiveUsername && (
-            <div style={{ marginBottom: "-10px" }}>
-              <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
-                <option value="">Recommend to...</option>
-                {friends.map(f => <option key={f.id} value={f.username}>{f.username}</option>)}
-              </select>
-              <button onClick={sendRec} disabled={!selectedFriend}>{recSent ? "Sent!" : "Send"}</button>
-            </div>
-          )}
-          {/* Ranks */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
-            <h3 style={{ margin: 0 }}>Ranks</h3>
-            {ranks.year?.rank != null && (
-              <Link
-                to={`/albums/users/${effectiveUsername}?minYear=${album.releaseDate?.slice(0, 4)}&maxYear=${album.releaseDate?.slice(0, 4)}`}
-                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
-              >
-                <div style={{ fontSize: "16px" }}>
-                  <strong style={{ fontSize: "28px" }}>{ordinal(ranks.year.rank)} </strong>
-                  <span style={{ color: "#999" }}>of {ranks.year.total} <strong style={{ fontSize: "15px" }}>{album.releaseDate?.slice(0, 4)}</strong> albums</span>
-                </div>
-              </Link>
+                this album
+              </div>
             )}
-            {ranks.decade?.rank != null && (
-              <Link
-                to={`/albums/users/${effectiveUsername}?minYear=${Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}&maxYear=${Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10 + 9}`}
-                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
-              >
-                <div style={{ fontSize: "16px" }}>
-                  <strong style={{ fontSize: "28px" }}>{ordinal(ranks.decade.rank)} </strong>
-                  <span style={{ color: "#999" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> albums</span>
-                </div>
-              </Link>
+            {friends.length > 0 && user.username === effectiveUsername && (
+              <div style={{ marginBottom: "-10px" }}>
+                <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
+                  <option value="">Recommend to...</option>
+                  {friends.map(f => <option key={f.id} value={f.username}>{f.username}</option>)}
+                </select>
+                <button onClick={sendRec} disabled={!selectedFriend}>{recSent ? "Sent!" : "Send"}</button>
+              </div>
             )}
-            {Array.isArray(ranks.artist) && ranks.artist.map(a => a.rank != null && (
-              <Link
-                key={a.name}
-                to={`/albums/users/${effectiveUsername}?artist=${encodeURIComponent(a.name)}`}
-                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
-              >
-                <div style={{ fontSize: "16px" }}>
-                  <strong style={{ fontSize: "28px" }}>{ordinal(a.rank)} </strong>
-                  <span style={{ color: "#999" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> albums</span>
-                </div>
-              </Link>
-            ))}
-            {genres.map(g => ranks[`genre_${g.name}`]?.rank != null && (
-              <Link
-                key={g.name}
-                to={`/albums/users/${effectiveUsername}?genre=${encodeURIComponent(g.name)}`}
-                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
-              >
-                <div style={{ fontSize: "16px" }}>
-                  <strong style={{ fontSize: "28px" }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
-                  <span style={{ color: "#999" }}>of {ranks[`genre_${g.name}`].total} <strong style={{ fontSize: "15px" }}>{g.name}</strong> albums</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
-            <button style={{ minWidth: "30px", borderRadius: "4px" }}>
-              <Link to={`/albums/${album.id}`} style={{ textDecoration: "none", fontSize: "14px" }}>
-                All ratings of <i>{album.title}</i>
-              </Link>
-            </button>
-            {album.artistIds?.map((id, i) => (
-              <button key={id} style={{ minWidth: "30px", borderRadius: "4px" }}>
-                <Link to={`/artists/${id}/users/${effectiveUsername}`} style={{ textDecoration: "none", fontSize: "14px" }}>
-                  All albums by {album.artist?.split(' & ')[i]}
+            {/* Ranks */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
+              <h3 style={{ margin: 0 }}>Ranks</h3>
+              {ranks.year?.rank != null && (
+                <Link
+                  to={`/albums/users/${effectiveUsername}?minYear=${album.releaseDate?.slice(0, 4)}&maxYear=${album.releaseDate?.slice(0, 4)}`}
+                  style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                >
+                  <div style={{ fontSize: "16px" }}>
+                    <strong style={{ fontSize: "28px" }}>{ordinal(ranks.year.rank)} </strong>
+                    <span style={{ color: "#999" }}>of {ranks.year.total} <strong style={{ fontSize: "15px" }}>{album.releaseDate?.slice(0, 4)}</strong> albums</span>
+                  </div>
+                </Link>
+              )}
+              {ranks.decade?.rank != null && (
+                <Link
+                  to={`/albums/users/${effectiveUsername}?minYear=${Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}&maxYear=${Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10 + 9}`}
+                  style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                >
+                  <div style={{ fontSize: "16px" }}>
+                    <strong style={{ fontSize: "28px" }}>{ordinal(ranks.decade.rank)} </strong>
+                    <span style={{ color: "#999" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> albums</span>
+                  </div>
+                </Link>
+              )}
+              {Array.isArray(ranks.artist) && ranks.artist.map(a => a.rank != null && (
+                <Link
+                  key={a.name}
+                  to={`/albums/users/${effectiveUsername}?artist=${encodeURIComponent(a.name)}`}
+                  style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                >
+                  <div style={{ fontSize: "16px" }}>
+                    <strong style={{ fontSize: "28px" }}>{ordinal(a.rank)} </strong>
+                    <span style={{ color: "#999" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> albums</span>
+                  </div>
+                </Link>
+              ))}
+              {genres.map(g => ranks[`genre_${g.name}`]?.rank != null && (
+                <Link
+                  key={g.name}
+                  to={`/albums/users/${effectiveUsername}?genre=${encodeURIComponent(g.name)}`}
+                  style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                >
+                  <div style={{ fontSize: "16px" }}>
+                    <strong style={{ fontSize: "28px" }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
+                    <span style={{ color: "#999" }}>of {ranks[`genre_${g.name}`].total} <strong style={{ fontSize: "15px" }}>{g.name}</strong> albums</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
+              <button style={{ minWidth: "30px", borderRadius: "4px" }}>
+                <Link to={`/albums/${album.id}`} style={{ textDecoration: "none", fontSize: "14px" }}>
+                  All ratings of <i>{album.title}</i>
                 </Link>
               </button>
-            ))}
-            {isOwner && (
-              <button onClick={handleDeleteAlbum} style={{
-                backgroundColor: "red", color: "white", padding: "0.3rem 0.5rem",
-                border: "none", borderRadius: "4px", cursor: "pointer", width: "fit-content"
-              }}>
-                Delete Album Rating
-              </button>
-            )}
-            {isOwner && (
-              <button
-                onClick={toggleUntracked}
-                title={untracked ? "Click to track this album" : "Click to hide from activity feed"}
-                style={{ borderRadius: "4px", cursor: "pointer", width: "fit-content", background: untracked ? "grey" : "white" }}
-              >
-                {untracked ? "Untracked" : "Tracked"}
-              </button>
-            )}
+              {album.artistIds?.map((id, i) => (
+                <button key={id} style={{ minWidth: "30px", borderRadius: "4px" }}>
+                  <Link to={`/artists/${id}/users/${effectiveUsername}`} style={{ textDecoration: "none", fontSize: "14px" }}>
+                    All albums by {album.artist?.split(' & ')[i]}
+                  </Link>
+                </button>
+              ))}
+              {isOwner && (
+                <button onClick={handleDeleteAlbum} style={{
+                  backgroundColor: "red", color: "white", padding: "0.3rem 0.5rem",
+                  border: "none", borderRadius: "4px", cursor: "pointer", width: "fit-content"
+                }}>
+                  Delete Album Rating
+                </button>
+              )}
+              {isOwner && (
+                <button
+                  onClick={toggleUntracked}
+                  title={untracked ? "Click to track this album" : "Click to hide from activity feed"}
+                  style={{ borderRadius: "4px", cursor: "pointer", width: "fit-content", background: untracked ? "grey" : "white" }}
+                >
+                  {untracked ? "Untracked" : "Tracked"}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
