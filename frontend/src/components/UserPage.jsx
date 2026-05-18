@@ -9,6 +9,7 @@ export default function ProfilePage({ user }) {
     const [loading, setLoading] = useState(false);
     const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
     const [ratingCounts, setRatingCounts] = useState({ albums: 0, artists: 0 });
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
     const [pfp, setPfp] = useState(null);
     const [editingPfp, setEditingPfp] = useState(false);
@@ -57,6 +58,12 @@ export default function ProfilePage({ user }) {
         fetchTop();
     }, [user.id]);
 
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
     // fetch pfp
     useEffect(() => {
         api.get(`/users/${effectiveUsername}/pfp`).then(res => {
@@ -96,7 +103,7 @@ export default function ProfilePage({ user }) {
 
     const saveBanner = async () => {
         try {
-            const res = await api.put(`/users/${effectiveUsername}/banner`, { banner: bannerInput });
+            const res = await api.put(`/users/${effectiveUsername}/banner`, { banner: bannerInput || null });
             setBanner(res.data.banner);
             setEditingBanner(false);
         } catch (err) {
@@ -137,8 +144,8 @@ export default function ProfilePage({ user }) {
                     backgroundImage: banner ? `url(${banner})` : undefined,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
-                    marginLeft: "calc(-50vw + 50% - 16px)",
-                    marginRight: "calc(-50vw + 50%)",
+                    marginLeft: "calc(-1 * (100vw - 100%) / 2)",
+                    marginRight: "calc(-1 * (100vw - 100%) / 2)",
                     marginTop: "-16px",
                     display: "flex",
                     alignItems: "center",
@@ -154,8 +161,8 @@ export default function ProfilePage({ user }) {
                     src={pfp}
                     alt="profile"
                     style={{
-                        width: "220px",
-                        height: "220px",
+                        width: isMobile ? "150px" : "220px",
+                        height: isMobile ? "150px" : "220px",
                         objectFit: "cover",
                         borderRadius: "50%",
                         marginTop: "-75px",
@@ -278,7 +285,12 @@ export default function ProfilePage({ user }) {
                                 <img
                                     src={album.coverArt}
                                     alt={album.title}
-                                    style={{ width: "140px", height: "140px", objectFit: "cover", borderRadius: "4px" }}
+                                    style={{
+                                        width: isMobile ? "20%wv" : "140px",
+                                        height: isMobile ? "90px" : "140px",
+                                        objectFit: "cover",
+                                        borderRadius: "4px"
+                                    }}
                                 />
                             </Link>
                         )
@@ -299,7 +311,12 @@ export default function ProfilePage({ user }) {
                                 <img
                                     src={artist.image}
                                     alt=""
-                                    style={{ width: "140px", height: "140px", objectFit: "cover", borderRadius: "50%" }}
+                                    style={{
+                                        width: isMobile ? "90px" : "140px",
+                                        height: isMobile ? "90px" : "140px",
+                                        objectFit: "cover",
+                                        borderRadius: "50%"
+                                    }}
                                 />
                             </Link>
                         )

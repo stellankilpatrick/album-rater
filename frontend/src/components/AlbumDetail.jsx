@@ -711,135 +711,135 @@ export default function AlbumDetail({ user }) {
               </button>
             </div>
           </div>
+        </div>
 
-          {/* RIGHT: Ranks */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, paddingLeft: isMobile ? "10px" : "0" }}>
-            {!(liked === null && !isOwner) && (
-              <div style={{ fontSize: "13px" }}>
-                {isOwner ? "I" : effectiveUsername}
+        {/* RIGHT: Ranks */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, paddingLeft: isMobile ? "10px" : "0" }}>
+          {!(liked === null && !isOwner) && (
+            <div style={{ fontSize: "13px" }}>
+              {isOwner ? "I" : effectiveUsername}
 
-                <button
-                  onClick={() => {
-                    if (liked === null) handleToggleLike(true);
-                    else if (liked === true) handleToggleLike(false);
-                    else handleToggleLike(null);
-                  }}
-                  style={{
-                    border: "none",
-                    background:
-                      liked === true
-                        ? "#1db954"
-                        : liked === false
-                          ? "#e74c3c"
-                          : "#999",
-                    color: "white",
-                    cursor: "pointer",
-                    fontSize: "13px",
-                    padding: "0 4px",
-                    margin: "0 4px",
-                    fontWeight: liked !== null ? "bold" : "normal"
-                  }}
-                >
-                  {liked === true
-                    ? (isOwner ? "like" : "likes")
-                    : liked === false
-                      ? (isOwner ? "dislike" : "dislikes")
-                      : "add rating"}
-                </button>
+              <button
+                onClick={() => {
+                  if (liked === null) handleToggleLike(true);
+                  else if (liked === true) handleToggleLike(false);
+                  else handleToggleLike(null);
+                }}
+                style={{
+                  border: "none",
+                  background:
+                    liked === true
+                      ? "#1db954"
+                      : liked === false
+                        ? "#e74c3c"
+                        : "#999",
+                  color: "white",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  padding: "0 4px",
+                  margin: "0 4px",
+                  fontWeight: liked !== null ? "bold" : "normal"
+                }}
+              >
+                {liked === true
+                  ? (isOwner ? "like" : "likes")
+                  : liked === false
+                    ? (isOwner ? "dislike" : "dislikes")
+                    : "add rating"}
+              </button>
 
-                this album
-              </div>
-            )}
-            {friends.length > 0 && user.username === effectiveUsername && (
-              <div style={{ marginBottom: "-10px" }}>
-                <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
-                  <option value="">Recommend to...</option>
-                  {friends.map(f => <option key={f.id} value={f.username}>{f.username}</option>)}
-                </select>
-                <button onClick={sendRec} disabled={!selectedFriend}>{recSent ? "Sent!" : "Send"}</button>
-              </div>
-            )}
-            {/* Ranks */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
-              <h3 style={{ margin: 0 }}>Ranks</h3>
-              {ranks.year?.rank != null && (
-                <Link
-                  to={`/albums/users/${effectiveUsername}?minYear=${album.releaseDate?.slice(0, 4)}&maxYear=${album.releaseDate?.slice(0, 4)}`}
-                  style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
-                >
-                  <div style={{ fontSize: "16px" }}>
-                    <strong style={{ fontSize: "28px" }}>{ordinal(ranks.year.rank)} </strong>
-                    <span style={{ color: "#999" }}>of {ranks.year.total} <strong style={{ fontSize: "15px" }}>{album.releaseDate?.slice(0, 4)}</strong> albums</span>
-                  </div>
-                </Link>
-              )}
-              {ranks.decade?.rank != null && (
-                <Link
-                  to={`/albums/users/${effectiveUsername}?minYear=${Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}&maxYear=${Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10 + 9}`}
-                  style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
-                >
-                  <div style={{ fontSize: "16px" }}>
-                    <strong style={{ fontSize: "28px" }}>{ordinal(ranks.decade.rank)} </strong>
-                    <span style={{ color: "#999" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> albums</span>
-                  </div>
-                </Link>
-              )}
-              {Array.isArray(ranks.artist) && ranks.artist.map(a => a.rank != null && (
-                <Link
-                  key={a.name}
-                  to={`/albums/users/${effectiveUsername}?artist=${encodeURIComponent(a.name)}`}
-                  style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
-                >
-                  <div style={{ fontSize: "16px" }}>
-                    <strong style={{ fontSize: "28px" }}>{ordinal(a.rank)} </strong>
-                    <span style={{ color: "#999" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> albums</span>
-                  </div>
-                </Link>
-              ))}
-              {genres.map(g => ranks[`genre_${g.name}`]?.rank != null && (
-                <Link
-                  key={g.name}
-                  to={`/albums/users/${effectiveUsername}?genre=${encodeURIComponent(g.name)}`}
-                  style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
-                >
-                  <div style={{ fontSize: "16px" }}>
-                    <strong style={{ fontSize: "28px" }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
-                    <span style={{ color: "#999" }}>of {ranks[`genre_${g.name}`].total} <strong style={{ fontSize: "15px" }}>{g.name}</strong> albums</span>
-                  </div>
-                </Link>
-              ))}
+              this album
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
-              <button style={{ minWidth: "30px", borderRadius: "4px" }}>
-                <Link to={`/albums/${album.id}`} style={{ textDecoration: "none", fontSize: "14px" }}>
-                  All ratings of <i>{album.title}</i>
+          )}
+          {friends.length > 0 && user.username === effectiveUsername && (
+            <div style={{ marginBottom: "-10px" }}>
+              <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
+                <option value="">Recommend to...</option>
+                {friends.map(f => <option key={f.id} value={f.username}>{f.username}</option>)}
+              </select>
+              <button onClick={sendRec} disabled={!selectedFriend}>{recSent ? "Sent!" : "Send"}</button>
+            </div>
+          )}
+          {/* Ranks */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
+            <h3 style={{ margin: 0 }}>Ranks</h3>
+            {ranks.year?.rank != null && (
+              <Link
+                to={`/albums/users/${effectiveUsername}?minYear=${album.releaseDate?.slice(0, 4)}&maxYear=${album.releaseDate?.slice(0, 4)}`}
+                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+              >
+                <div style={{ fontSize: "16px" }}>
+                  <strong style={{ fontSize: "28px" }}>{ordinal(ranks.year.rank)} </strong>
+                  <span style={{ color: "#999" }}>of {ranks.year.total} <strong style={{ fontSize: "15px" }}>{album.releaseDate?.slice(0, 4)}</strong> albums</span>
+                </div>
+              </Link>
+            )}
+            {ranks.decade?.rank != null && (
+              <Link
+                to={`/albums/users/${effectiveUsername}?minYear=${Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}&maxYear=${Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10 + 9}`}
+                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+              >
+                <div style={{ fontSize: "16px" }}>
+                  <strong style={{ fontSize: "28px" }}>{ordinal(ranks.decade.rank)} </strong>
+                  <span style={{ color: "#999" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> albums</span>
+                </div>
+              </Link>
+            )}
+            {Array.isArray(ranks.artist) && ranks.artist.map(a => a.rank != null && (
+              <Link
+                key={a.name}
+                to={`/albums/users/${effectiveUsername}?artist=${encodeURIComponent(a.name)}`}
+                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+              >
+                <div style={{ fontSize: "16px" }}>
+                  <strong style={{ fontSize: "28px" }}>{ordinal(a.rank)} </strong>
+                  <span style={{ color: "#999" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> albums</span>
+                </div>
+              </Link>
+            ))}
+            {genres.map(g => ranks[`genre_${g.name}`]?.rank != null && (
+              <Link
+                key={g.name}
+                to={`/albums/users/${effectiveUsername}?genre=${encodeURIComponent(g.name)}`}
+                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+              >
+                <div style={{ fontSize: "16px" }}>
+                  <strong style={{ fontSize: "28px" }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
+                  <span style={{ color: "#999" }}>of {ranks[`genre_${g.name}`].total} <strong style={{ fontSize: "15px" }}>{g.name}</strong> albums</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
+            <button style={{ minWidth: "30px", borderRadius: "4px" }}>
+              <Link to={`/albums/${album.id}`} style={{ textDecoration: "none", fontSize: "14px" }}>
+                All ratings of <i>{album.title}</i>
+              </Link>
+            </button>
+            {album.artistIds?.map((id, i) => (
+              <button key={id} style={{ minWidth: "30px", borderRadius: "4px" }}>
+                <Link to={`/artists/${id}/users/${effectiveUsername}`} style={{ textDecoration: "none", fontSize: "14px" }}>
+                  All albums by {album.artist?.split(' & ')[i]}
                 </Link>
               </button>
-              {album.artistIds?.map((id, i) => (
-                <button key={id} style={{ minWidth: "30px", borderRadius: "4px" }}>
-                  <Link to={`/artists/${id}/users/${effectiveUsername}`} style={{ textDecoration: "none", fontSize: "14px" }}>
-                    All albums by {album.artist?.split(' & ')[i]}
-                  </Link>
-                </button>
-              ))}
-              {isOwner && (
-                <button onClick={handleDeleteAlbum} style={{
-                  backgroundColor: "red", color: "white", padding: "0.3rem 0.5rem",
-                  border: "none", borderRadius: "4px", cursor: "pointer", width: "fit-content"
-                }}>
-                  Delete Album Rating
-                </button>
-              )}
-              {isOwner && (
-                <button
-                  onClick={toggleUntracked}
-                  title={untracked ? "Click to track this album" : "Click to hide from activity feed"}
-                  style={{ borderRadius: "4px", cursor: "pointer", width: "fit-content", background: untracked ? "grey" : "white" }}
-                >
-                  {untracked ? "Untracked" : "Tracked"}
-                </button>
-              )}
-            </div>
+            ))}
+            {isOwner && (
+              <button onClick={handleDeleteAlbum} style={{
+                backgroundColor: "red", color: "white", padding: "0.3rem 0.5rem",
+                border: "none", borderRadius: "4px", cursor: "pointer", width: "fit-content"
+              }}>
+                Delete Album Rating
+              </button>
+            )}
+            {isOwner && (
+              <button
+                onClick={toggleUntracked}
+                title={untracked ? "Click to track this album" : "Click to hide from activity feed"}
+                style={{ borderRadius: "4px", cursor: "pointer", width: "fit-content", background: untracked ? "grey" : "white" }}
+              >
+                {untracked ? "Untracked" : "Tracked"}
+              </button>
+            )}
           </div>
         </div>
       </div>
