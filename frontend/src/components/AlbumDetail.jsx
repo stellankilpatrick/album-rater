@@ -479,12 +479,12 @@ export default function AlbumDetail({ user }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           {/* Tracklist */}
           <div style={{ overflowX: "auto", width: "100%", maxWidth: isMobile ? "calc(100vw - 32px)" : "100%" }}>
-            <table style={{ borderCollapse: "collapse", tableLayout: "auto", width: "100%" }}>
+            <table style={{ borderCollapse: "collapse", width: "auto" }}>
               <thead>
                 <tr>
                   <th style={{ textAlign: "left", paddingRight: "12px", width: "30px" }}>#</th>
                   <th style={{ textAlign: "left", paddingRight: "12px", minWidth: isMobile ? "250px" : undefined }}>Title</th>
-                  <th style={{ textAlign: "left" }}>Rating</th>
+                  <th style={{ textAlign: "left", paddingRight: "24px" }}>Rating</th>
                   <th style={{ textAlign: "left" }}>Comment</th>
                 </tr>
               </thead>
@@ -565,9 +565,6 @@ export default function AlbumDetail({ user }) {
           {/* COMMENTS */}
           <div style={{ marginBottom: "24px", maxWidth: isMobile ? "calc(100vw - 32px)" : "600px", marginTop: "32px", marginLeft: isMobile ? "16px" : "0", marginRight: isMobile ? "16px" : "0" }}>
             <h3 style={{ marginBottom: "8px", fontSize: isMobile ? "16px" : "18px" }}>Comments</h3>
-            {comments.filter(c => !c.parent_id).length === 0 && (
-              <div style={{ color: "#999", fontSize: "12px" }}>No comments yet.</div>
-            )}
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
               {comments.filter(c => !c.parent_id).map(c => (
                 <div key={c.id}>
