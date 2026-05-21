@@ -64,7 +64,7 @@ export default function ListenList({ user }) {
             ) : (
                 <div style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(160px, 3fr))",
                     gap: "16px"
                 }}>
                     {listenList.map(album => (
@@ -77,13 +77,13 @@ export default function ListenList({ user }) {
                                         width: "100%",
                                         aspectRatio: "1 / 1",
                                         objectFit: "cover",
-                                        borderRadius: "6px"
+                                        borderRadius: "4px"
                                     }}
                                 />
                                 <div style={{ fontSize: "14px", fontWeight: 500 }}>
                                     <i>{album.title}</i>
                                 </div>
-                                <div style={{ fontSize: "13px", color: "#666" }}>
+                                <div style={{ fontSize: "13px", color: "#666", marginBottom: "-5px" }}>
                                     {album.artist}
                                 </div>
                             </Link>

@@ -229,10 +229,10 @@ export default function AlbumDetailPublic({ user }) {
               <div
                 style={{
                   position: "relative",
-                  width: isMobile ? "150px" : "200px",
-                  height: isMobile ? "150px" : "200px",
+                  width: isMobile ? "150px" : "210px",
+                  height: isMobile ? "150px" : "210px",
                   overflow: "hidden",
-                  borderRadius: "12px"
+                  borderRadius: "8px"
                 }}
               >
                 <img
@@ -278,7 +278,7 @@ export default function AlbumDetailPublic({ user }) {
 
           {/* Right side info */}
           <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: isMobile ? "center" : "flex-start" }}>
-            <h1 style={{ margin: 0, fontSize: isMobile ? "1.75rem" : undefined, textAlign: isMobile ? "center" : undefined }}>
+            <h1 style={{ margin: "0 0 -10px 0", fontSize: isMobile ? "1.75rem" : undefined, textAlign: isMobile ? "center" : undefined }}>
               {isEditing ? (
                 <input
                   value={editTitle}
@@ -291,7 +291,7 @@ export default function AlbumDetailPublic({ user }) {
                 <i>{album.title}</i>
               )}
             </h1>
-            <h2 style={{ margin: 0, textAlign: isMobile ? "center" : undefined }}>
+            <h2 style={{ margin: "0 0 -6px 0", textAlign: isMobile ? "center" : undefined }}>
               {isEditing ? (
                 <input
                   value={editArtist}
@@ -434,7 +434,7 @@ export default function AlbumDetailPublic({ user }) {
               )}
             </div>
 
-            <p style={{ margin: 0 }}>
+            <p style={{ margin: "0 0 -4px 0" }}>
               Average Score: {album.avgScore?.toFixed(1) || "0.0"} |{" "}
               {album.ratingCount ?? 0} rating{album.ratingCount !== 1 ? "s" : ""}
             </p>
@@ -474,8 +474,6 @@ export default function AlbumDetailPublic({ user }) {
       <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
         {/* ===== Tracks ===== */}
         <div style={{ flex: 7 }}>
-          <h2>Tracklist</h2>
-
           <div style={{ overflowX: isMobile ? "auto" : "visible", width: isMobile ? "100%" : "auto" }}>
             <table style={{ width: isMobile ? "auto" : "100%", borderCollapse: "collapse", tableLayout: isMobile ? "auto" : "fixed" }}>
               <thead>

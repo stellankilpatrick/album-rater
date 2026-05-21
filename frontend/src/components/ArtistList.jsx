@@ -46,7 +46,7 @@ export default function ArtistList({ user }) {
 
     return (
         <div className="page-pad">
-            <h1>{effectiveUsername}'s Top Artists</h1>
+            <h1 style={{ marginBottom: '3px' }}>{effectiveUsername}'s Top Artists</h1>
 
             {!isMobile && (
                 <button
@@ -94,7 +94,7 @@ export default function ArtistList({ user }) {
             ) : (
                 <div style={{
                     display: "grid",
-                    gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(auto-fill, minmax(200px, 1fr))",
+                    gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(auto-fill, minmax(180px, 1fr))",
                     gap: isMobile ? "10px" : "20px"
                 }}>
                     {sortedArtists.map((a, i) => (
@@ -112,12 +112,12 @@ export default function ArtistList({ user }) {
                                         aspectRatio: "1 / 1",
                                         objectFit: "cover",
                                         borderRadius: "50%",
-                                        marginBottom: "8px"
+                                        marginBottom: "5px"
                                     }}
                                 />
                             )}
-                            <div style={{ fontWeight: 500, fontSize: isMobile ? "13px" : "14px" }}>{i + 1}. {a.name}</div>
-                            <div style={{ fontSize: isMobile ? "11px" : "13px" }}>
+                            <div style={{ fontWeight: 500, fontSize: isMobile ? "13px" : "13.5px" }}>{i + 1}. {a.name}</div>
+                            <div style={{ fontSize: isMobile ? "11px" : "12.5px" }}>
                                 {a.albumCount} albums · {a.avgScore10 != null ? a.avgScore10.toFixed(1) : "N/A"} avg
                             </div>
                         </div>

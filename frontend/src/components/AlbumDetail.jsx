@@ -387,8 +387,8 @@ export default function AlbumDetail({ user }) {
         }}>
           {album.coverArt && (
             <div style={{
-              position: "relative", width: isMobile ? "200px" : "220px",
-              height: isMobile ? "200px" : "220px", overflow: "hidden",
+              position: "relative", width: isMobile ? "200px" : "210px",
+              height: isMobile ? "200px" : "210px", overflow: "hidden",
               borderRadius: "12px", flexShrink: 0
             }}>
               <img src={album.coverArt} alt="" style={{
@@ -401,7 +401,7 @@ export default function AlbumDetail({ user }) {
             </div>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 }}>
-            <h1 style={{ margin: 0, fontSize: isMobile ? "1.75rem" : undefined }}>
+            <h1 style={{ margin: "0 0 -4px 0", fontSize: isMobile ? "1.75rem" : undefined }}>
               <Link to={`/albums/${album.id}`} style={{ color: "white" }}><i>{album.title}</i></Link>
             </h1>
             <h2 style={{ margin: 0, fontSize: isMobile ? "1.25rem" : undefined }}>
@@ -417,7 +417,7 @@ export default function AlbumDetail({ user }) {
             <h4 style={{ margin: 0 }}>
               Released {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
             </h4>
-            <h4 style={{ margin: 0 }}>
+            <h4 style={{ margin: "0 0 -10px 0" }}>
               {effectiveUsername === user?.username
                 ? `Your likes: ${goodSongs} of ${ratedSongs} tracks`
                 : <Link to={`/users/${effectiveUsername}`} style={{ color: "white" }}>
@@ -529,6 +529,7 @@ export default function AlbumDetail({ user }) {
                               border: "none",
                               background: "transparent",
                               width: isMobile ? "150px" : "520px",
+                              fontSize: isMobile ? "11px" : "13px",
                               whiteSpace: "nowrap",
                               color: "#D3D3D3"
                             }}
@@ -701,7 +702,7 @@ export default function AlbumDetail({ user }) {
                 onChange={e => setCommentInput(e.target.value)}
                 placeholder="Add a comment..."
                 maxLength={200}
-                style={{ flex: 1, padding: "6px 10px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3", fontSize: isMobile ? "12px" : "13px" }}
+                style={{ flex: 1, padding: "4px 10px 0px 4px", borderRadius: "4px", border: "1px solid #444", background: "transparent", color: "#D3D3D3", fontSize: isMobile ? "12spx" : "13px" }}
               />
               <button onClick={handlePostComment} style={{ padding: "6px 12px", borderRadius: "4px", cursor: "pointer", fontSize: isMobile ? "12px" : "13px", flexShrink: 0 }}>
                 Post

@@ -158,7 +158,7 @@ export default function AlbumList({ user }) {
 
     return (
         <div className="page-pad">
-            <h1>{effectiveUsername}'s Top Albums</h1>
+            <h1 style={{marginBottom: '-6px'}}>{effectiveUsername}'s Top Albums</h1>
 
             {loading ? (
                 <p>Loading albums...</p>
@@ -288,7 +288,7 @@ export default function AlbumList({ user }) {
                     ) : (
                         <div style={{
                             display: "grid",
-                            gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(auto-fill, minmax(180px, 1fr))",
+                            gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(auto-fill, minmax(160px, 1fr))",
                             gap: isMobile ? "10px" : "16px"
                         }}>
                             {sortedAlbums.map((album, i) => (
@@ -302,10 +302,10 @@ export default function AlbumList({ user }) {
                                         alt={album.title}
                                         style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: "6px" }}
                                     />
-                                    <div style={{ fontSize: isMobile ? "11px" : "14px", fontWeight: 500 }}>
+                                    <div style={{ fontSize: isMobile ? "11px" : "13.5px", fontWeight: 500 }}>
                                         {i + 1}. <i>{album.title}</i> · {album.score10.toFixed(1)}
                                     </div>
-                                    <div style={{ fontSize: isMobile ? "10px" : "13px", color: "#888" }}>
+                                    <div style={{ fontSize: isMobile ? "10px" : "12.5px", color: "#888", marginBottom: "-8px" }}>
                                         {album.artist}
                                     </div>
                                 </div>
