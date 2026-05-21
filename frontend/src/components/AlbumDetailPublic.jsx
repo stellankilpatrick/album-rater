@@ -32,6 +32,8 @@ export default function AlbumDetailPublic({ user }) {
 
   const [myReview, setMyReview] = useState(null);
 
+  const [songSort, setSongSort] = useState("num");
+
   useEffect(() => {
     if (!user || !albumId) return;
     api.get(`/albums/${albumId}/users/${user.username}`)
@@ -277,7 +279,14 @@ export default function AlbumDetailPublic({ user }) {
           </div>
 
           {/* Right side info */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: isMobile ? "center" : "flex-start" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              alignItems: isMobile ? "center" : "flex-start"
+            }}
+          >
             <h1 style={{ margin: "0 0 -10px 0", fontSize: isMobile ? "1.75rem" : undefined, textAlign: isMobile ? "center" : undefined }}>
               {isEditing ? (
                 <input
@@ -480,14 +489,28 @@ export default function AlbumDetailPublic({ user }) {
                 <tr>
                   <th style={{ width: "30px" }}>#</th>
                   <th style={{ textAlign: "left", maxWidth: isMobile ? "200px" : undefined }}>Title</th>
-                  {!isEditing && <th>Rating</th>}
+                  {!isEditing && (
+                    <th
+                      onClick={() =>
+                        setSongSort(prev => prev === "rating" ? "num" : "rating")
+                      }
+                      style={{ cursor: "pointer", userSelect: "none" }}
+                    >
+                      Rating {songSort === "rating" ? "↓" : ""}
+                    </th>
+                  )}
                 </tr>
               </thead>
 
               <tbody>
                 {songs
                   .slice()
-                  .sort((a, b) => a.num - b.num)
+                  .sort((a, b) => {
+                    if (songSort === "rating") {
+                      return (b.notSkippedPercent ?? 0) - (a.notSkippedPercent ?? 0);
+                    }
+                    return a.num - b.num;
+                  })
                   .map(song => (
                     <tr key={song.id}>
                       <td>
