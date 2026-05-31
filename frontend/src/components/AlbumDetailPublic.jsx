@@ -338,7 +338,7 @@ export default function AlbumDetailPublic({ user }) {
             </h4>
 
             {/* Genres */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center", maxWidth: "400px", justifyContent: isMobile ? "center" : "flex-start" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center", maxWidth: "700px", justifyContent: isMobile ? "center" : "flex-start" }}>
               {genres.map(g => (
                 <span
                   key={g.id}
@@ -621,6 +621,37 @@ export default function AlbumDetailPublic({ user }) {
           </div>
         )}
       </div>
-    </div >
+
+      {isMobile && (
+        <div style={{ marginTop: "1.5rem" }}>
+          {myReview?.score10 != null && myReview?.userRating != null && (
+            <h3>
+              <Link to={`/albums/${albumId}/users/${effectiveUsername}`}>
+                Your rating: {myReview.score10.toFixed(1)}
+              </Link>
+            </h3>
+          )}
+
+          {user && followingReviews.length > 0 && (
+            <>
+              <h3>Reviews by others:</h3>
+              <ul style={{ listStyle: "none", padding: 0 }}>
+                {followingReviews.sort((a, b) => (b.score10 ?? -1) - (a.score10 ?? -1)).map(r => (
+                  <li key={r.id}>
+                    <Link to={`/albums/${albumId}/users/${r.username}`} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      {r.pfp
+                        ? <img src={r.pfp} alt={r.username} style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />
+                        : <div style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "#444" }} />
+                      }
+                      {r.username} <b>{r.score10 != null ? r.score10.toFixed(1) : "N/A"}</b>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

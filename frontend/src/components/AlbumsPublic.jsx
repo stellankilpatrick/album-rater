@@ -234,7 +234,7 @@ export default function AlbumsPublic({ user }) {
       ) : (
         <div style={{
           display: "grid",
-          gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(auto-fill, minmax(140px, 1fr))",
+          gridTemplateColumns: isMobile ? "repeat(3, minmax(0, 1fr))" : "repeat(auto-fill, minmax(140px, 1fr))",
           gap: isMobile ? "10px" : "15px"
         }}>
           {displayedAlbums.map(album => (
@@ -251,7 +251,7 @@ export default function AlbumsPublic({ user }) {
               <div style={{ fontWeight: 500, fontSize: isMobile ? "12px" : "14px" }}>
                 <i>{album.title}</i>
               </div>
-              <div style={{ fontSize: isMobile ? "11px" : "12px", color: "#888", marginBottom: "-10px" }}>
+              <div style={{ fontSize: isMobile ? "11px" : "12px", color: "#888", marginBottom: "-8px" }}>
                 {album.artist}
               </div>
             </div>
