@@ -468,8 +468,34 @@ export default function AlbumDetail({ user }) {
         </div>
       </div>
 
-      {isMobile && reviewPanel}
-
+      {isMobile && (
+        <div style={{ padding: "0 16px" }}>
+          {album?.ratingId && (
+            <div style={{ marginBottom: "4px" }}>
+              {!isOwner ? (
+                <button
+                  onClick={async () => {
+                    if (reviewLikes.likedByMe) {
+                      const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
+                      setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
+                    } else {
+                      const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
+                      setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
+                    }
+                  }}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: reviewLikes.likedByMe ? "#e0245e" : "white", fontSize: "24px" }}
+                >
+                  ❤︎ {reviewLikes.count}
+                </button>
+              ) : (
+                <span style={{ color: "white", fontSize: "22px" }}>❤︎ {reviewLikes.count}</span>
+              )}
+            </div>
+          )}
+          {reviewPanel}
+        </div>
+      )}
+      
       {/* ===== TRACKLIST + SIDEBAR ===== */}
       <div style={{
         display: "flex", flexDirection: isMobile ? "column" : "row",
@@ -513,7 +539,7 @@ export default function AlbumDetail({ user }) {
                     </td>
                     <td style={{
                       whiteSpace: "nowrap",
-                      minWidth: isMobile ? "150px" : "auto"
+                      minWidth: isMobile ? "250px" : "auto"
                     }}>
                       {isOwner ? (
                         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -528,7 +554,8 @@ export default function AlbumDetail({ user }) {
                             style={{
                               border: "none",
                               background: "transparent",
-                              width: isMobile ? "150px" : "520px",
+                              width: isMobile ? "400px" : "520px",
+                              minWidth: isMobile ? "400px" : undefined,
                               fontSize: isMobile ? "11px" : "13px",
                               whiteSpace: "nowrap",
                               color: "#D3D3D3"
