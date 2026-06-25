@@ -385,6 +385,11 @@ router.get("/:id/users/:username", requireAuth, async (req, res) => {
       [userId, albumId]
     );
 
+    const { rows: pfpRows } = await pool.query(
+      `SELECT pfp FROM users WHERE id = $1`,
+      [userId]
+    );
+
     album.songs = album.tracks.map(t => ({
       id: t.id,
       num: t.num,
@@ -399,7 +404,8 @@ router.get("/:id/users/:username", requireAuth, async (req, res) => {
 
     res.json({
       ...album,
-      score10: rows[0]?.score10 ?? null
+      score10: rows[0]?.score10 ?? null,
+      pfp: pfpRows[0]?.pfp ?? null
     });
   } catch (err) {
     console.error(err);

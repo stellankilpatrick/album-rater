@@ -29,7 +29,7 @@ export async function getTopArtists(userId) {
     if (!artistMap.has(row.id)) {
       artistMap.set(row.id, { id: row.id, name: row.name, image: row.image, albums: [] });
     }
-    const rating = row.ratedSongs > 0 ? Math.pow(row.ratingSum, 2) / row.ratedSongs : 0;
+    const rating = row.ratedSongs > 0 ? Math.pow(row.ratingSum, 2) / row.ratedSongs**1.1 : 0;
     artistMap.get(row.id).albums.push(rating);
   }
 
@@ -57,7 +57,7 @@ export async function getTopAlbums(userId) {
       a.id,
       a.title,
       a.cover_art AS "coverArt",
-      (SUM(r.rating) * SUM(r.rating)) / COUNT(r.rating) AS "avgRating"
+      (SUM(r.rating) * SUM(r.rating)) / POWER(COUNT(r.rating),1.1) AS "avgRating"
     FROM song_ratings r
     JOIN songs s ON s.id = r.song_id
     JOIN albums a ON a.id = s.album_id

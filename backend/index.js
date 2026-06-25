@@ -1,4 +1,5 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config({ path: process.env.NODE_ENV === "production" ? ".env" : ".env.local" });
 import express from "express";
 import authRoutes from "./auth/auth.routes.js";
 import albumRoutes from "./routes/album.routes.js";

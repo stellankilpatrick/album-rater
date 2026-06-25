@@ -426,7 +426,7 @@ export async function getUserRatedAlbums(userId) {
     const ratedSongs = Number(a.ratedSongs);
     const totalRating = Number(a.totalRating);
     const nonSkips = Number(a.nonSkips);
-    const rating = ratedSongs > 0 ? (totalRating * totalRating) / ratedSongs : 0;
+    const rating = ratedSongs > 0 ? totalRating**2 / ratedSongs**1.1 : 0;
     return { ...a, artistId: a.artistIds[0], rating, rate: `${nonSkips}/${ratedSongs}`, genres: genreMap.get(a.id) || [] };
   });
 }
@@ -503,7 +503,7 @@ export async function updateAlbumRatingForUser(userId, albumId) {
     const stats = res.rows[0];
     const ratedSongs = Number(stats.rated_songs);
     const nonSkips = Number(stats.non_skips);
-    const totalRating = Number(stats.total_rating) * Number(stats.total_rating) / ratedSongs;
+    const totalRating = Number(stats.total_rating)**2 / ratedSongs**1.1;
 
     if (ratedSongs === 0) {
       await client.query(
@@ -615,7 +615,7 @@ export async function getAlbumGenreRank(albumId, genre, userId) {
     WITH scores AS (
       SELECT
         a.id,
-        POWER(SUM(sr.rating), 2.0) / NULLIF(COUNT(sr.song_id), 0) AS score
+        POWER(SUM(sr.rating), 2.0) / POWER(NULLIF(COUNT(sr.song_id), 0),1.1) AS score
       FROM albums a
       JOIN album_genres ag ON ag.album_id = a.id
       JOIN genres g ON g.id = ag.genre_id
@@ -640,7 +640,7 @@ export async function getAlbumYearRank(albumId, userId) {
       SELECT
         a.id,
         EXTRACT(YEAR FROM a.release_date) AS year,
-        POWER(SUM(sr.rating), 2.0) / NULLIF(COUNT(sr.song_id), 0) AS score
+        POWER(SUM(sr.rating), 2.0) / POWER(NULLIF(COUNT(sr.song_id), 0),1.1) AS score
       FROM albums a
       JOIN songs s ON s.album_id = a.id
       JOIN song_ratings sr ON sr.song_id = s.id
@@ -666,7 +666,7 @@ export async function getAlbumDecadeRank(albumId, userId) {
       SELECT
         a.id,
         FLOOR(EXTRACT(YEAR FROM a.release_date) / 10) * 10 AS decade,
-        POWER(SUM(sr.rating), 2.0) / NULLIF(COUNT(sr.song_id), 0) AS score
+        POWER(SUM(sr.rating), 2.0) / POWER(NULLIF(COUNT(sr.song_id), 0),1.1) AS score
       FROM albums a
       JOIN songs s ON s.album_id = a.id
       JOIN song_ratings sr ON sr.song_id = s.id
@@ -692,7 +692,7 @@ export async function getAlbumArtistRank(albumId, userId) {
       SELECT
         a.id,
         aa.artist_id,
-        POWER(SUM(sr.rating), 2.0) / NULLIF(COUNT(sr.song_id), 0) AS score
+        POWER(SUM(sr.rating), 2.0) / POWER(NULLIF(COUNT(sr.song_id), 0),1.1) AS score
       FROM albums a
       JOIN album_artists aa ON aa.album_id = a.id
       JOIN songs s ON s.album_id = a.id
@@ -722,7 +722,7 @@ export async function getAlbumOverallRank(albumId, userId) {
     WITH scores AS (
       SELECT
         a.id,
-        POWER(SUM(sr.rating), 2.0) / NULLIF(COUNT(sr.song_id), 0) AS score
+        POWER(SUM(sr.rating), 2.0) / POWER(NULLIF(COUNT(sr.song_id), 0),1.1) AS score
       FROM albums a
       JOIN songs s ON s.album_id = a.id
       JOIN song_ratings sr ON sr.song_id = s.id
@@ -773,7 +773,7 @@ export async function getUserAlbumScores(userId) {
   return res.rows.map(a => {
     const totalRating = Number(a.total_rating);
     const ratedSongs = Number(a.rated_songs);
-    const rating = ratedSongs > 0 ? (totalRating * totalRating) / ratedSongs : 0;
+    const rating = ratedSongs > 0 ? totalRating**2 / ratedSongs**1.1 : 0;
     return { albumId: a.album_id, rating };
   });
 }

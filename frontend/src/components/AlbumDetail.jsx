@@ -248,6 +248,25 @@ export default function AlbumDetail({ user }) {
   useEffect(() => {
     if (!hasChanges) return;
 
+    const handleClick = (e) => {
+      const link = e.target.closest('a');
+      if (!link || !link.href) return;
+      const url = new URL(link.href, window.location.origin);
+      if (url.origin === window.location.origin && link.target !== '_blank') {
+        if (!window.confirm("You have unsaved changes. Are you sure you want to leave?")) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
+    };
+
+    document.addEventListener('click', handleClick, true);
+    return () => document.removeEventListener('click', handleClick, true);
+  }, [hasChanges]);
+
+  useEffect(() => {
+    if (!hasChanges) return;
+
     const handlePopState = () => {
       if (!window.confirm("You have unsaved changes. Are you sure you want to leave?")) {
         window.history.pushState(null, null, window.location.pathname);
@@ -417,7 +436,14 @@ export default function AlbumDetail({ user }) {
             <h4 style={{ margin: 0 }}>
               Released {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
             </h4>
-            <h4 style={{ margin: "0 0 -10px 0" }}>
+            <h4 style={{ margin: "0 0 -10px 0", display: "flex", alignItems: "center", gap: "6px" }}>
+              {album.pfp && (
+                <img
+                  src={album.pfp}
+                  alt=""
+                  style={{ width: "20px", height: "20px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+                />
+              )}
               {effectiveUsername === user?.username
                 ? `Your likes: ${goodSongs} of ${ratedSongs} tracks`
                 : <Link to={`/users/${effectiveUsername}`} style={{ color: "white" }}>
@@ -495,7 +521,7 @@ export default function AlbumDetail({ user }) {
           {reviewPanel}
         </div>
       )}
-      
+
       {/* ===== TRACKLIST + SIDEBAR ===== */}
       <div style={{
         display: "flex", flexDirection: isMobile ? "column" : "row",

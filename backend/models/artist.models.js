@@ -206,7 +206,7 @@ export async function attachUserAlbumStats(albums, userId) {
   const allRatings = allRes.rows.map(a => {
     const total = Number(a.totalRating);
     const rated = Number(a.ratedSongs);
-    return { id: a.id, rating: rated > 0 ? (total * total) / rated : 0 };
+    return { id: a.id, rating: rated > 0 ? (total * total) / rated**1.1 : 0 };
   });
 
   const sorted = allRatings.slice().sort((a, b) => a.rating - b.rating);
@@ -243,7 +243,7 @@ export async function attachUserAlbumStats(albums, userId) {
 
     result.push({
       ...a,
-      rating: ratedSongs > 0 ? Math.pow(totalRating, 2) / ratedSongs : 0,
+      rating: ratedSongs > 0 ? Math.pow(totalRating, 2) / ratedSongs**1.1 : 0,
       rate: `${nonSkips}/${ratedSongs}`,
       score10: scoreMap.get(a.id) ?? null,
     });
@@ -283,7 +283,7 @@ export async function getUserArtistStats(userId) {
     if (!artistMap.has(row.id)) {
       artistMap.set(row.id, { id: row.id, name: row.name, image: row.image, albums: [], score10s: [] });
     }
-    const rating = row.ratedSongs > 0 ? Math.pow(row.ratingSum, 2) / row.ratedSongs : 0;
+    const rating = row.ratedSongs > 0 ? Math.pow(row.ratingSum, 2) / Math.pow(row.ratedSongs,1.1) : 0;
     artistMap.get(row.id).albums.push(rating);
     const s10 = score10Map.get(row.album_id);
     if (s10 != null) artistMap.get(row.id).score10s.push(s10);
