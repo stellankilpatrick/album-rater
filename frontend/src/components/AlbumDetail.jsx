@@ -352,7 +352,7 @@ export default function AlbumDetail({ user }) {
               padding: "8px",
               resize: "none",
               width: isMobile ? "100%" : "625px",
-              height: isMobile ? "100px" : "150px",
+              height: isMobile ? "100px" : "180px",
               fontSize: "13px",
               boxSizing: "border-box",
             }}
@@ -406,9 +406,9 @@ export default function AlbumDetail({ user }) {
         }}>
           {album.coverArt && (
             <div style={{
-              position: "relative", width: isMobile ? "200px" : "210px",
-              height: isMobile ? "200px" : "210px", overflow: "hidden",
-              borderRadius: "12px", flexShrink: 0
+              position: "relative", width: isMobile ? "200px" : "250px",
+              height: isMobile ? "200px" : "250px", overflow: "hidden",
+              borderRadius: "12px", flexShrink: 0, margin: "0px 0px 0px 0px"
             }}>
               <img src={album.coverArt} alt="" style={{
                 position: "absolute", inset: 0, width: "100%", height: "100%",
@@ -453,12 +453,30 @@ export default function AlbumDetail({ user }) {
             </h4>
             {album.score10 != null && (
               <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-                <h1 style={{ margin: 0, fontSize: isMobile ? "3rem" : "3.5rem" }}>{album.score10.toFixed(1)}</h1>
+                <h1 style={{ margin: "0px 0px -10px 0px", fontSize: isMobile ? "3rem" : "4rem" }}>{album.score10.toFixed(1)}</h1>
                 {ranks.overall?.rank != null && (
                   <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "14px" }}>
                     <strong style={{ fontSize: isMobile ? "18px" : "25px" }}>{ordinal(ranks.overall.rank)}</strong> of {ranks.overall.total} albums
                   </span>
                 )}
+              </div>
+            )}
+            {/* Genres */}
+            {genres.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center", margin: "0px 0px 0px 0px" }}>
+                {genres.map(g => (
+                  <span
+                    key={g.id}
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.2)",
+                      borderRadius: "12px",
+                      padding: "2px 6px",
+                      fontSize: "0.8rem"
+                    }}
+                  >
+                    {g.name}
+                  </span>
+                ))}
               </div>
             )}
           </div>
