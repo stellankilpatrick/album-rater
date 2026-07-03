@@ -323,6 +323,15 @@ export default function AlbumDetail({ user }) {
   const goodSongs = pendingSongs.filter(s => s.localRating > 0).length;
   const ratedSongs = pendingSongs.filter(s => s.localRating !== null && s.localRating !== undefined).length;
 
+  const ratingOptionStyles = {
+    "": { label: "Interlude", color: "#d3d3d3", background: "rgba(255,255,255,0.08)", mutedColor: "#b8b8b8", mutedBackground: "rgba(255,255,255,0.06)" },
+    0: { label: "Skip", color: "#ffe4e6", background: "#b91c1c", mutedColor: "#d8b0b4", mutedBackground: "#7a2424" },
+    1: { label: "Play", color: "#dcfce7", background: "#15803d", mutedColor: "#b8d8c1", mutedBackground: "#2f5a3c" },
+    2: { label: "Special", color: "#f5e7ff", background: "#7c3aed", mutedColor: "#cdbde6", mutedBackground: "#4f2f6d" }
+  };
+
+  const getRatingOptionStyle = (value) => ratingOptionStyles[value ?? ""] ?? ratingOptionStyles[""];
+
   const reviewPanel = (
     <div style={{
       flexShrink: 0,
@@ -559,59 +568,73 @@ export default function AlbumDetail({ user }) {
                 </tr>
               </thead>
               <tbody>
-                {pendingSongs.map(song => (
-                  <tr key={song.id}>
-                    <td style={{ paddingRight: "12px", width: "30px" }}>{song.num}</td>
-                    <td style={{ paddingRight: "12px", maxWidth: isMobile ? "250px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {song.title}{song.featured ? <span style={{ fontSize: "0.8em", color: "#aaa" }}> (ft. {song.featured})</span> : ""}
-                    </td>
-                    <td style={{ paddingRight: "24px" }}>
-                      <select
-                        value={song.localRating ?? ""}
-                        disabled={!isOwner}
-                        onChange={isOwner ? e => {
-                          const value = e.target.value === "" ? null : Number(e.target.value);
-                          handleRatingChange(song.id, value);
-                        } : undefined}
-                        style={{ color: isOwner ? "inherit" : "#333", background: isOwner ? "inherit" : "#f0f0f0" }}
-                      >
-                        <option value="">Interlude</option>
-                        <option value={0}>- Skip</option>
-                        <option value={1}>+ Play</option>
-                        <option value={2}>++ Special</option>
-                      </select>
-                    </td>
-                    <td style={{
-                      whiteSpace: "nowrap",
-                      minWidth: isMobile ? "250px" : "auto"
-                    }}>
-                      {isOwner ? (
-                        <div style={{ display: "flex", flexDirection: "column" }}>
-                          <input
-                            type="text"
-                            value={song.comment ?? ""}
-                            onChange={e => handleCommentChange(song.id, e.target.value)}
-                            onFocus={() => setFocusedSongId(song.id)}
-                            onBlur={() => setFocusedSongId(null)}
-                            placeholder="Add a note..."
-                            maxLength={75}
-                            style={{
-                              border: "none",
-                              background: "transparent",
-                              width: isMobile ? "400px" : "520px",
-                              minWidth: isMobile ? "400px" : undefined,
-                              fontSize: isMobile ? "11px" : "13px",
-                              whiteSpace: "nowrap",
-                              color: "#D3D3D3"
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <span style={{ color: "#D3D3D3", fontSize: "13px" }}>{song.comment ?? ""}</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                {pendingSongs.map(song => {
+                  const selectedStyle = getRatingOptionStyle(song.localRating);
+
+                  return (
+                    <tr key={song.id}>
+                      <td style={{ paddingRight: "12px", width: "30px" }}>{song.num}</td>
+                      <td style={{ paddingRight: "12px", maxWidth: isMobile ? "250px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {song.title}{song.featured ? <span style={{ fontSize: "0.8em", color: "#aaa" }}> (ft. {song.featured})</span> : ""}
+                      </td>
+                      <td style={{ paddingRight: "24px" }}>
+                        <select
+                          value={song.localRating ?? ""}
+                          disabled={!isOwner}
+                          onChange={isOwner ? e => {
+                            const value = e.target.value === "" ? null : Number(e.target.value);
+                            handleRatingChange(song.id, value);
+                          } : undefined}
+                          style={{
+                            color: isOwner ? selectedStyle.color : selectedStyle.mutedColor,
+                            background: isOwner ? selectedStyle.background : selectedStyle.mutedBackground,
+                            border: "none",
+                            borderRadius: "4px",
+                            padding: "2px 6px",
+                            fontWeight: 400,
+                            cursor: isOwner ? "pointer" : "default",
+                            fontSize: "12px",
+                            opacity: isOwner ? 1 : 0.9
+                          }}
+                        >
+                          <option value="" style={{ color: ratingOptionStyles[""].color, backgroundColor: ratingOptionStyles[""].background }}>Interlude</option>
+                          <option value={0} style={{ color: ratingOptionStyles[0].color, backgroundColor: ratingOptionStyles[0].background }}>- Skip</option>
+                          <option value={1} style={{ color: ratingOptionStyles[1].color, backgroundColor: ratingOptionStyles[1].background }}>+ Play</option>
+                          <option value={2} style={{ color: ratingOptionStyles[2].color, backgroundColor: ratingOptionStyles[2].background }}>++ Special</option>
+                        </select>
+                      </td>
+                      <td style={{
+                        whiteSpace: "nowrap",
+                        minWidth: isMobile ? "250px" : "auto"
+                      }}>
+                        {isOwner ? (
+                          <div style={{ display: "flex", flexDirection: "column" }}>
+                            <input
+                              type="text"
+                              value={song.comment ?? ""}
+                              onChange={e => handleCommentChange(song.id, e.target.value)}
+                              onFocus={() => setFocusedSongId(song.id)}
+                              onBlur={() => setFocusedSongId(null)}
+                              placeholder="Add a note..."
+                              maxLength={75}
+                              style={{
+                                border: "none",
+                                background: "transparent",
+                                width: isMobile ? "400px" : "520px",
+                                minWidth: isMobile ? "400px" : undefined,
+                                fontSize: isMobile ? "11px" : "13px",
+                                whiteSpace: "nowrap",
+                                color: "#D3D3D3"
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <span style={{ color: "#D3D3D3", fontSize: "13px" }}>{song.comment ?? ""}</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
 
