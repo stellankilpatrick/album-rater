@@ -1,6 +1,6 @@
 import pool from "../db/database.js";
 
-export async function getCommunityFeed(userId, limit = 18) {
+export async function getCommunityFeed(userId, limit = 500) {
   const res = await pool.query(
     `SELECT
       CONCAT(r.user_id, '-', al.id) AS activity_id,
@@ -23,10 +23,11 @@ export async function getCommunityFeed(userId, limit = 18) {
     JOIN songs s ON s.id = r.song_id
     JOIN albums al ON al.id = s.album_id
     WHERE f.follower_id = $1
-    AND NOT EXISTS (
-      SELECT 1 FROM album_ratings ar
-      WHERE ar.user_id = r.user_id AND ar.album_id = al.id AND ar.untracked = true
-    )
+      AND r.updated_at >= CURRENT_DATE - INTERVAL '1 month'
+      AND NOT EXISTS (
+        SELECT 1 FROM album_ratings ar
+        WHERE ar.user_id = r.user_id AND ar.album_id = al.id AND ar.untracked = true
+      )
     GROUP BY r.user_id, al.id, u.username, u.pfp, al.title
     ORDER BY updated_at DESC
     LIMIT $2`,
@@ -62,7 +63,7 @@ export async function getAnniversaryAlbums(userId) {
   return res.rows.map(a => ({ ...a, artistId: a.artistIds[0] }));
 }
 
-export async function getMyActivityFeed(userId, limit = 18) {
+export async function getMyActivityFeed(userId, limit = 500) {
   const res = await pool.query(
     `SELECT
       CONCAT(r.user_id, '-', al.id) AS activity_id,
@@ -84,10 +85,11 @@ export async function getMyActivityFeed(userId, limit = 18) {
     JOIN songs s ON s.id = r.song_id
     JOIN albums al ON al.id = s.album_id
     WHERE r.user_id = $1
-    AND NOT EXISTS (
-      SELECT 1 FROM album_ratings ar
-      WHERE ar.user_id = r.user_id AND ar.album_id = al.id AND ar.untracked = true
-    )
+      AND r.updated_at >= CURRENT_DATE - INTERVAL '1 month'
+      AND NOT EXISTS (
+        SELECT 1 FROM album_ratings ar
+        WHERE ar.user_id = r.user_id AND ar.album_id = al.id AND ar.untracked = true
+      )
     GROUP BY r.user_id, al.id, u.username, u.pfp, al.title
     ORDER BY updated_at DESC
     LIMIT $2`,

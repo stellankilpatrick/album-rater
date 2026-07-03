@@ -71,30 +71,32 @@ export default function Community() {
                     {feed.length === 0 ? (
                         <p>No activity yet. Follow more people.</p>
                     ) : (
-                        feed.map(item => (
-                            <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className="community-item" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                {item.pfp && (
-                                    <Link to={`/users/${item.username}`}>
-                                        <img src={item.pfp} alt="" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-                                    </Link>
-                                )}
-                                <div>
-                                    <Link to={`/users/${item.username}`}>
-                                        <strong>{item.username}</strong>
-                                    </Link>
-                                    {" "}
-                                    {Math.abs(new Date(item.updated_at) - new Date(item.created_at)) < 60000 ? "rated" : "updated"}
-                                    {" "}
-                                    <Link to={`/albums/${item.album_id}/users/${item.username}`}>
-                                        <strong>{item.album_title}</strong>
-                                    </Link>
-                                    {" by "}
-                                    {item.artist_name}
-                                    {" "}
-                                    <span className="time">{timeAgo(item.updated_at)}</span>
+                        <div style={{ maxHeight: isMobile ? "60vh" : "70vh", overflowY: "auto", paddingRight: "8px" }}>
+                            {feed.map(item => (
+                                <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className="community-item" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                    {item.pfp && (
+                                        <Link to={`/users/${item.username}`}>
+                                            <img src={item.pfp} alt="" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                                        </Link>
+                                    )}
+                                    <div>
+                                        <Link to={`/users/${item.username}`}>
+                                            <strong>{item.username}</strong>
+                                        </Link>
+                                        {" "}
+                                        {Math.abs(new Date(item.updated_at) - new Date(item.created_at)) < 60000 ? "rated" : "updated"}
+                                        {" "}
+                                        <Link to={`/albums/${item.album_id}/users/${item.username}`}>
+                                            <strong>{item.album_title}</strong>
+                                        </Link>
+                                        {" by "}
+                                        {item.artist_name}
+                                        {" "}
+                                        <span className="time">{timeAgo(item.updated_at)}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        ))
+                            ))}
+                        </div>
                     )}
                 </div>
 
