@@ -586,8 +586,8 @@ export default function AlbumDetail({ user }) {
                             handleRatingChange(song.id, value);
                           } : undefined}
                           style={{
-                            color: isOwner ? selectedStyle.color : selectedStyle.mutedColor,
-                            background: isOwner ? selectedStyle.background : selectedStyle.mutedBackground,
+                            color: song.localRating == null ? "#c8c8c8" : (isOwner ? selectedStyle.color : selectedStyle.mutedColor),
+                            background: song.localRating == null ? "#4b4b4b" : (isOwner ? selectedStyle.background : selectedStyle.mutedBackground),
                             border: "none",
                             borderRadius: "4px",
                             padding: "2px 6px",
@@ -597,7 +597,7 @@ export default function AlbumDetail({ user }) {
                             opacity: isOwner ? 1 : 0.9
                           }}
                         >
-                          <option value="" style={{ color: ratingOptionStyles[""].color, backgroundColor: ratingOptionStyles[""].background }}>Interlude</option>
+                          <option value="" style={{ color: "#c8c8c8", backgroundColor: "#4b4b4b" }}>Interlude</option>
                           <option value={0} style={{ color: ratingOptionStyles[0].color, backgroundColor: ratingOptionStyles[0].background }}>- Skip</option>
                           <option value={1} style={{ color: ratingOptionStyles[1].color, backgroundColor: ratingOptionStyles[1].background }}>+ Play</option>
                           <option value={2} style={{ color: ratingOptionStyles[2].color, backgroundColor: ratingOptionStyles[2].background }}>++ Special</option>
