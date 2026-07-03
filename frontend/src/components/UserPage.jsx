@@ -209,10 +209,20 @@ export default function ProfilePage({ user }) {
                     </div>
 
                     <div style={{ display: "flex", gap: "16px" }}>
-                        <Link to={`/users/${effectiveUsername}/connections#followers`} style={{ textDecoration: "none", color: "inherit" }}>
+                        <Link
+                            to={`/users/${effectiveUsername}/connections#followers`}
+                            style={{ textDecoration: "none", color: "inherit", transition: "opacity 0.15s ease" }}
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+                        >
                             <strong>{followCounts.followers}</strong> Followers
                         </Link>
-                        <Link to={`/users/${effectiveUsername}/connections#following`} style={{ textDecoration: "none", color: "inherit" }}>
+                        <Link
+                            to={`/users/${effectiveUsername}/connections#following`}
+                            style={{ textDecoration: "none", color: "inherit", transition: "opacity 0.15s ease" }}
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+                        >
                             <strong>{followCounts.following}</strong> Following
                         </Link>
                     </div>
@@ -270,10 +280,26 @@ export default function ProfilePage({ user }) {
             )}
 
 
-            <h3><Link to={`/users/${effectiveUsername}/listen-list`}>Listen List</Link></h3>
+            <h3>
+                <Link
+                    to={`/users/${effectiveUsername}/listen-list`}
+                    style={{ color: "inherit", transition: "opacity 0.15s ease" }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+                >
+                    Listen List
+                </Link>
+            </h3>
 
             {/* Top 5 Albums */}
-            <Link to={`/albums/users/${effectiveUsername}`}><h2>Top Albums</h2></Link>
+            <Link
+                to={`/albums/users/${effectiveUsername}`}
+                style={{ color: "inherit", transition: "opacity 0.15s ease" }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+            >
+                <h2>Top Albums</h2>
+            </Link>
             {topAlbums.length > 0 && (
                 <div style={{ display: "flex", gap: "4px" }}>
                     {topAlbums.map(album => (
@@ -299,7 +325,14 @@ export default function ProfilePage({ user }) {
             )}
 
             {/* Top 5 Artists */}
-            <Link to={`/artists/users/${effectiveUsername}`}><h2>Top Artists</h2></Link>
+            <Link
+                to={`/artists/users/${effectiveUsername}`}
+                style={{ color: "inherit", transition: "opacity 0.15s ease" }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+            >
+                <h2>Top Artists</h2>
+            </Link>
             {topArtists.length > 0 && (
                 <div style={{ display: "flex", gap: "4px" }}>
                     {topArtists.map(artist => (
