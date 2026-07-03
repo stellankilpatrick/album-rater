@@ -430,12 +430,24 @@ export default function AlbumDetail({ user }) {
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 }}>
             <h1 style={{ margin: "0 0 -4px 0", fontSize: isMobile ? "1.75rem" : undefined }}>
-              <Link to={`/albums/${album.id}`} style={{ color: "white" }}><i>{album.title}</i></Link>
+              <Link
+                to={`/albums/${album.id}`}
+                style={{ color: "white", transition: "opacity 0.15s ease" }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+              >
+                <i>{album.title}</i>
+              </Link>
             </h1>
             <h2 style={{ margin: 0, fontSize: isMobile ? "1.25rem" : undefined }}>
               {album.artistIds?.map((id, i) => (
                 <span key={id}>
-                  <Link to={`/artists/${id}/users/${effectiveUsername}`} style={{ color: "white" }}>
+                  <Link
+                    to={`/artists/${id}/users/${effectiveUsername}`}
+                    style={{ color: "white", transition: "opacity 0.15s ease" }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+                  >
                     {album.artist?.split(' & ')[i]}
                   </Link>
                   {i < album.artistIds.length - 1 && ", "}
@@ -455,9 +467,14 @@ export default function AlbumDetail({ user }) {
               )}
               {effectiveUsername === user?.username
                 ? `Your likes: ${goodSongs} of ${ratedSongs} tracks`
-                : <Link to={`/users/${effectiveUsername}`} style={{ color: "white" }}>
-                  {`${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`}
-                </Link>
+                : <Link
+                    to={`/users/${effectiveUsername}`}
+                    style={{ color: "white", transition: "opacity 0.15s ease" }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+                  >
+                    {`${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`}
+                  </Link>
               }
             </h4>
             {album.score10 != null && (
@@ -666,7 +683,14 @@ export default function AlbumDetail({ user }) {
                   {/* Top-level comment */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "6px", padding: "8px 12px" }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <Link to={`/users/${c.username}`} style={{ fontWeight: "bold", fontSize: isMobile ? "12px" : "13px" }}>{c.username}</Link>
+                      <Link
+                        to={`/users/${c.username}`}
+                        style={{ fontWeight: "bold", fontSize: isMobile ? "12px" : "13px", transition: "opacity 0.15s ease" }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+                      >
+                        {c.username}
+                      </Link>
                       <span style={{ fontSize: isMobile ? "10px" : "11px", color: "#999", marginLeft: "8px" }}>
                         {timeAgo(c.created_at)}
                       </span>
@@ -729,7 +753,14 @@ export default function AlbumDetail({ user }) {
                     <div key={reply.id}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "rgba(255,255,255,0.03)", borderRadius: "6px", padding: "8px 12px", marginTop: "4px", marginLeft: isMobile ? "12px" : "24px" }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <Link to={`/users/${reply.username}`} style={{ fontWeight: "bold", fontSize: isMobile ? "12px" : "13px" }}>{reply.username}</Link>
+                          <Link
+                            to={`/users/${reply.username}`}
+                            style={{ fontWeight: "bold", fontSize: isMobile ? "12px" : "13px", transition: "opacity 0.15s ease" }}
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+                          >
+                            {reply.username}
+                          </Link>
                           <span style={{ fontSize: isMobile ? "10px" : "11px", color: "#999", marginLeft: "8px" }}>
                             {timeAgo(reply.created_at)}
                           </span>
@@ -858,7 +889,9 @@ export default function AlbumDetail({ user }) {
             {ranks.year?.rank != null && (
               <Link
                 to={`/albums/users/${effectiveUsername}?minYear=${album.releaseDate?.slice(0, 4)}&maxYear=${album.releaseDate?.slice(0, 4)}`}
-                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                style={{ textDecoration: "none", color: "inherit", cursor: "pointer", transition: "opacity 0.15s ease" }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
               >
                 <div style={{ fontSize: "16px" }}>
                   <strong style={{ fontSize: "28px" }}>{ordinal(ranks.year.rank)} </strong>
@@ -869,7 +902,9 @@ export default function AlbumDetail({ user }) {
             {ranks.decade?.rank != null && (
               <Link
                 to={`/albums/users/${effectiveUsername}?minYear=${Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}&maxYear=${Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10 + 9}`}
-                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                style={{ textDecoration: "none", color: "inherit", cursor: "pointer", transition: "opacity 0.15s ease" }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
               >
                 <div style={{ fontSize: "16px" }}>
                   <strong style={{ fontSize: "28px" }}>{ordinal(ranks.decade.rank)} </strong>
@@ -881,7 +916,9 @@ export default function AlbumDetail({ user }) {
               <Link
                 key={a.name}
                 to={`/albums/users/${effectiveUsername}?artist=${encodeURIComponent(a.name)}`}
-                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                style={{ textDecoration: "none", color: "inherit", cursor: "pointer", transition: "opacity 0.15s ease" }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
               >
                 <div style={{ fontSize: "16px" }}>
                   <strong style={{ fontSize: "28px" }}>{ordinal(a.rank)} </strong>
@@ -893,7 +930,9 @@ export default function AlbumDetail({ user }) {
               <Link
                 key={g.name}
                 to={`/albums/users/${effectiveUsername}?genre=${encodeURIComponent(g.name)}`}
-                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                style={{ textDecoration: "none", color: "inherit", cursor: "pointer", transition: "opacity 0.15s ease" }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
               >
                 <div style={{ fontSize: "16px" }}>
                   <strong style={{ fontSize: "28px" }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
@@ -904,13 +943,23 @@ export default function AlbumDetail({ user }) {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
             <button style={{ minWidth: "30px", borderRadius: "4px" }}>
-              <Link to={`/albums/${album.id}`} style={{ textDecoration: "none", fontSize: "14px" }}>
+              <Link
+                to={`/albums/${album.id}`}
+                style={{ textDecoration: "none", fontSize: "14px", transition: "opacity 0.15s ease" }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+              >
                 All ratings of <i>{album.title}</i>
               </Link>
             </button>
             {album.artistIds?.map((id, i) => (
               <button key={id} style={{ minWidth: "30px", borderRadius: "4px" }}>
-                <Link to={`/artists/${id}/users/${effectiveUsername}`} style={{ textDecoration: "none", fontSize: "14px" }}>
+                <Link
+                  to={`/artists/${id}/users/${effectiveUsername}`}
+                  style={{ textDecoration: "none", fontSize: "14px", transition: "opacity 0.15s ease" }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+                >
                   All albums by {album.artist?.split(' & ')[i]}
                 </Link>
               </button>

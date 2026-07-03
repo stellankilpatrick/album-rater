@@ -13,6 +13,8 @@ export default function ArtistDetail({ user }) {
     const token = localStorage.getItem("token");
 
     const [sortMode, setSortMode] = useState("rating");
+    const [editImage, setEditImage] = useState("");
+    const [isEditingImage, setIsEditingImage] = useState(false);
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const [viewMode, setViewMode] = useState(window.innerWidth <= 768 ? "grid" : "grid");
@@ -40,6 +42,7 @@ export default function ArtistDetail({ user }) {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setArtist(res.data.artist);
+            setEditImage(res.data.artist?.image || "");
             const normalized = res.data.albums.map(a => ({
                 ...a,
                 releaseDate: a.releaseDate ?? a.release_date ?? ""
@@ -49,6 +52,21 @@ export default function ArtistDetail({ user }) {
             console.error("Failed to fetch artist", err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const saveArtistImage = async () => {
+        if (!editImage.trim()) return;
+        try {
+            const res = await api.patch(`/artists/${artistId}/image`, { image: editImage.trim() }, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setArtist(prev => prev ? { ...prev, image: res.data.image } : res.data);
+            setEditImage(res.data.image || "");
+            setIsEditingImage(false);
+        } catch (err) {
+            console.error("Failed to update artist image", err);
+            alert("Failed to save image.");
         }
     };
 
@@ -65,12 +83,32 @@ export default function ArtistDetail({ user }) {
         <div>
             <div style={{ marginBottom: "12px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
-                    {artist.image && (
+                    {artist.image ? (
                         <img
                             src={artist.image}
                             alt={`${artist.name} cover`}
                             style={{ width: isMobile ? "80px" : "200px", height: isMobile ? "80px" : "200px", objectFit: "cover", borderRadius: "50%" }}
                         />
+                    ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                            {!isEditingImage ? (
+                                <button onClick={() => setIsEditingImage(true)}>
+                                    Add Artist Image
+                                </button>
+                            ) : (
+                                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                                    <input
+                                        type="text"
+                                        value={editImage}
+                                        onChange={e => setEditImage(e.target.value)}
+                                        placeholder="Paste image URL"
+                                        style={{ maxWidth: "220px", borderRadius: "3px" }}
+                                    />
+                                    <button onClick={saveArtistImage}>Save</button>
+                                    <button onClick={() => { setEditImage(artist.image || ""); setIsEditingImage(false); }}>Cancel</button>
+                                </div>
+                            )}
+                        </div>
                     )}
                     <h1 style={{ margin: 0, fontSize: isMobile ? "1.3rem" : undefined }}>
                         <Link to={`/users/${effectiveUsername}`}>
