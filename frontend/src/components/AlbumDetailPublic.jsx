@@ -20,6 +20,7 @@ export default function AlbumDetailPublic({ user }) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingSongId, setEditingSongId] = useState(null);
+  const [editSnapshot, setEditSnapshot] = useState(null);
 
   const [genres, setGenres] = useState([]);
   const [allGenres, setAllGenres] = useState([]);
@@ -33,6 +34,7 @@ export default function AlbumDetailPublic({ user }) {
   const [myReview, setMyReview] = useState(null);
 
   const [songSort, setSongSort] = useState("num");
+  const [draftTrackNums, setDraftTrackNums] = useState({});
 
   useEffect(() => {
     if (!user || !albumId) return;
@@ -136,10 +138,34 @@ export default function AlbumDetailPublic({ user }) {
   };
 
   const saveTrackNum = async (song) => {
-    if (!song.num || song.num < 1) return;
+    const draftValue = draftTrackNums[song.id];
+    const nextNum = Number(draftValue);
+
+    if (!Number.isInteger(nextNum) || nextNum < 1) {
+      setDraftTrackNums(prev => {
+        const updated = { ...prev };
+        delete updated[song.id];
+        return updated;
+      });
+      return;
+    }
+
     try {
-      await api.patch(`/songs/${song.id}/num`, { num: song.num });
-    } catch (err) { console.error(err); }
+      const res = await api.patch(`/songs/${song.id}/num`, { num: nextNum });
+      const updatedSongs = Array.isArray(res.data?.songs) ? res.data.songs : null;
+      if (updatedSongs) {
+        setSongs(updatedSongs.map(s => ({ ...s, num: s.num ?? s.track_number ?? 1 })));
+      } else {
+        setSongs(prev => prev.map(s => s.id === song.id ? { ...s, num: res.data?.song?.num ?? nextNum } : s));
+      }
+      setDraftTrackNums(prev => {
+        const updated = { ...prev };
+        delete updated[song.id];
+        return updated;
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const deleteSong = async (songId) => {
@@ -148,6 +174,92 @@ export default function AlbumDetailPublic({ user }) {
       await api.delete(`/songs/${songId}`);
       setSongs(prev => prev.filter(s => s.id !== songId));
     } catch (err) { console.error(err); }
+  };
+
+  const handleStartEditing = () => {
+    setIsEditing(true);
+    setEditingSongId(null);
+    setEditSnapshot({
+      album: {
+        ...album,
+        title: editTitle,
+        artist: editArtist,
+        coverArt: editCover,
+        releaseDate: editReleaseDate
+      },
+      songs: songs.map(song => ({ ...song })),
+      genres: [...genres]
+    });
+  };
+
+  const handleSaveChanges = async () => {
+    try {
+      if (editTitle.trim() && editTitle !== album?.title) {
+        await saveAlbumTitle();
+      }
+
+      if (editArtist.trim() && editArtist !== album?.artist) {
+        await saveAlbumArtist();
+      }
+
+      if (editReleaseDate && editReleaseDate !== (album?.releaseDate || "").split("T")[0]) {
+        await saveAlbumReleaseDate();
+      }
+
+      const trimmedCover = editCover.trim();
+      if (trimmedCover && trimmedCover !== album?.coverArt) {
+        await saveCover();
+      }
+
+      for (const song of songs) {
+        const originalSong = editSnapshot?.songs?.find(s => s.id === song.id);
+        if (!originalSong) continue;
+
+        if (song.title?.trim() && song.title !== originalSong.title) {
+          await api.patch(`/songs/${song.id}/title`, { title: song.title });
+        }
+
+        if ((song.featured ?? "") !== (originalSong.featured ?? "")) {
+          await api.patch(`/songs/${song.id}/featured`, { featured: song.featured ?? null });
+        }
+
+        const draftValue = draftTrackNums[song.id];
+        if (draftValue !== undefined) {
+          const nextNum = Number(draftValue);
+          if (Number.isInteger(nextNum) && nextNum >= 1) {
+            await api.patch(`/songs/${song.id}/num`, { num: nextNum });
+          }
+        }
+      }
+
+      const refreshedRes = await api.get(`/albums/${albumId}`);
+      setAlbum(refreshedRes.data);
+      setSongs(refreshedRes.data.tracks || []);
+      setGenres(refreshedRes.data.genres || []);
+      setDraftTrackNums({});
+      setEditingSongId(null);
+      setIsEditing(false);
+      setEditSnapshot(null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCancelChanges = () => {
+    if (editSnapshot) {
+      setAlbum(editSnapshot.album);
+      setSongs(editSnapshot.songs);
+      setGenres(editSnapshot.genres);
+      setEditTitle(editSnapshot.album?.title || "");
+      setEditArtist(editSnapshot.album?.artist || "");
+      setEditCover(editSnapshot.album?.coverArt || "");
+      setEditReleaseDate(editSnapshot.album?.releaseDate ? editSnapshot.album.releaseDate.split("T")[0] : "");
+    }
+
+    setDraftTrackNums({});
+    setEditingSongId(null);
+    setIsEditing(false);
+    setEditSnapshot(null);
   };
 
   const handleRateClick = async () => {
@@ -173,6 +285,15 @@ export default function AlbumDetailPublic({ user }) {
 
   if (loading) return <p>Loading album details...</p>;
   if (!album) return <p>Album not found.</p>;
+
+  const displayedSongs = songs.slice().sort((a, b) => {
+    if (songSort === "rating") {
+      return (b.notSkippedPercent ?? 0) - (a.notSkippedPercent ?? 0);
+    }
+    return a.num - b.num;
+  });
+
+  const nextTrackNum = songs.reduce((max, song) => Math.max(max, Number(song.num) || 0), 0) + 1;
 
   return (
     <div>
@@ -222,7 +343,7 @@ export default function AlbumDetailPublic({ user }) {
             flexDirection: isMobile ? "column" : "row",
             gap: "20px",
             alignItems: isMobile ? "center" : "flex-start",
-            padding: "24px"
+            padding: isEditing ? "24px 28px" : "24px"
           }}
         >
           {/* Cover */}
@@ -265,14 +386,14 @@ export default function AlbumDetailPublic({ user }) {
             )}
 
             {isEditing && (
-              <div style={{ marginTop: "8px" }}>
+              <div style={{ marginTop: "10px", padding: "10px 6px", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "10px", width: "min(320px, 100%)" }}>
                 <input
                   type="text"
                   placeholder="Cover image URL"
                   value={editCover}
                   onChange={e => setEditCover(e.target.value)}
                   onBlur={saveCover}
-                  style={{ width: "200px" }}
+                  style={{ width: "100%", padding: "4px 8px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.9)", color: "#222", boxSizing: "border-box" }}
                 />
               </div>
             )}
@@ -283,30 +404,33 @@ export default function AlbumDetailPublic({ user }) {
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: "8px",
-              alignItems: isMobile ? "center" : "flex-start"
+              gap: isEditing ? "12px" : "10px",
+              alignItems: isMobile ? "center" : "flex-start",
+              width: isEditing ? "100%" : undefined,
+              padding: isEditing ? "6px 0" : undefined
             }}
           >
-            <h1 style={{ margin: "0 0 -10px 0", fontSize: isMobile ? "1.75rem" : undefined, textAlign: isMobile ? "center" : undefined }}>
+            <h1 style={{ margin: isEditing ? 0 : "0 0 -8px 0", fontSize: isMobile ? "1.75rem" : undefined, textAlign: isMobile ? "center" : undefined, lineHeight: 1.2 }}>
               {isEditing ? (
                 <input
                   value={editTitle}
                   onChange={e => setEditTitle(e.target.value)}
                   onBlur={saveAlbumTitle}
                   onKeyDown={e => e.key === "Enter" && e.target.blur()}
-                  style={{ fontStyle: "italic" }}
+                  style={{ fontStyle: "italic", padding: "4px 8px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.12)", color: "white", width: "min(320px, 100%)", boxSizing: "border-box" }}
                 />
               ) : (
                 <i>{album.title}</i>
               )}
             </h1>
-            <h2 style={{ margin: "0 0 -6px 0", textAlign: isMobile ? "center" : undefined }}>
+            <h2 style={{ margin: isEditing ? 0 : "0 0 -4px 0", textAlign: isMobile ? "center" : undefined, lineHeight: 1.2 }}>
               {isEditing ? (
                 <input
                   value={editArtist}
                   onChange={e => setEditArtist(e.target.value)}
                   onBlur={saveAlbumArtist}
                   onKeyDown={e => e.key === "Enter" && e.target.blur()}
+                  style={{ padding: "4px 8px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.12)", color: "white", width: "min(300px, 100%)", boxSizing: "border-box" }}
                 />
               ) : (
                 album.artistIds?.map((id, i) => (
@@ -320,7 +444,7 @@ export default function AlbumDetailPublic({ user }) {
               )}
             </h2>
 
-            <h4 style={{ margin: 0 }}>
+            <h4 style={{ margin: 0, lineHeight: 1.3 }}>
               Released{" "}
               {isEditing ? (
                 <input
@@ -328,7 +452,7 @@ export default function AlbumDetailPublic({ user }) {
                   value={editReleaseDate}
                   onChange={e => setEditReleaseDate(e.target.value)}
                   onBlur={saveAlbumReleaseDate}
-                  style={{ marginLeft: "4px" }}
+                  style={{ marginLeft: "6px", padding: "4px 8px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.12)", color: "white", boxSizing: "border-box" }}
                 />
               ) : (
                 new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
@@ -389,7 +513,7 @@ export default function AlbumDetailPublic({ user }) {
                         setShowGenreDropdown(false);
                       }
                     }}
-                    style={{ fontSize: "0.8rem", padding: "2px 6px", borderRadius: "8px", width: "110px" }}
+                    style={{ fontSize: "0.8rem", padding: "2px 6px", borderRadius: "8px", width: "110px", border: "none" }}
                   />
                   {showGenreDropdown && genreInput.trim() && (
                     <div style={{
@@ -443,18 +567,35 @@ export default function AlbumDetailPublic({ user }) {
               )}
             </div>
 
-            <p style={{ margin: "0 0 -4px 0" }}>
+            <p style={{ margin: isEditing ? 0 : "0 0 -4px 0", lineHeight: 1.4 }}>
               Average Score: {album.avgScore?.toFixed(1) || "0.0"} |{" "}
               {album.ratingCount ?? 0} rating{album.ratingCount !== 1 ? "s" : ""}
             </p>
 
-            <div style={{ display: "flex", gap: "8px", marginTop: "6px", flexWrap: "wrap", justifyContent: isMobile ? "center" : "flex-start" }}>
-              <button
-                onClick={() => { setIsEditing(e => !e); setEditingSongId(null); }}
-                style={isEditing ? { backgroundColor: "green", color: "white", border: "none", borderRadius: "4px" } : { borderRadius: "3px", border: "None" }}
-              >
-                {isEditing ? "Done editing" : "Edit album"}
-              </button>
+            <div style={{ display: "flex", gap: "10px", marginTop: isEditing ? "10px" : "8px", flexWrap: "wrap", justifyContent: isMobile ? "center" : "flex-start" }}>
+              {isEditing ? (
+                <>
+                  <button
+                    onClick={handleSaveChanges}
+                    style={{ backgroundColor: "green", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", padding: "6px 10px", fontWeight: 600 }}
+                  >
+                    Save changes
+                  </button>
+                  <button
+                    onClick={handleCancelChanges}
+                    style={{ backgroundColor: "#666", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", padding: "6px 10px", fontWeight: 600 }}
+                  >
+                    Cancel changes
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleStartEditing}
+                  style={{ borderRadius: "3px", border: "None", cursor: "pointer" }}
+                >
+                  Edit album
+                </button>
+              )}
 
               {user && !isEditing && (
                 <button
@@ -484,17 +625,17 @@ export default function AlbumDetailPublic({ user }) {
         {/* ===== Tracks ===== */}
         <div style={{ flex: 7 }}>
           <div style={{ overflowX: isMobile ? "auto" : "visible", width: isMobile ? "100%" : "auto" }}>
-            <table style={{ width: isMobile ? "auto" : "100%", borderCollapse: "collapse", tableLayout: isMobile ? "auto" : "fixed" }}>
+            <table style={{ width: isMobile ? "auto" : "100%", borderCollapse: "collapse", tableLayout: isMobile ? "auto" : "fixed", marginTop: isEditing ? "4px" : undefined }}>
               <thead>
                 <tr>
-                  <th style={{ width: "30px" }}>#</th>
-                  <th style={{ textAlign: "left", maxWidth: isMobile ? "200px" : undefined }}>Title</th>
+                  <th style={{ width: isEditing ? "40px" : "30px", padding: isEditing ? "10px 8px" : undefined, textAlign: "left" }}>#</th>
+                  <th style={{ textAlign: "left", maxWidth: isMobile ? "200px" : undefined, padding: isEditing ? "10px 8px" : undefined }}>Title</th>
                   {!isEditing && (
                     <th
                       onClick={() =>
                         setSongSort(prev => prev === "rating" ? "num" : "rating")
                       }
-                      style={{ cursor: "pointer", userSelect: "none" }}
+                      style={{ cursor: "pointer", userSelect: "none", padding: isEditing ? "10px 8px" : undefined }}
                     >
                       Rating {songSort === "rating" ? "↓" : ""}
                     </th>
@@ -503,30 +644,34 @@ export default function AlbumDetailPublic({ user }) {
               </thead>
 
               <tbody>
-                {songs
-                  .slice()
-                  .sort((a, b) => {
-                    if (songSort === "rating") {
-                      return (b.notSkippedPercent ?? 0) - (a.notSkippedPercent ?? 0);
-                    }
-                    return a.num - b.num;
-                  })
-                  .map(song => (
-                    <tr key={song.id}>
-                      <td>
+                {displayedSongs.map(song => (
+                    <tr key={song.id} style={{ lineHeight: isEditing ? 1 : 1.4 }}>
+                      <td style={{ padding: isEditing ? "2px 8px" : undefined, verticalAlign: isEditing ? "top" : undefined }}>
                         {isEditing ? (
                           <input
                             type="number"
                             min="1"
-                            value={song.num}
-                            style={{ width: "3rem" }}
-                            onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, num: Number(e.target.value) } : s))}
+                            value={draftTrackNums[song.id] ?? song.num}
+                            style={{ width: "3.2rem", padding: "3px 6px", borderRadius: "6px", border: "1px solid #555", textAlign: "center", boxSizing: "border-box" }}
+                            onChange={e => setDraftTrackNums(prev => ({ ...prev, [song.id]: e.target.value }))}
                             onBlur={() => saveTrackNum(song)}
+                            onKeyDown={e => {
+                              if (e.key === "Enter") e.target.blur();
+                              if (e.key === "Escape") {
+                                setDraftTrackNums(prev => {
+                                  const updated = { ...prev };
+                                  delete updated[song.id];
+                                  return updated;
+                                });
+                              }
+                            }}
                           />
                         ) : song.num}
                       </td>
 
                       <td style={{
+                        padding: isEditing ? "2px 8px" : undefined,
+                        verticalAlign: isEditing ? "top" : undefined,
                         minWidth: isMobile ? "270px" : undefined,
                         whiteSpace: isMobile && !isEditing ? "normal" : "normal",
                         overflow: isMobile && !isEditing ? "hidden" : undefined,
@@ -534,7 +679,7 @@ export default function AlbumDetailPublic({ user }) {
                         wordBreak: "break-word"
                       }}>
                         {isEditing ? (
-                          <>
+                          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: "8px", width: "100%", alignItems: isMobile ? "stretch" : "center" }}>
                             <input
                               type="text"
                               value={song.title}
@@ -543,6 +688,7 @@ export default function AlbumDetailPublic({ user }) {
                               onBlur={() => saveSongTitle(song)}
                               onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingSongId(null); }}
                               onFocus={() => setEditingSongId(song.id)}
+                              style={{ flex: 1, padding: "3px 8px", borderRadius: "6px", border: "1px solid #ccc" }}
                             />
                             <input
                               type="text"
@@ -551,8 +697,9 @@ export default function AlbumDetailPublic({ user }) {
                               onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, featured: e.target.value } : s))}
                               onBlur={() => saveSongFeatured(song)}
                               onKeyDown={e => { if (e.key === "Enter") e.target.blur(); }}
+                              style={{ flex: isMobile ? 1 : "0 1 220px", padding: "3px 8px", borderRadius: "6px", border: "1px solid #ccc" }}
                             />
-                          </>
+                          </div>
                         ) : (
                           <span>{song.title}{song.featured ? <span style={{ fontSize: "0.8em", color: "#aaa" }}> (ft. {song.featured})</span> : ""}</span>
                         )}
@@ -561,8 +708,8 @@ export default function AlbumDetailPublic({ user }) {
                       {!isEditing && <td>{song.totalRatings > 0 ? `${song.notSkippedPercent}%` : "—"}</td>}
 
                       {isEditing && (
-                        <td>
-                          <button className="danger" onClick={() => deleteSong(song.id)}>Delete</button>
+                        <td style={{ padding: isEditing ? "3px 8px" : undefined, verticalAlign: isEditing ? "top" : undefined }}>
+                          <button className="danger" onClick={() => deleteSong(song.id)} style={{ marginLeft: "8px", padding: "6px 10px", borderRadius: "6px" }}>Delete</button>
                         </td>
                       )}
                     </tr>
@@ -574,7 +721,7 @@ export default function AlbumDetailPublic({ user }) {
           {isEditing && (
             <AddSongForm
               albumId={albumId}
-              nextNum={songs.length + 1}
+              nextNum={nextTrackNum}
               onAdd={song => setSongs(prev => [...prev, song])}
             />
           )}

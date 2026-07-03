@@ -188,13 +188,72 @@ router.patch("/:songId/num", requireAuth, async (req, res) => {
     }
     num = Number(num);
 
-    const result = await pool.query(
-      `UPDATE songs SET track_number = $1 WHERE id = $2 RETURNING *`,
-      [num, songId]
-    );
-    if (result.rowCount === 0) return res.status(404).json({ error: "Song not found" });
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
 
-    res.json({ success: true, song: result.rows[0] });
+      const { rows: albumRows } = await client.query(
+        `SELECT album_id FROM songs WHERE id = $1`,
+        [songId]
+      );
+      if (!albumRows[0]) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ error: "Song not found" });
+      }
+
+      const albumId = albumRows[0].album_id;
+      const { rows: currentSongs } = await client.query(
+        `SELECT id, title, track_number AS num, featured
+         FROM songs
+         WHERE album_id = $1
+         ORDER BY track_number, id`,
+        [albumId]
+      );
+
+      const targetIndex = currentSongs.findIndex(song => song.id === Number(songId));
+      if (targetIndex === -1) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ error: "Song not found" });
+      }
+
+      const targetSong = currentSongs[targetIndex];
+      const currentNum = Number(targetSong.num);
+
+      for (const song of currentSongs) {
+        if (song.id === Number(songId)) {
+          continue;
+        }
+
+        const songNum = Number(song.num);
+        if (songNum >= num) {
+          await client.query(
+            `UPDATE songs SET track_number = $1 WHERE id = $2`,
+            [songNum + 1, song.id]
+          );
+        }
+      }
+
+      await client.query(
+        `UPDATE songs SET track_number = $1 WHERE id = $2`,
+        [num, Number(songId)]
+      );
+
+      const { rows: updatedSongs } = await client.query(
+        `SELECT id, title, track_number AS num, featured
+         FROM songs
+         WHERE album_id = $1
+         ORDER BY track_number, id`,
+        [albumId]
+      );
+
+      await client.query("COMMIT");
+      res.json({ success: true, song: updatedSongs.find(song => song.id === Number(songId)), songs: updatedSongs });
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to update track number" });
