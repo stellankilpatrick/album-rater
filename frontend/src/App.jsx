@@ -25,15 +25,18 @@ function App() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      api
-        .get("/auth/me", { headers: { Authorization: `Bearer ${token}` } })
-        .then((res) => setUser(res.data))
-        .catch(() => {
+    if (!token) return;
+
+    api
+      .get("/auth/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => setUser(res.data))
+      .catch((err) => {
+        const status = err?.response?.status;
+        if (status === 401 || status === 403) {
           localStorage.removeItem("token");
           setUser(null);
-        });
-    }
+        }
+      });
   }, []);
 
   const handleLogin = (userData, token) => {
