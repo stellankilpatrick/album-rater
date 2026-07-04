@@ -333,7 +333,7 @@ export default function AlbumDetail({ user }) {
     "": { label: "Interlude", color: "#d3d3d3", background: "rgba(255,255,255,0.08)", mutedColor: "#b8b8b8", mutedBackground: "rgba(255,255,255,0.06)" },
     0: { label: "Skip", color: "#ffe4e6", background: "#b91c1c", mutedColor: "#d8b0b4", mutedBackground: "#7a2424" },
     1: { label: "Play", color: "#dcfce7", background: "#15803d", mutedColor: "#b8d8c1", mutedBackground: "#2f5a3c" },
-    2: { label: "Special", color: "#f5e7ff", background: "#7c3aed", mutedColor: "#cdbde6", mutedBackground: "#4f2f6d" }
+    2: { label: "Special", color: "#f5e7ff", background: "#3F00FF", mutedColor: "#bdc0e6", mutedBackground: "#362f6d" }
   };
 
   const getRatingOptionStyle = (value) => ratingOptionStyles[value ?? ""] ?? ratingOptionStyles[""];
