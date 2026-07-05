@@ -490,10 +490,12 @@ export default function AlbumDetail({ user }) {
                   {isOwner ? "I" : effectiveUsername}
                   <button
                     onClick={() => {
+                      if (!isOwner) return;
                       if (liked === null) handleToggleLike(true);
                       else if (liked === true) handleToggleLike(false);
                       else handleToggleLike(null);
                     }}
+                    disabled={!isOwner}
                     style={{
                       border: "none",
                       background:
@@ -503,11 +505,11 @@ export default function AlbumDetail({ user }) {
                             ? "#e74c3c"
                             : "#999",
                       color: "white",
-                      cursor: "pointer",
+                      cursor: isOwner ? "pointer" : "default",
                       fontSize: "13px",
                       padding: "0 4px",
                       margin: "0 4px",
-                      fontWeight: liked !== null ? "bold" : "normal"
+                      fontWeight: liked !== null ? "bold" : "normal",
                     }}
                   >
                     {liked === true
@@ -518,35 +520,39 @@ export default function AlbumDetail({ user }) {
                   </button>
                   this album
                 </div>
-                <button
-                  onClick={() => setShowRatingHelp(v => !v)}
-                  style={{
-                    width: "18px",
-                    height: "18px",
-                    borderRadius: "50%",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                    fontWeight: "bold",
-                    background: liked === null ? "#facc15" : "#cbd5e1",
-                    color: liked === null ? "#111827" : "#334155"
-                  }}
-                  aria-label="Show rating help"
-                >
-                  ?
-                </button>
-                {showRatingHelp && (
-                  <div style={{
-                    padding: "6px 8px",
-                    borderRadius: "6px",
-                    background: "rgba(255,255,255,0.14)",
-                    color: "white",
-                    fontSize: "12px",
-                    maxWidth: "500px",
-                    lineHeight: 1.4
-                  }}>
-                    Feedback on this album will be used to improve your scoring algorithms, affecting that big number right below this. Feeback is optional, if you don't have a strong opinion on this album, you can leave it unrated.
-                  </div>
+                {isOwner && (
+                  <>
+                    <button
+                      onClick={() => setShowRatingHelp(v => !v)}
+                      style={{
+                        width: "18px",
+                        height: "18px",
+                        borderRadius: "50%",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        background: liked === null ? "#facc15" : "#cbd5e1",
+                        color: liked === null ? "#111827" : "#334155"
+                      }}
+                      aria-label="Show rating help"
+                    >
+                      ?
+                    </button>
+                    {showRatingHelp && (
+                      <div style={{
+                        padding: "6px 8px",
+                        borderRadius: "6px",
+                        background: "rgba(255,255,255,0.14)",
+                        color: "white",
+                        fontSize: "12px",
+                        maxWidth: "500px",
+                        lineHeight: 1.4
+                      }}>
+                        Feedback on this album will be used to improve your scoring algorithms, affecting that big number right below this. Feeback is optional, if you don't have a strong opinion on this album, you can leave it unrated.
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
