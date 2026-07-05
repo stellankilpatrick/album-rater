@@ -561,6 +561,7 @@ router.post("/:id/users/:username", requireAuth, async (req, res) => {
   }
 });
 
+// delete album rating
 router.delete("/:id/users/:username", requireAuth, async (req, res) => {
   try {
     if (req.user.username !== req.params.username) {
@@ -570,14 +571,15 @@ router.delete("/:id/users/:username", requireAuth, async (req, res) => {
     const userId = req.user.id;
     const { id } = req.params;
 
-    deleteUserAlbumRating(userId, id);
+    await deleteUserAlbumRating(userId, id);
+    await syncUserScore10s(userId);
 
     res.json({ success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to delete album ratings " });
+    res.status(500).json({ error: "Failed to delete album ratings" });
   }
-})
+});
 
 router.get("/:albumId/following-reviews", requireAuth, async (req, res) => {
   try {

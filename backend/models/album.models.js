@@ -535,9 +535,12 @@ export async function updateAlbumRatingForUser(userId, albumId) {
 }
 
 export async function deleteUserAlbumRating(userId, albumId) {
+  const client = await pool.connect();
   try {
+    await client.query("BEGIN");
+
     // Delete all song ratings for this album by the user
-    const res = await pool.query(
+    const songRatingsRes = await client.query(
       `DELETE FROM song_ratings
       WHERE user_id = $1
         AND song_id IN (
@@ -546,10 +549,25 @@ export async function deleteUserAlbumRating(userId, albumId) {
       [userId, albumId]
     );
 
-    return res.rowCount;
+    // Remove the album-level rating record as well so the album is no longer tracked as rated
+    const albumRatingsRes = await client.query(
+      `DELETE FROM album_ratings
+      WHERE user_id = $1 AND album_id = $2`,
+      [userId, albumId]
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      songRatingsDeleted: songRatingsRes.rowCount,
+      albumRatingsDeleted: albumRatingsRes.rowCount
+    };
   } catch (err) {
+    await client.query("ROLLBACK");
     console.error("Failed to delete album rating:", err);
     throw err;
+  } finally {
+    client.release();
   }
 }
 
