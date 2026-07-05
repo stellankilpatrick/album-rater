@@ -36,6 +36,7 @@ export default function AlbumDetail({ user }) {
   const [replyInput, setReplyInput] = useState("");
 
   const [untracked, setUntracked] = useState(false);
+  const [showRatingHelp, setShowRatingHelp] = useState(false);
 
   const [liked, setLiked] = useState(null); // null = not set, true = like, false = dislike
 
@@ -421,8 +422,8 @@ export default function AlbumDetail({ user }) {
         }}>
           {album.coverArt && (
             <div style={{
-              position: "relative", width: isMobile ? "200px" : "250px",
-              height: isMobile ? "200px" : "250px", overflow: "hidden",
+              position: "relative", width: isMobile ? "200px" : "270px",
+              height: isMobile ? "200px" : "270px", overflow: "hidden",
               borderRadius: "12px", flexShrink: 0, margin: "0px 0px 0px 0px"
             }}>
               <img src={album.coverArt} alt="" style={{
@@ -463,7 +464,7 @@ export default function AlbumDetail({ user }) {
             <h4 style={{ margin: 0 }}>
               Released {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
             </h4>
-            <h4 style={{ margin: "0 0 -10px 0", display: "flex", alignItems: "center", gap: "6px" }}>
+            <h4 style={{ margin: "0 0 6px 0", display: "flex", alignItems: "center", gap: "6px" }}>
               {album.pfp && (
                 <img
                   src={album.pfp}
@@ -483,9 +484,75 @@ export default function AlbumDetail({ user }) {
                   </Link>
               }
             </h4>
+            {!(liked === null && !isOwner) && (
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "6px" }}>
+                <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)" }}>
+                  {isOwner ? "I" : effectiveUsername}
+                  <button
+                    onClick={() => {
+                      if (liked === null) handleToggleLike(true);
+                      else if (liked === true) handleToggleLike(false);
+                      else handleToggleLike(null);
+                    }}
+                    style={{
+                      border: "none",
+                      background:
+                        liked === true
+                          ? "#1db954"
+                          : liked === false
+                            ? "#e74c3c"
+                            : "#999",
+                      color: "white",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      padding: "0 4px",
+                      margin: "0 4px",
+                      fontWeight: liked !== null ? "bold" : "normal"
+                    }}
+                  >
+                    {liked === true
+                      ? (isOwner ? "like" : "likes")
+                      : liked === false
+                        ? (isOwner ? "dislike" : "dislikes")
+                        : "add rating"}
+                  </button>
+                  this album
+                </div>
+                <button
+                  onClick={() => setShowRatingHelp(v => !v)}
+                  style={{
+                    width: "18px",
+                    height: "18px",
+                    borderRadius: "50%",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    background: liked === null ? "#facc15" : "#cbd5e1",
+                    color: liked === null ? "#111827" : "#334155"
+                  }}
+                  aria-label="Show rating help"
+                >
+                  ?
+                </button>
+                {showRatingHelp && (
+                  <div style={{
+                    padding: "6px 8px",
+                    borderRadius: "6px",
+                    background: "rgba(255,255,255,0.14)",
+                    color: "white",
+                    fontSize: "12px",
+                    maxWidth: "500px",
+                    lineHeight: 1.4
+                  }}>
+                    Feedback on this album will be used to improve your scoring algorithms, affecting that big number right below this. Feeback is optional, if you don't have a strong opinion on this album, you can leave it unrated.
+                  </div>
+                )}
+              </div>
+            )}
             {album.score10 != null && (
               <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-                <h1 style={{ margin: "0px 0px -10px 0px", fontSize: isMobile ? "3rem" : "4rem" }}>{album.score10.toFixed(1)}</h1>
+                <h1 style={{ margin: "-12px 0px -10px 0px", fontSize: isMobile ? "3rem" : "4rem" }}>{album.score10.toFixed(1)}</h1>
                 {ranks.overall?.rank != null && (
                   <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "14px" }}>
                     <strong style={{ fontSize: isMobile ? "18px" : "25px" }}>{ordinal(ranks.overall.rank)}</strong> of {ranks.overall.total} albums
@@ -844,42 +911,6 @@ export default function AlbumDetail({ user }) {
 
         {/* RIGHT: Ranks */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, paddingLeft: isMobile ? "10px" : "0" }}>
-          {!(liked === null && !isOwner) && (
-            <div style={{ fontSize: "13px" }}>
-              {isOwner ? "I" : effectiveUsername}
-
-              <button
-                onClick={() => {
-                  if (liked === null) handleToggleLike(true);
-                  else if (liked === true) handleToggleLike(false);
-                  else handleToggleLike(null);
-                }}
-                style={{
-                  border: "none",
-                  background:
-                    liked === true
-                      ? "#1db954"
-                      : liked === false
-                        ? "#e74c3c"
-                        : "#999",
-                  color: "white",
-                  cursor: "pointer",
-                  fontSize: "13px",
-                  padding: "0 4px",
-                  margin: "0 4px",
-                  fontWeight: liked !== null ? "bold" : "normal"
-                }}
-              >
-                {liked === true
-                  ? (isOwner ? "like" : "likes")
-                  : liked === false
-                    ? (isOwner ? "dislike" : "dislikes")
-                    : "add rating"}
-              </button>
-
-              this album
-            </div>
-          )}
           {friends.length > 0 && user.username === effectiveUsername && (
             <div style={{ marginBottom: "-10px" }}>
               <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
