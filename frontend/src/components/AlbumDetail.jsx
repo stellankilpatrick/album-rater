@@ -20,6 +20,8 @@ export default function AlbumDetail({ user }) {
 
   const [focusedSongId, setFocusedSongId] = useState(null);
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const [review, setReview] = useState("");
   const [pendingReview, setPendingReview] = useState("");
   const [reviewFocused, setReviewFocused] = useState(false);
@@ -174,6 +176,7 @@ export default function AlbumDetail({ user }) {
   const handleSaveRating = async () => {
     if (!window.confirm("Are you sure you want to save your changes?")) return;
 
+    setIsSaving(true);
     try {
       // Save all song ratings
       for (const song of pendingSongs) {
@@ -196,6 +199,8 @@ export default function AlbumDetail({ user }) {
       setHasChanges(false);
     } catch (err) {
       console.error("Failed to save ratings:", err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -332,9 +337,9 @@ export default function AlbumDetail({ user }) {
 
   const ratingOptionStyles = {
     "": { label: "Interlude", color: "#d3d3d3", background: "rgba(255,255,255,0.08)", mutedColor: "#b8b8b8", mutedBackground: "rgba(255,255,255,0.06)" },
-    0: { label: "Skip", color: "#ffe4e6", background: "#b91c1c", mutedColor: "#d8b0b4", mutedBackground: "#7a2424" },
-    1: { label: "Play", color: "#dcfce7", background: "#15803d", mutedColor: "#b8d8c1", mutedBackground: "#2f5a3c" },
-    2: { label: "Special", color: "#f5e7ff", background: "#3F00FF", mutedColor: "#bdc0e6", mutedBackground: "#362f6d" }
+    0: { label: "Skip", color: "#f5f5f5", background: "#6b4545", mutedColor: "#d0d0d0", mutedBackground: "#3d2626" },
+    1: { label: "Play", color: "#f5f5f5", background: "#4a6b4a", mutedColor: "#d0d0d0", mutedBackground: "#2a3f2a" },
+    2: { label: "Special", color: "#f5f5f5", background: "#22c55e", mutedColor: "#f5f5f5", mutedBackground: "#16a34a" }
   };
 
   const getRatingOptionStyle = (value) => ratingOptionStyles[value ?? ""] ?? ratingOptionStyles[""];
@@ -475,13 +480,13 @@ export default function AlbumDetail({ user }) {
               {effectiveUsername === user?.username
                 ? `Your likes: ${goodSongs} of ${ratedSongs} tracks`
                 : <Link
-                    to={`/users/${effectiveUsername}`}
-                    style={{ color: "white", transition: "opacity 0.15s ease" }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
-                    onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-                  >
-                    {`${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`}
-                  </Link>
+                  to={`/users/${effectiveUsername}`}
+                  style={{ color: "white", transition: "opacity 0.15s ease" }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+                >
+                  {`${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`}
+                </Link>
               }
             </h4>
             {!(liked === null && !isOwner) && (
@@ -1027,6 +1032,42 @@ export default function AlbumDetail({ user }) {
           </div>
         </div>
       </div>
+      {isSaving && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999
+        }}>
+          <div style={{
+            background: "#1a1a1a",
+            border: "1px solid rgba(255,255,255,0.2)",
+            borderRadius: "8px",
+            padding: "32px",
+            textAlign: "center",
+            color: "white"
+          }}>
+            <div style={{ marginBottom: "16px", fontSize: "18px" }}>Saving your rating...</div>
+            <div style={{
+              width: "40px",
+              height: "40px",
+              border: "3px solid rgba(255,255,255,0.2)",
+              borderTop: "3px solid white",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto"
+            }} />
+            <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

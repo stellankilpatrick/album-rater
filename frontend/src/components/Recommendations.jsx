@@ -13,6 +13,7 @@ export default function Recommendations({ user }) {
     }, []);
 
     const unsend = async (recId, toUsername) => {
+        if (!window.confirm(`Unsend this recommendation to ${toUsername}?`)) return;
         await api.delete(`/community/recommendations/${recId}`);
         setSent(prev => prev.map(g => g.username === toUsername
             ? { ...g, albums: g.albums.filter(a => a.recId !== recId) }
@@ -21,6 +22,7 @@ export default function Recommendations({ user }) {
     };
 
     const dismiss = async (recId, fromUsername) => {
+        if (!window.confirm(`Dismiss this recommendation from ${fromUsername}?`)) return;
         await api.delete(`/community/recommendations/${recId}`);
         setGrouped(prev => prev.map(g => g.username === fromUsername
             ? { ...g, albums: g.albums.filter(a => a.recId !== recId) }
