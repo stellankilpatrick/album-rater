@@ -8,7 +8,7 @@ import {
   getUserAlbumScores, updateAlbumReleaseDate, deleteUserAlbumRating,
   getAlbumGenres, getAllGenres, addGenreToAlbum, removeGenreFromAlbum,
   getAlbumGenreRank, getAlbumYearRank, getAlbumDecadeRank, getAlbumArtistRank,
-  getAlbumOverallRank, updateAlbumReview, syncUserScore10s
+  getAlbumOverallRank, getAdjacentAlbums, updateAlbumReview, syncUserScore10s
 } from "../models/album.models.js";
 import { addSongsToAlbum } from "../models/song.models.js";
 import { createNotification } from "../routes/notification.routes.js"
@@ -646,6 +646,16 @@ router.get("/:id/rank/overall/users/:username", requireAuth, async (req, res) =>
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch overall rank" });
+  }
+});
+
+router.get("/:id/rank/adjacent/users/:username", requireAuth, async (req, res) => {
+  try {
+    const result = await getAdjacentAlbums(req.params.id, req.profileUser.id);
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch adjacent albums" });
   }
 });
 

@@ -542,3 +542,34 @@ html {
 .page-pad {
   padding-left: 16px;
 }
+
+/* ── Album Cover Nav Buttons ── */
+.album-nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: white;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.album-nav-btn:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: white;
+  transform: translateY(-1px);
+}
+
+.album-nav-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.album-nav-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -17,6 +17,7 @@ export default function AlbumDetail({ user }) {
 
   const [ranks, setRanks] = useState({});
   const [genres, setGenres] = useState([]);
+  const [adjacent, setAdjacent] = useState({ higherAlbumId: null, lowerAlbumId: null });
 
   const [focusedSongId, setFocusedSongId] = useState(null);
 
@@ -50,6 +51,11 @@ export default function AlbumDetail({ user }) {
     if (!selectedFriend) return;
     await api.post("/community/recommendations", { toUsername: selectedFriend, albumId });
     setRecSent(true);
+  };
+
+  const goToAdjacentAlbum = (id) => {
+    if (!id) return;
+    navigate(`/albums/${id}/users/${effectiveUsername}`);
   };
 
   const ordinal = n => {
@@ -324,6 +330,7 @@ export default function AlbumDetail({ user }) {
     api.get(`/albums/${albumId}/rank/year/users/${effectiveUsername}`).then(r => setRanks(p => ({ ...p, year: r.data })));
     api.get(`/albums/${albumId}/rank/decade/users/${effectiveUsername}`).then(r => setRanks(p => ({ ...p, decade: r.data })));
     api.get(`/albums/${albumId}/rank/artist/users/${effectiveUsername}`).then(r => setRanks(p => ({ ...p, artist: r.data })));
+    api.get(`/albums/${albumId}/rank/adjacent/users/${effectiveUsername}`).then(r => setAdjacent(r.data));
     genres.forEach(g => {
       api.get(`/albums/${albumId}/rank/genre/${encodeURIComponent(g.name)}/users/${effectiveUsername}`)
         .then(r => setRanks(p => ({ ...p, [`genre_${g.name}`]: r.data })));
@@ -619,6 +626,24 @@ export default function AlbumDetail({ user }) {
               {reviewPanel}
             </div>
           )}
+        </div>
+        <div style={{ position: "absolute", bottom: "12px", right: "12px", zIndex: 4, display: "flex", gap: "6px" }}>
+          <button
+            className="album-nav-btn"
+            disabled={!adjacent.higherAlbumId}
+            onClick={() => goToAdjacentAlbum(adjacent.higherAlbumId)}
+            title="Next higher rated album"
+          >
+            ▲
+          </button>
+          <button
+            className="album-nav-btn"
+            disabled={!adjacent.lowerAlbumId}
+            onClick={() => goToAdjacentAlbum(adjacent.lowerAlbumId)}
+            title="Next lower rated album"
+          >
+            ▼
+          </button>
         </div>
       </div>
 
