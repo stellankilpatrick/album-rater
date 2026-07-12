@@ -479,88 +479,104 @@ export default function AlbumDetail({ user }) {
               )}
               {effectiveUsername === user?.username
                 ? `Your likes: ${goodSongs} of ${ratedSongs} tracks`
-                : <Link
+                : <><Link
                   to={`/users/${effectiveUsername}`}
                   style={{ color: "white", transition: "opacity 0.15s ease" }}
                   onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
                   onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
                 >
-                  {`${effectiveUsername}'s likes: ${goodSongs} of ${ratedSongs} tracks`}
-                </Link>
+                  {effectiveUsername}
+                </Link>{` likes: ${goodSongs} of ${ratedSongs} tracks`}</>
               }
             </h4>
-            {!(liked === null && !isOwner) && (
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "6px" }}>
-                <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)" }}>
-                  {isOwner ? "I" : effectiveUsername}
-                  <button
-                    onClick={() => {
-                      if (!isOwner) return;
-                      if (liked === null) handleToggleLike(true);
-                      else if (liked === true) handleToggleLike(false);
-                      else handleToggleLike(null);
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "6px" }}>
+              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)" }}>
+                {isOwner ? "I think this album is" : `${effectiveUsername} thinks this album is`}
+                {isOwner ? (
+                  <select
+                    value={liked === true ? "good" : liked === false ? "bad" : "mid"}
+                    onChange={e => {
+                      const value = e.target.value;
+                      handleToggleLike(value === "good" ? true : value === "bad" ? false : null);
                     }}
-                    disabled={!isOwner}
                     style={{
-                      border: "none",
+                      color: "white",
                       background:
                         liked === true
                           ? "#1db954"
                           : liked === false
                             ? "#e74c3c"
-                            : "#999",
+                            : "#facc15",
+                      border: "none",
+                      borderRadius: "4px",
+                      padding: "0px 2px",
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      margin: "0 4px"
+                    }}
+                  >
+                    <option value="good" style={{ color: "white", backgroundColor: "#1db954" }}>good</option>
+                    <option value="mid" style={{ color: "white", backgroundColor: "#facc15" }}>mid</option>
+                    <option value="bad" style={{ color: "white", backgroundColor: "#e74c3c" }}>bad</option>
+                  </select>
+                ) : (
+                  <span
+                    style={{
+                      background:
+                        liked === true
+                          ? "#1db954"
+                          : liked === false
+                            ? "#e74c3c"
+                            : "#facc15",
                       color: "white",
-                      cursor: isOwner ? "pointer" : "default",
                       fontSize: "13px",
                       padding: "0 4px",
                       margin: "0 4px",
-                      fontWeight: liked !== null ? "bold" : "normal",
+                      fontWeight: "bold",
+                      borderRadius: "4px",
+                      display: "inline-block"
                     }}
                   >
-                    {liked === true
-                      ? (isOwner ? "like" : "likes")
-                      : liked === false
-                        ? (isOwner ? "dislike" : "dislikes")
-                        : "add rating"}
-                  </button>
-                  this album
-                </div>
-                {isOwner && (
-                  <>
-                    <button
-                      onClick={() => setShowRatingHelp(v => !v)}
-                      style={{
-                        width: "18px",
-                        height: "18px",
-                        borderRadius: "50%",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                        fontWeight: "bold",
-                        background: liked === null ? "#facc15" : "#cbd5e1",
-                        color: liked === null ? "#111827" : "#334155"
-                      }}
-                      aria-label="Show rating help"
-                    >
-                      ?
-                    </button>
-                    {showRatingHelp && (
-                      <div style={{
-                        padding: "6px 8px",
-                        borderRadius: "6px",
-                        background: "rgba(255,255,255,0.14)",
-                        color: "white",
-                        fontSize: "12px",
-                        maxWidth: "500px",
-                        lineHeight: 1.4
-                      }}>
-                        Feedback on this album will be used to improve your scoring algorithms, affecting that big number right below this. Feeback is optional, if you don't have a strong opinion on this album, you can leave it unrated.
-                      </div>
-                    )}
-                  </>
+                    {liked === true ? "good" : liked === false ? "bad" : "mid"}
+                  </span>
                 )}
               </div>
-            )}
+              {isOwner && (
+                <>
+                  <button
+                    onClick={() => setShowRatingHelp(v => !v)}
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      borderRadius: "50%",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                      background: "#cbd5e1",
+                      color: "#334155"
+                    }}
+                    aria-label="Show rating help"
+                  >
+                    ?
+                  </button>
+                  {showRatingHelp && (
+                    <div style={{
+                      padding: "6px 8px",
+                      borderRadius: "6px",
+                      background: "rgba(255,255,255,0.14)",
+                      color: "white",
+                      fontSize: "12px",
+                      maxWidth: "500px",
+                      lineHeight: 1.4
+                    }}>
+                      Feedback on this album will be used to improve your scoring algorithms, affecting that big number right below this.
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
             {album.score10 != null && (
               <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
                 <h1 style={{ margin: "-12px 0px -10px 0px", fontSize: isMobile ? "3rem" : "4rem" }}>{album.score10.toFixed(1)}</h1>
