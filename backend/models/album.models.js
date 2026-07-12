@@ -757,6 +757,34 @@ export async function getAlbumOverallRank(albumId, userId) {
   return { rank: result.rows[0]?.rank ?? null, total: result.rows[0]?.total ?? null };
 }
 
+export async function getAdjacentAlbums(albumId, userId) {
+  const result = await pool.query(`
+    WITH scores AS (
+      SELECT
+        a.id,
+        POWER(SUM(sr.rating), 2.0) / POWER(NULLIF(COUNT(sr.song_id), 0),1.1) AS score
+      FROM albums a
+      JOIN songs s ON s.album_id = a.id
+      JOIN song_ratings sr ON sr.song_id = s.id
+      WHERE sr.user_id = $2
+      GROUP BY a.id
+    ),
+    ordered AS (
+      SELECT
+        id,
+        LAG(id) OVER (ORDER BY score DESC NULLS LAST, id) AS higher_album_id,
+        LEAD(id) OVER (ORDER BY score DESC NULLS LAST, id) AS lower_album_id
+      FROM scores
+    )
+    SELECT higher_album_id, lower_album_id FROM ordered WHERE id = $1;
+  `, [albumId, userId]);
+
+  return {
+    higherAlbumId: result.rows[0]?.higher_album_id ?? null,
+    lowerAlbumId: result.rows[0]?.lower_album_id ?? null
+  };
+}
+
 export async function updateAlbumReview(userId, albumId, review) {
   if (review && review.length > 1000) throw new Error("Review exceeds 1000 character limit");
   const result = await pool.query(`
