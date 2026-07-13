@@ -748,7 +748,7 @@ export default function AlbumDetail({ user }) {
                             color: song.localRating == null ? "#c8c8c8" : selectedStyle.color,
                             background: song.localRating == null ? "#4b4b4b" : selectedStyle.background,
                             borderRadius: "4px",
-                            width: "70px",
+                            width: "80px",
                             padding: "2px 6px",
                             fontSize: "12px",
                             display: "inline-block"
