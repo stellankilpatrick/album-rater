@@ -344,9 +344,9 @@ export default function AlbumDetail({ user }) {
 
   const ratingOptionStyles = {
     "": { label: "Interlude", color: "#d3d3d3", background: "rgba(255,255,255,0.08)", mutedColor: "#b8b8b8", mutedBackground: "rgba(255,255,255,0.06)" },
-    0: { label: "Skip", color: "#f5f5f5", background: "#6b4545", mutedColor: "#d0d0d0", mutedBackground: "#3d2626" },
-    1: { label: "Play", color: "#f5f5f5", background: "#4a6b4a", mutedColor: "#d0d0d0", mutedBackground: "#2a3f2a" },
-    2: { label: "Special", color: "#f5f5f5", background: "#22c55e", mutedColor: "#f5f5f5", mutedBackground: "#16a34a" }
+    0: { label: "- Skip", color: "#f5f5f5", background: "#6b4545", mutedColor: "#d0d0d0", mutedBackground: "#3d2626" },
+    1: { label: "+ Play", color: "#f5f5f5", background: "#4a6b4a", mutedColor: "#d0d0d0", mutedBackground: "#2a3f2a" },
+    2: { label: "++ Special", color: "#f5f5f5", background: "#22c55e", mutedColor: "#f5f5f5", mutedBackground: "#16a34a" }
   };
 
   const getRatingOptionStyle = (value) => ratingOptionStyles[value ?? ""] ?? ratingOptionStyles[""];
@@ -720,30 +720,42 @@ export default function AlbumDetail({ user }) {
                         {song.title}{song.featured ? <span style={{ fontSize: "0.8em", color: "#aaa" }}> (ft. {song.featured})</span> : ""}
                       </td>
                       <td style={{ paddingRight: "24px" }}>
-                        <select
-                          value={song.localRating ?? ""}
-                          disabled={!isOwner}
-                          onChange={isOwner ? e => {
-                            const value = e.target.value === "" ? null : Number(e.target.value);
-                            handleRatingChange(song.id, value);
-                          } : undefined}
-                          style={{
-                            color: song.localRating == null ? "#c8c8c8" : (isOwner ? selectedStyle.color : selectedStyle.mutedColor),
-                            background: song.localRating == null ? "#4b4b4b" : (isOwner ? selectedStyle.background : selectedStyle.mutedBackground),
-                            border: "none",
+                        {isOwner ? (
+                          <select
+                            value={song.localRating ?? ""}
+                            onChange={e => {
+                              const value = e.target.value === "" ? null : Number(e.target.value);
+                              handleRatingChange(song.id, value);
+                            }}
+                            style={{
+                              color: song.localRating == null ? "#c8c8c8" : selectedStyle.color,
+                              background: song.localRating == null ? "#4b4b4b" : selectedStyle.background,
+                              border: "none",
+                              borderRadius: "4px",
+                              padding: "2px 6px",
+                              fontWeight: 400,
+                              cursor: "pointer",
+                              fontSize: "12px"
+                            }}
+                          >
+                            <option value="" style={{ color: "#c8c8c8", backgroundColor: "#4b4b4b" }}>Interlude</option>
+                            <option value={0} style={{ color: ratingOptionStyles[0].color, backgroundColor: ratingOptionStyles[0].background }}>- Skip</option>
+                            <option value={1} style={{ color: ratingOptionStyles[1].color, backgroundColor: ratingOptionStyles[1].background }}>+ Play</option>
+                            <option value={2} style={{ color: ratingOptionStyles[2].color, backgroundColor: ratingOptionStyles[2].background }}>++ Special</option>
+                          </select>
+                        ) : (
+                          <span style={{
+                            color: song.localRating == null ? "#c8c8c8" : selectedStyle.color,
+                            background: song.localRating == null ? "#4b4b4b" : selectedStyle.background,
                             borderRadius: "4px",
+                            width: "70px",
                             padding: "2px 6px",
-                            fontWeight: 400,
-                            cursor: isOwner ? "pointer" : "default",
                             fontSize: "12px",
-                            opacity: isOwner ? 1 : 0.9
-                          }}
-                        >
-                          <option value="" style={{ color: "#c8c8c8", backgroundColor: "#4b4b4b" }}>Interlude</option>
-                          <option value={0} style={{ color: ratingOptionStyles[0].color, backgroundColor: ratingOptionStyles[0].background }}>- Skip</option>
-                          <option value={1} style={{ color: ratingOptionStyles[1].color, backgroundColor: ratingOptionStyles[1].background }}>+ Play</option>
-                          <option value={2} style={{ color: ratingOptionStyles[2].color, backgroundColor: ratingOptionStyles[2].background }}>++ Special</option>
-                        </select>
+                            display: "inline-block"
+                          }}>
+                            {song.localRating == null ? "Interlude" : selectedStyle.label}
+                          </span>
+                        )}
                       </td>
                       <td style={{
                         whiteSpace: "nowrap",
