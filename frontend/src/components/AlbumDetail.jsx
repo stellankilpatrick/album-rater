@@ -411,7 +411,7 @@ export default function AlbumDetail({ user }) {
         flexDirection: isMobile ? "column" : "row",
         overflow: "hidden",
         marginBottom: "20px",
-        width: "100wv",
+        width: "100vw",
         marginLeft: "calc(-1 * (100vw - 100%) / 2)",
         marginRight: "calc(-1 * (100vw - 100%) / 2)",
         marginTop: "-10px",
@@ -693,8 +693,16 @@ export default function AlbumDetail({ user }) {
 
       {/* ===== TRACKLIST + SIDEBAR ===== */}
       <div style={{
-        display: "flex", flexDirection: isMobile ? "column" : "row",
-        gap: "32px", alignItems: "flex-start", paddingLeft: isMobile ? "0" : "10px"
+        display: "flex",
+        flexDirection: isMobile ? "column" : "row",
+        gap: "32px",
+        alignItems: "flex-start",
+        paddingLeft: isMobile ? "0" : "10px",
+        maxWidth: "1400px",
+        margin: "0 auto",
+        paddingLeft: isMobile ? "16px" : "auto",
+        paddingRight: isMobile ? "16px" : "auto",
+        justifyContent: "center"
       }}>
         {/* LEFT: Tracklist + Comments */}
         <div style={{ flex: 1, minWidth: 0 }}>
