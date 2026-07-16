@@ -697,15 +697,14 @@ export default function AlbumDetail({ user }) {
         flexDirection: isMobile ? "column" : "row",
         gap: "32px",
         alignItems: "flex-start",
-        paddingLeft: isMobile ? "0" : "10px",
         maxWidth: "1400px",
         margin: "0 auto",
-        paddingLeft: isMobile ? "16px" : "auto",
-        paddingRight: isMobile ? "16px" : "auto",
+        paddingLeft: isMobile ? "16px" : "0",
+        paddingRight: isMobile ? "16px" : "0",
         justifyContent: "center"
       }}>
         {/* LEFT: Tracklist + Comments */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: isMobile ? 1 : "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", alignItems: isMobile ? "stretch" : "flex-end" }}>
           {/* Tracklist */}
           <div style={{ overflowX: "auto", width: "100%", maxWidth: isMobile ? "calc(100vw - 32px)" : "100%" }}>
             <table style={{ borderCollapse: "collapse", width: "auto" }}>
@@ -820,7 +819,7 @@ export default function AlbumDetail({ user }) {
           </div>
 
           {/* COMMENTS */}
-          <div style={{ marginBottom: "24px", maxWidth: isMobile ? "calc(100vw - 32px)" : "600px", marginTop: "32px", marginLeft: isMobile ? "16px" : "0", marginRight: isMobile ? "16px" : "0" }}>
+          <div style={{ marginBottom: "24px", width: "100%", maxWidth: isMobile ? "calc(100vw - 32px)" : "100%", marginTop: "32px", marginLeft: isMobile ? "16px" : "0", marginRight: isMobile ? "16px" : "0" }}>
             <h3 style={{ marginBottom: "8px", fontSize: isMobile ? "16px" : "18px" }}>Comments</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
               {comments.filter(c => !c.parent_id).map(c => (
@@ -982,7 +981,7 @@ export default function AlbumDetail({ user }) {
         </div>
 
         {/* RIGHT: Ranks */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, paddingLeft: isMobile ? "10px" : "0" }}>
+        <div style={{ flex: isMobile ? 1 : "0 0 300px", display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, paddingLeft: isMobile ? "10px" : "0", alignItems: "flex-start" }}>
           {friends.length > 0 && user.username === effectiveUsername && (
             <div style={{ marginBottom: "-10px" }}>
               <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
