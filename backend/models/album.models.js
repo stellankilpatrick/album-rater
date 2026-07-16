@@ -426,7 +426,7 @@ export async function getUserRatedAlbums(userId) {
     const ratedSongs = Number(a.ratedSongs);
     const totalRating = Number(a.totalRating);
     const nonSkips = Number(a.nonSkips);
-    const rating = ratedSongs > 0 ? totalRating**2 / ratedSongs**1.1 : 0;
+    const rating = ratedSongs > 0 ? totalRating ** 2 / ratedSongs ** 1.1 : 0;
     return { ...a, artistId: a.artistIds[0], rating, rate: `${nonSkips}/${ratedSongs}`, genres: genreMap.get(a.id) || [] };
   });
 }
@@ -503,7 +503,7 @@ export async function updateAlbumRatingForUser(userId, albumId) {
     const stats = res.rows[0];
     const ratedSongs = Number(stats.rated_songs);
     const nonSkips = Number(stats.non_skips);
-    const totalRating = Number(stats.total_rating)**2 / ratedSongs**1.1;
+    const totalRating = Number(stats.total_rating) ** 2 / ratedSongs ** 1.1;
 
     if (ratedSongs === 0) {
       await client.query(
@@ -569,6 +569,22 @@ export async function deleteUserAlbumRating(userId, albumId) {
   } finally {
     client.release();
   }
+}
+
+export async function updateAlbumType(albumId, type) {
+  const result = await pool.query(
+    "UPDATE albums SET type = $1 WHERE id = $2 RETURNING id",
+    [type, albumId]
+  );
+  return result.rows.length > 0;
+}
+
+export async function updateAlbumOfficial(albumId, official) {
+  const result = await pool.query(
+    "UPDATE albums SET official = $1 WHERE id = $2 RETURNING id",
+    [official, albumId]
+  );
+  return result.rows.length > 0;
 }
 
 export async function getAlbumGenres(albumId) {
@@ -819,7 +835,7 @@ export async function getUserAlbumScores(userId) {
   return res.rows.map(a => {
     const totalRating = Number(a.total_rating);
     const ratedSongs = Number(a.rated_songs);
-    const rating = ratedSongs > 0 ? totalRating**2 / ratedSongs**1.1 : 0;
+    const rating = ratedSongs > 0 ? totalRating ** 2 / ratedSongs ** 1.1 : 0;
     return { albumId: a.album_id, rating };
   });
 }

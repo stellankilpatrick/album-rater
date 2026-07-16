@@ -8,7 +8,7 @@ import {
   getUserAlbumScores, updateAlbumReleaseDate, deleteUserAlbumRating,
   getAlbumGenres, getAllGenres, addGenreToAlbum, removeGenreFromAlbum,
   getAlbumGenreRank, getAlbumYearRank, getAlbumDecadeRank, getAlbumArtistRank,
-  getAlbumOverallRank, getAdjacentAlbums, updateAlbumReview, syncUserScore10s
+  getAlbumOverallRank, getAdjacentAlbums, updateAlbumReview, syncUserScore10s, updateAlbumType, updateAlbumOfficial
 } from "../models/album.models.js";
 import { addSongsToAlbum } from "../models/song.models.js";
 import { createNotification } from "../routes/notification.routes.js"
@@ -238,6 +238,66 @@ router.patch("/:id/release-date", requireAuth, async (req, res) => {
   }
 });
 
+router.patch("/:id/type", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { type } = req.body;
+
+  if (!type) return res.status(400).json({ error: "Album type required" });
+
+  try {
+    const success = await updateAlbumType(id, type.trim());
+    if (!success) return res.status(404).json({ error: "Album not found" });
+
+    const album = await getAlbumDetailsPublic(id);
+    res.json(album);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update album type" });
+  }
+});
+
+router.patch("/:id/official", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { official } = req.body;
+
+  if (official === undefined) return res.status(400).json({ error: "Official status required" });
+
+  try {
+    const success = await updateAlbumOfficial(id, official);
+    if (!success) return res.status(404).json({ error: "Album not found" });
+
+    const album = await getAlbumDetailsPublic(id);
+    res.json(album);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update album official status" });
+  }
+});
+
+// force non official projects to be non-official
+router.patch("/:id/official", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { official } = req.body;
+
+  if (official === undefined) return res.status(400).json({ error: "Official status required" });
+
+  try {
+    const album = await pool.query("SELECT type FROM albums WHERE id = $1", [id]);
+    if (album.rows.length === 0) return res.status(404).json({ error: "Album not found" });
+
+    const allowedType = ["album", "ep"].includes(album.rows[0].type);
+    if (official && !allowedType) {
+      return res.status(400).json({ error: "Only albums and EPs can be marked as official" });
+    }
+
+    const success = await updateAlbumOfficial(id, official);
+    const updated = await getAlbumDetailsPublic(id);
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update album official status" });
+  }
+});
 
 // ---------------------
 // CREATE OR FIND ALBUM
@@ -245,11 +305,11 @@ router.patch("/:id/release-date", requireAuth, async (req, res) => {
 // ---------------------
 router.post("/new", requireAuth, async (req, res) => {
   try {
-    const { title, artist, releaseDate, songs = [], coverArt, rating } = req.body;
+    const { title, artist, releaseDate, songs = [], coverArt, rating, type, official } = req.body;
     if (!title || !artist) return res.status(400).json({ error: "Title and artist required" });
 
     // Create album (make sure createAlbum is async and uses Postgres)
-    const album = await createAlbum({ title, artist, releaseDate, songs, cover_art: coverArt });
+    const album = await createAlbum({ title, artist, releaseDate, songs, cover_art: coverArt, type: type || "album", official: official || false });
 
     // Insert initial ratings if provided
     if (rating !== undefined && album.songs.length > 0) {

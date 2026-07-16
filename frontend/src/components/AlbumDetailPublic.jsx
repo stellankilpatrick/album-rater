@@ -176,6 +176,27 @@ export default function AlbumDetailPublic({ user }) {
     } catch (err) { console.error(err); }
   };
 
+  const [editType, setEditType] = useState("album");
+  const [editOfficial, setEditOfficial] = useState(false);
+
+  const saveAlbumType = async () => {
+    try {
+      await api.patch(`/albums/${album.id}/type`, { type: editType });
+      setAlbum(prev => ({ ...prev, type: editType }));
+    } catch (err) {
+      console.error("Failed to save album type:", err);
+    }
+  };
+
+  const saveAlbumOfficial = async () => {
+    try {
+      await api.patch(`/albums/${album.id}/official`, { official: editOfficial });
+      setAlbum(prev => ({ ...prev, official: editOfficial }));
+    } catch (err) {
+      console.error("Failed to save album official status:", err);
+    }
+  };
+
   const handleStartEditing = () => {
     setIsEditing(true);
     setEditingSongId(null);
@@ -459,7 +480,44 @@ export default function AlbumDetailPublic({ user }) {
                   "en-US", { year: "numeric", month: "short", day: "numeric" }
                 )
               )}
+              {" | "}
+              {isEditing ? (
+                <select
+                  value={editType}
+                  onChange={e => setEditType(e.target.value)}
+                  onBlur={saveAlbumType}
+                  style={{ marginLeft: "6px", padding: "4px 8px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.25)", background: "rgba(0,0,0,0.5)", color: "white", boxSizing: "border-box" }}
+                >
+                  <option value="album">Album</option>
+                  <option value="ep">EP</option>
+                  <option value="mixtape">Mixtape</option>
+                  <option value="compilation">Compilation</option>
+                  <option value="soundtrack">Soundtrack</option>
+                  <option value="live album">Live Album</option>
+                  <option value="single">Single</option>
+                </select>
+              ) : (
+                album.type ? album.type.charAt(0).toUpperCase() + album.type.slice(1) : "Album"
+              )}
             </h4>
+
+            {isEditing && (
+              <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "16px", cursor: "pointer", marginTop: "12px" }}>
+                <input
+                  type="checkbox"
+                  checked={editOfficial}
+                  onChange={e => {
+                    // Prevent non-album/ep from being official
+                    if (e.target.checked && !["album", "ep"].includes(editType)) {
+                      return;
+                    }
+                    setEditOfficial(e.target.checked);
+                  }}
+                  onBlur={saveAlbumOfficial}
+                />
+                Official release
+              </label>
+            )}
 
             {/* Genres */}
             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center", maxWidth: "700px", justifyContent: isMobile ? "center" : "flex-start" }}>
@@ -645,75 +703,75 @@ export default function AlbumDetailPublic({ user }) {
 
               <tbody>
                 {displayedSongs.map(song => (
-                    <tr key={song.id} style={{ lineHeight: isEditing ? 1 : 1.4 }}>
-                      <td style={{ padding: isEditing ? "2px 8px" : undefined, verticalAlign: isEditing ? "top" : undefined }}>
-                        {isEditing ? (
+                  <tr key={song.id} style={{ lineHeight: isEditing ? 1 : 1.4 }}>
+                    <td style={{ padding: isEditing ? "2px 8px" : undefined, verticalAlign: isEditing ? "top" : undefined }}>
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          min="1"
+                          value={draftTrackNums[song.id] ?? song.num}
+                          style={{ width: "3.2rem", padding: "3px 6px", borderRadius: "6px", border: "1px solid #555", textAlign: "center", boxSizing: "border-box" }}
+                          onChange={e => setDraftTrackNums(prev => ({ ...prev, [song.id]: e.target.value }))}
+                          onBlur={() => saveTrackNum(song)}
+                          onKeyDown={e => {
+                            if (e.key === "Enter") e.target.blur();
+                            if (e.key === "Escape") {
+                              setDraftTrackNums(prev => {
+                                const updated = { ...prev };
+                                delete updated[song.id];
+                                return updated;
+                              });
+                            }
+                          }}
+                        />
+                      ) : song.num}
+                    </td>
+
+                    <td style={{
+                      padding: isEditing ? "2px 8px" : undefined,
+                      verticalAlign: isEditing ? "top" : undefined,
+                      minWidth: isMobile ? "270px" : undefined,
+                      whiteSpace: isMobile && !isEditing ? "normal" : "normal",
+                      overflow: isMobile && !isEditing ? "hidden" : undefined,
+                      textOverflow: isMobile && !isEditing ? "ellipsis" : undefined,
+                      wordBreak: "break-word"
+                    }}>
+                      {isEditing ? (
+                        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: "8px", width: "100%", alignItems: isMobile ? "stretch" : "center" }}>
                           <input
-                            type="number"
-                            min="1"
-                            value={draftTrackNums[song.id] ?? song.num}
-                            style={{ width: "3.2rem", padding: "3px 6px", borderRadius: "6px", border: "1px solid #555", textAlign: "center", boxSizing: "border-box" }}
-                            onChange={e => setDraftTrackNums(prev => ({ ...prev, [song.id]: e.target.value }))}
-                            onBlur={() => saveTrackNum(song)}
-                            onKeyDown={e => {
-                              if (e.key === "Enter") e.target.blur();
-                              if (e.key === "Escape") {
-                                setDraftTrackNums(prev => {
-                                  const updated = { ...prev };
-                                  delete updated[song.id];
-                                  return updated;
-                                });
-                              }
-                            }}
+                            type="text"
+                            value={song.title}
+                            autoFocus={editingSongId === song.id}
+                            onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, title: e.target.value } : s))}
+                            onBlur={() => saveSongTitle(song)}
+                            onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingSongId(null); }}
+                            onFocus={() => setEditingSongId(song.id)}
+                            style={{ flex: 1, padding: "3px 8px", borderRadius: "6px", border: "1px solid #ccc" }}
                           />
-                        ) : song.num}
-                      </td>
-
-                      <td style={{
-                        padding: isEditing ? "2px 8px" : undefined,
-                        verticalAlign: isEditing ? "top" : undefined,
-                        minWidth: isMobile ? "270px" : undefined,
-                        whiteSpace: isMobile && !isEditing ? "normal" : "normal",
-                        overflow: isMobile && !isEditing ? "hidden" : undefined,
-                        textOverflow: isMobile && !isEditing ? "ellipsis" : undefined,
-                        wordBreak: "break-word"
-                      }}>
-                        {isEditing ? (
-                          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: "8px", width: "100%", alignItems: isMobile ? "stretch" : "center" }}>
-                            <input
-                              type="text"
-                              value={song.title}
-                              autoFocus={editingSongId === song.id}
-                              onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, title: e.target.value } : s))}
-                              onBlur={() => saveSongTitle(song)}
-                              onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingSongId(null); }}
-                              onFocus={() => setEditingSongId(song.id)}
-                              style={{ flex: 1, padding: "3px 8px", borderRadius: "6px", border: "1px solid #ccc" }}
-                            />
-                            <input
-                              type="text"
-                              value={song.featured ?? ""}
-                              placeholder="Featured artists"
-                              onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, featured: e.target.value } : s))}
-                              onBlur={() => saveSongFeatured(song)}
-                              onKeyDown={e => { if (e.key === "Enter") e.target.blur(); }}
-                              style={{ flex: isMobile ? 1 : "0 1 220px", padding: "3px 8px", borderRadius: "6px", border: "1px solid #ccc" }}
-                            />
-                          </div>
-                        ) : (
-                          <span>{song.title}{song.featured ? <span style={{ fontSize: "0.8em", color: "#aaa" }}> (ft. {song.featured})</span> : ""}</span>
-                        )}
-                      </td>
-
-                      {!isEditing && <td>{song.totalRatings > 0 ? `${song.notSkippedPercent}%` : "—"}</td>}
-
-                      {isEditing && (
-                        <td style={{ padding: isEditing ? "3px 8px" : undefined, verticalAlign: isEditing ? "top" : undefined }}>
-                          <button className="danger" onClick={() => deleteSong(song.id)} style={{ marginLeft: "8px", padding: "6px 10px", borderRadius: "6px" }}>Delete</button>
-                        </td>
+                          <input
+                            type="text"
+                            value={song.featured ?? ""}
+                            placeholder="Featured artists"
+                            onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, featured: e.target.value } : s))}
+                            onBlur={() => saveSongFeatured(song)}
+                            onKeyDown={e => { if (e.key === "Enter") e.target.blur(); }}
+                            style={{ flex: isMobile ? 1 : "0 1 220px", padding: "3px 8px", borderRadius: "6px", border: "1px solid #ccc" }}
+                          />
+                        </div>
+                      ) : (
+                        <span>{song.title}{song.featured ? <span style={{ fontSize: "0.8em", color: "#aaa" }}> (ft. {song.featured})</span> : ""}</span>
                       )}
-                    </tr>
-                  ))}
+                    </td>
+
+                    {!isEditing && <td>{song.totalRatings > 0 ? `${song.notSkippedPercent}%` : "—"}</td>}
+
+                    {isEditing && (
+                      <td style={{ padding: isEditing ? "3px 8px" : undefined, verticalAlign: isEditing ? "top" : undefined }}>
+                        <button className="danger" onClick={() => deleteSong(song.id)} style={{ marginLeft: "8px", padding: "6px 10px", borderRadius: "6px" }}>Delete</button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
