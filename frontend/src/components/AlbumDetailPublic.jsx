@@ -72,6 +72,8 @@ export default function AlbumDetailPublic({ user }) {
       setEditTitle(album.title);
       setEditArtist(album.artist);
       setEditCover(prev => prev || album.coverArt || "");
+      setEditType(album.type || "album");
+      setEditOfficial(Boolean(album.official));
     }
   }, [album]);
 
@@ -179,10 +181,11 @@ export default function AlbumDetailPublic({ user }) {
   const [editType, setEditType] = useState("album");
   const [editOfficial, setEditOfficial] = useState(false);
 
-  const saveAlbumType = async () => {
+  const saveAlbumType = async (typeToSave) => {
     try {
-      await api.patch(`/albums/${album.id}/type`, { type: editType });
-      setAlbum(prev => ({ ...prev, type: editType }));
+      const typeValue = typeToSave ?? editType;
+      await api.patch(`/albums/${album.id}/type`, { type: typeValue });
+      setAlbum(prev => ({ ...prev, type: typeValue }));
     } catch (err) {
       console.error("Failed to save album type:", err);
     }
@@ -484,8 +487,11 @@ export default function AlbumDetailPublic({ user }) {
               {isEditing ? (
                 <select
                   value={editType}
-                  onChange={e => setEditType(e.target.value)}
-                  onBlur={saveAlbumType}
+                  onChange={e => {
+                    const newType = e.target.value;
+                    setEditType(newType);
+                    saveAlbumType(newType);
+                  }}
                   style={{ marginLeft: "6px", padding: "4px 8px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.25)", background: "rgba(0,0,0,0.5)", color: "white", boxSizing: "border-box" }}
                 >
                   <option value="album">Album</option>
