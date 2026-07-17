@@ -442,6 +442,7 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
       a.title, 
       a.release_date AS "releaseDate", 
       a.cover_art AS "coverArt",
+      a.type,
       alr.untracked,
       ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
       STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
