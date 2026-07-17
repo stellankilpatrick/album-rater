@@ -19,6 +19,11 @@ table {
 a {
     text-decoration: none;
     color: inherit;
+    transition: opacity 0.15s ease;
+}
+
+a:hover {
+  opacity: 0.65;
 }
 
 body {

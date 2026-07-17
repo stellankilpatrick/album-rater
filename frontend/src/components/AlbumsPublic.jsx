@@ -118,11 +118,11 @@ export default function AlbumsPublic({ user }) {
 
   return (
     <div className="page-pad">
-      <h1>All Rated Albums</h1>
+      <h1 style={{ textAlign: 'center' }}>All Rated Albums</h1>
 
       {/* Filters */}
       <div className="filter-bar">
-        <div className="filter-bar-row">
+        <div className="filter-bar-row" style={{ display: "flex", justifyContent: "center", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
           <div style={{ position: "relative" }}>
             <button
               className={`filter-btn${filters.artists.length > 0 ? " active" : ""}`}
@@ -189,13 +189,15 @@ export default function AlbumsPublic({ user }) {
 
           <button className="filter-btn" onClick={clearFilters}>Clear Filters</button>
         </div>
-        <p className="filter-meta">Showing {Math.min(100, sortedAlbums.length)} of {albums.length} albums</p>
+        <p className="filter-meta" style={{ textAlign: "center" }}>Showing {Math.min(100, sortedAlbums.length)} of {albums.length} albums</p>
       </div>
 
       {!isMobile && (
-        <button className="ui-btn" style={{ marginBottom: "15px" }} onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")}>
-          {viewMode === "list" ? "Grid View" : "List View"}
-        </button>
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <button className="ui-btn" style={{ marginBottom: "15px" }} onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")}>
+            {viewMode === "list" ? "Grid View" : "List View"}
+          </button>
+        </div>
       )}
 
       {displayedAlbums.length === 0 ? (

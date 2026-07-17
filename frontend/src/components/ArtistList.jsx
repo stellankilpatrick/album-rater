@@ -46,18 +46,19 @@ export default function ArtistList({ user }) {
 
     return (
         <div className="page-pad">
-            <h1 style={{ marginBottom: '3px' }}>{effectiveUsername}'s Top Artists</h1>
+            <h1 style={{ marginBottom: '3px', textAlign: 'center' }}>{effectiveUsername}'s Top Artists</h1>
 
             {!isMobile && (
-                <button
-                    className="ui-btn"
-                    style={{ marginBottom: "15px" }}
-                    onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")}
-                >
-                    {viewMode === "list" ? "Grid View" : "List View"}
-                </button>
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                    <button
+                        className="ui-btn"
+                        style={{ marginBottom: "15px" }}
+                        onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")}
+                    >
+                        {viewMode === "list" ? "Grid View" : "List View"}
+                    </button>
+                </div>
             )}
-
             {viewMode === "list" ? (
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>

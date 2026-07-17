@@ -53,15 +53,17 @@ export default function ArtistsPublic({ user }) {
 
     return (
         <div className="page-pad">
-            <h1>All Rated Artists</h1>
+            <h1 style={{ textAlign: 'center' }}>All Rated Artists</h1>
 
-            <button
-                className="ui-btn"
-                style={{ marginBottom: "15px" }}
-                onClick={() => setViewMode(prev => (prev === "list" ? "grid" : "list"))}
-            >
-                {viewMode === "list" ? "Grid View" : "List View"}
-            </button>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+                <button
+                    className="ui-btn"
+                    style={{ marginBottom: "15px" }}
+                    onClick={() => setViewMode(prev => (prev === "list" ? "grid" : "list"))}
+                >
+                    {viewMode === "list" ? "Grid View" : "List View"}
+                </button>
+            </div>
 
             {viewMode === "list" ? (
                 /* LIST VIEW */

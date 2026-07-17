@@ -442,7 +442,32 @@ export default function AlbumDetailPublic({ user }) {
               padding: isEditing ? "6px 0" : undefined
             }}
           >
-            <h1 style={{ margin: isEditing ? 0 : "0 0 -8px 0", fontSize: isMobile ? "1.75rem" : undefined, textAlign: isMobile ? "center" : undefined, lineHeight: 1.2 }}>
+            {!isEditing && (
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "1rem",
+                  fontWeight: "normal",
+                  opacity: 0.9,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em"
+                }}
+              >
+                {album.type
+                  ? (album.type.toUpperCase() === "EP"
+                    ? "EP"
+                    : album.type.charAt(0).toUpperCase() + album.type.slice(1))
+                  : "Album"}
+              </p>
+            )}
+            <h1
+              style={{
+                margin: isEditing ? 0 : "0 0 -8px 0",
+                fontSize: isMobile ? "2.2rem" : "3.2rem",
+                textAlign: isMobile ? "center" : undefined,
+                lineHeight: 1.1
+              }}
+            >
               {isEditing ? (
                 <input
                   value={editTitle}
@@ -477,7 +502,6 @@ export default function AlbumDetailPublic({ user }) {
             </h2>
 
             <h4 style={{ margin: 0, lineHeight: 1.3 }}>
-              Released{" "}
               {isEditing ? (
                 <input
                   type="date"
@@ -490,28 +514,6 @@ export default function AlbumDetailPublic({ user }) {
                 new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
                   "en-US", { year: "numeric", month: "short", day: "numeric" }
                 )
-              )}
-              {" | "}
-              {isEditing ? (
-                <select
-                  value={editType}
-                  onChange={e => {
-                    const newType = e.target.value;
-                    setEditType(newType);
-                    saveAlbumType(newType);
-                  }}
-                  style={{ marginLeft: "6px", padding: "4px 8px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.25)", background: "rgba(0,0,0,0.5)", color: "white", boxSizing: "border-box" }}
-                >
-                  <option value="album">Album</option>
-                  <option value="ep">EP</option>
-                  <option value="mixtape">Mixtape</option>
-                  <option value="compilation">Compilation</option>
-                  <option value="soundtrack">Soundtrack</option>
-                  <option value="live album">Live Album</option>
-                  <option value="single">Single</option>
-                </select>
-              ) : (
-                album.type ? album.type.charAt(0).toUpperCase() + album.type.slice(1) : "Album"
               )}
             </h4>
 

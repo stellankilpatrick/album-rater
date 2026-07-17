@@ -25,6 +25,7 @@ export default function AlbumList({ user }) {
     const minYear = searchParams.get("minYear") ?? "";
     const maxYear = searchParams.get("maxYear") ?? "";
 
+
     useEffect(() => {
         const handleResize = () => {
             const mobile = window.innerWidth <= 768;
@@ -39,6 +40,7 @@ export default function AlbumList({ user }) {
     const token = localStorage.getItem("token");
     const { username } = useParams();
     const effectiveUsername = username ?? user?.username;
+    const isOwner = user?.username === effectiveUsername;
 
     if (!effectiveUsername) return <Navigate to="/login" />;
 
@@ -158,7 +160,9 @@ export default function AlbumList({ user }) {
 
     return (
         <div className="page-pad">
-            <h1 style={{marginBottom: '-6px'}}>{effectiveUsername}'s Top Albums</h1>
+            <h1 style={{ marginBottom: "-6px", textAlign: "center" }}>
+                {isOwner ? "My Top Albums" : `${effectiveUsername}'s Top Albums`}
+            </h1>
 
             {loading ? (
                 <p>Loading albums...</p>
@@ -168,7 +172,7 @@ export default function AlbumList({ user }) {
                 <>
                     {/* Filters */}
                     <div className="filter-bar">
-                        <div className="filter-bar-row">
+                        <div className="filter-bar-row" style={{ display: "flex", justifyContent: "center", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
                             {/* Artist dropdown */}
                             <div style={{ position: "relative" }}>
                                 <button
@@ -238,14 +242,16 @@ export default function AlbumList({ user }) {
 
                             <button className="filter-btn" onClick={clearFilters}>Clear Filters</button>
                         </div>
-                        <p className="filter-meta">Showing {sortedAlbums.length} of {albums.length} albums</p>
+                        <p className="filter-meta" style={{ textAlign: "center" }}>Showing {sortedAlbums.length} of {albums.length} albums</p>
                     </div>
 
                     {/* Toggle button — hidden on mobile */}
                     {!isMobile && (
-                        <button className="ui-btn" style={{ marginBottom: "10px" }} onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")}>
-                            {viewMode === "list" ? "Grid View" : "List View"}
-                        </button>
+                        <div style={{ display: "flex", justifyContent: "center" }}>
+                            <button className="ui-btn" style={{ marginBottom: "10px" }} onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")}>
+                                {viewMode === "list" ? "Grid View" : "List View"}
+                            </button>
+                        </div>
                     )}
 
                     {sortedAlbums.length === 0 ? (

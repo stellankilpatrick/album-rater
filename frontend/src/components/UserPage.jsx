@@ -135,7 +135,7 @@ export default function ProfilePage({ user }) {
     if (loading) return <div>Loading...</div>;
 
     return (
-        <div className="page-pad">
+        <div className="page-pad" style={{ textAlign: "center" }}>
             {/* Banner */}
             <div
                 style={{
@@ -155,7 +155,7 @@ export default function ProfilePage({ user }) {
                 {isMe && !banner && <span style={{ color: "#666" }}>Click to add banner</span>}
             </div>
 
-            <div style={{ display: "flex", alignItems: "flex-end", gap: "24px", marginBottom: "16px" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "24px", marginBottom: "16px" }}>
                 {/* Profile Picture */}
                 <img
                     src={pfp}
@@ -171,8 +171,8 @@ export default function ProfilePage({ user }) {
                 />
 
                 {/* User Info */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px", paddingBottom: "4px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", paddingBottom: "4px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
                         <h1 style={{ margin: 0 }}>{effectiveUsername}</h1>
                         {!isMe && (
                             <button className="ui-btn" onClick={toggleFollow}>
@@ -208,7 +208,7 @@ export default function ProfilePage({ user }) {
                         )}
                     </div>
 
-                    <div style={{ display: "flex", gap: "16px" }}>
+                    <div style={{ display: "flex", justifyContent: "center", gap: "16px" }}>
                         <Link
                             to={`/users/${effectiveUsername}/connections#followers`}
                             style={{ textDecoration: "none", color: "inherit", transition: "opacity 0.15s ease" }}
@@ -227,7 +227,7 @@ export default function ProfilePage({ user }) {
                         </Link>
                     </div>
 
-                    <div style={{ display: "flex", gap: "16px" }}>
+                    <div style={{ display: "flex", justifyContent: "center", gap: "16px" }}>
                         <div><strong>{ratingCounts.albums}</strong> {ratingCounts.albums === 1 ? "Album" : "Albums"}</div>
                         <div><strong>{ratingCounts.artists}</strong> {ratingCounts.artists === 1 ? "Artist" : "Artists"}</div>
                     </div>
@@ -242,7 +242,7 @@ export default function ProfilePage({ user }) {
 
             {/* Edit Profile Panel */}
             {(editingPfp || editingBanner) && (
-                <div className="edit-profile-panel">
+                <div className="edit-profile-panel" style={{ textAlign: "left", maxWidth: "400px", margin: "0 auto" }}>
                     <div>
                         <label>Profile Picture URL</label>
                         <input
@@ -301,7 +301,7 @@ export default function ProfilePage({ user }) {
                 <h2>Top Albums</h2>
             </Link>
             {topAlbums.length > 0 && (
-                <div style={{ display: "flex", gap: "4px" }}>
+                <div style={{ display: "flex", justifyContent: "center", gap: "4px" }}>
                     {topAlbums.map(album => (
                         album.coverArt && (
                             <Link
@@ -334,7 +334,7 @@ export default function ProfilePage({ user }) {
                 <h2>Top Artists</h2>
             </Link>
             {topArtists.length > 0 && (
-                <div style={{ display: "flex", gap: "4px" }}>
+                <div style={{ display: "flex", justifyContent: "center", gap: "4px" }}>
                     {topArtists.map(artist => (
                         artist.image && (
                             <Link
