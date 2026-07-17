@@ -235,6 +235,14 @@ export default function AlbumDetailPublic({ user }) {
         await saveCover();
       }
 
+      if (editType !== album?.type) {
+        await saveAlbumType(editType);
+      }
+
+      if (editOfficial !== Boolean(album?.official)) {
+        await saveAlbumOfficial();
+      }
+
       for (const song of songs) {
         const originalSong = editSnapshot?.songs?.find(s => s.id === song.id);
         if (!originalSong) continue;

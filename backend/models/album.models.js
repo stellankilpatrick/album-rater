@@ -244,6 +244,7 @@ export async function getAlbumDetailsPublic(albumId) {
   const albumRes = await pool.query(
     `SELECT
       a.id, a.title, a.release_date AS "releaseDate", a.cover_art AS "coverArt",
+      a.type, a.official,
       ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
       STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist
     FROM albums a
