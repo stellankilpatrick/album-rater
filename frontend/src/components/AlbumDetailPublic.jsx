@@ -71,7 +71,7 @@ export default function AlbumDetailPublic({ user }) {
       setEditReleaseDate(formattedDate);
       setEditTitle(album.title);
       setEditArtist(album.artist);
-      setEditCover(prev => prev || album.coverArt || "");
+      setEditCover(album.coverArt || "");
       setEditType(album.type || "album");
       setEditOfficial(Boolean(album.official));
     }
@@ -203,6 +203,10 @@ export default function AlbumDetailPublic({ user }) {
   const handleStartEditing = () => {
     setIsEditing(true);
     setEditingSongId(null);
+
+    setEditType(album.type || "album");
+    setEditOfficial(Boolean(album.official));
+
     setEditSnapshot({
       album: {
         ...album,
@@ -442,7 +446,28 @@ export default function AlbumDetailPublic({ user }) {
               padding: isEditing ? "6px 0" : undefined
             }}
           >
-            {!isEditing && (
+            {isEditing ? (
+              <select
+                value={editType}
+                onChange={e => setEditType(e.target.value)}
+                style={{
+                  padding: "4px 8px",
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  background: "rgba(255,255,255,0.12)",
+                  color: "white",
+                  fontSize: "1rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em"
+                }}
+              >
+                <option value="album" style={{ color: "black" }}>Album</option>
+                <option value="ep" style={{ color: "black" }}>EP</option>
+                <option value="compilation" style={{ color: "black" }}>Compilation</option>
+                <option value="soundtrack" style={{ color: "black" }}>Soundtrack</option>
+                <option value="live album" style={{ color: "black" }}>Live Album</option>
+              </select>
+            ) : (
               <p
                 style={{
                   margin: 0,
