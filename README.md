@@ -37,7 +37,6 @@ Album Rater is a full-stack social platform for rating music at the song level a
 **Backend**
 - Node.js + Express
 - PostgreSQL via `pg`
-- JWT-based authentication with bcrypt password hashing
 
 ## Project Structure
 
@@ -70,14 +69,7 @@ cd backend
 npm install
 ```
 
-Create a `.env.local` (for development) or `.env` (for production) file based on `.env.example`:
-
-```
-JWT_SECRET=
-JWT_EXPIRES_IN=7d
-DATABASE_URL=
-PORT=3000
-```
+Create a `.env.local` (for development) or `.env` (for production) file based on `.env.example`.
 
 Then initialize the database schema and start the server:
 
@@ -95,15 +87,6 @@ npm start
 ```
 
 The frontend expects the backend's base URL to be configured in `src/api/api.js`.
-
-## Environment Variables
-
-| Variable | Description |
-|---|---|
-| `JWT_SECRET` | Secret used to sign authentication tokens |
-| `JWT_EXPIRES_IN` | Token lifetime (e.g. `7d`) |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `PORT` | Port the backend server listens on (defaults to `3000`) |
 
 ## API Overview
 
