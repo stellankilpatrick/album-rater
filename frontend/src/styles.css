@@ -373,7 +373,7 @@ html {
   cursor: pointer;
   transition: opacity 0.15s ease;
   font-family: inherit;
-  font-size: 17px;
+  font-size: 20px;
   background: none;
   border: none;
   padding: 0;
@@ -422,7 +422,7 @@ html {
   cursor: pointer;
   color: white;
   position: relative;
-  font-size: 24px;
+  font-size: 28px;
   padding: 0;
   line-height: 1;
   transition: opacity 0.15s ease;
@@ -483,7 +483,7 @@ html {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 22px;
+  gap: 26px;
 }
 
 .nav-avatar-btn {
@@ -502,8 +502,8 @@ html {
 }
 
 .nav-avatar-img {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
   display: block;
@@ -517,9 +517,9 @@ html {
   background-color: #111;
   border: 1px solid #333;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 14px;
   z-index: 200;
-  min-width: 200px;
+  min-width: 220px;
   padding: 10px 0 4px;
   animation: filterDropdownOpen 0.15s ease;
 }
@@ -533,7 +533,7 @@ html {
 .nav-profile-email {
   padding: 0 12px;
   margin-top: 2px;
-  font-size: 12px;
+  font-size: 13px;
   color: #999;
 }
 
@@ -556,7 +556,7 @@ html {
 .nav-search-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   position: relative;
 }
 
@@ -565,7 +565,7 @@ html {
   border: none;
   cursor: pointer;
   color: white;
-  font-size: 22px;
+  font-size: 26px;
   padding: 0;
   line-height: 1;
   transition: opacity 0.15s ease;
@@ -592,8 +592,8 @@ html {
 }
 
 .nav-search-wrap.expanded .nav-search-input {
-  width: 200px;
-  padding: 4px 8px;
+  width: 220px;
+  padding: 6px 10px;
   opacity: 1;
   border-color: #333;
   background-color: #111;

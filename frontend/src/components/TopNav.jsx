@@ -187,7 +187,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
         {pfp ? (
           <img src={pfp} alt="" className="nav-avatar-img" />
         ) : (
-          <DefaultAvatar size={36} />
+          <DefaultAvatar size={44} />
         )}
       </button>
 
@@ -286,8 +286,8 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           display: "flex",
           alignItems: "center",
           gap: "18px",
-          padding: "13px 16px",
-          minHeight: "46px"
+          padding: "16px 18px",
+          minHeight: "58px"
         }}
       >
         {isMobile ? (
@@ -389,9 +389,9 @@ function TopNav({ effectiveUsername, email, onLogout }) {
                 🕭
                 {unreadCount > 0 && (
                   <span style={{
-                    position: "absolute", top: "-4px", right: "-4px",
+                    position: "absolute", top: "-5px", right: "-5px",
                     backgroundColor: "red", borderRadius: "50%",
-                    width: "16px", height: "16px", fontSize: "10px",
+                    width: "18px", height: "18px", fontSize: "11px",
                     display: "flex", alignItems: "center", justifyContent: "center"
                   }}>
                     {unreadCount}
