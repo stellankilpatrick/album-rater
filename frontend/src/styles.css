@@ -422,7 +422,7 @@ html {
   cursor: pointer;
   color: white;
   position: relative;
-  font-size: 20px;
+  font-size: 22px;
   padding: 0;
   line-height: 1;
   transition: opacity 0.15s ease;
@@ -502,8 +502,8 @@ html {
 }
 
 .nav-avatar-img {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
   display: block;
@@ -565,7 +565,7 @@ html {
   border: none;
   cursor: pointer;
   color: white;
-  font-size: 18px;
+  font-size: 20px;
   padding: 0;
   line-height: 1;
   transition: opacity 0.15s ease;

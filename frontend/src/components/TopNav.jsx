@@ -187,7 +187,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
         {pfp ? (
           <img src={pfp} alt="" className="nav-avatar-img" />
         ) : (
-          <DefaultAvatar size={28} />
+          <DefaultAvatar size={32} />
         )}
       </button>
 
@@ -285,9 +285,9 @@ function TopNav({ effectiveUsername, email, onLogout }) {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "16px",
-          padding: "10px 16px",
-          minHeight: "40px"
+          gap: "18px",
+          padding: "13px 16px",
+          minHeight: "46px"
         }}
       >
         {isMobile ? (
@@ -374,8 +374,8 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           </>
         ) : (
           <>
-            {profileMenu}
             <div className="nav-center-group">
+            {profileMenu}
             {links}
             {SearchBox}
             <div ref={notifRef} style={{ position: "relative" }}>
