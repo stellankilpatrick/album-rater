@@ -41,7 +41,9 @@ export default function AlbumDetail({ user }) {
   const [untracked, setUntracked] = useState(false);
   const [showRatingHelp, setShowRatingHelp] = useState(false);
 
-  const [liked, setLiked] = useState(null); // null = not set, true = like, false = dislike
+  const [liked, setLiked] = useState(null); // null = not set, 1 = good, 0 = mid, -1 = bad
+  const [pendingLiked, setPendingLiked] = useState(null);
+  const [flashInvalid, setFlashInvalid] = useState(false);
 
   useEffect(() => {
     if (user) api.get(`albums/${albumId}/users/${effectiveUsername}/mutuals`).then(res => setFriends(res.data));
@@ -115,7 +117,10 @@ export default function AlbumDetail({ user }) {
   useEffect(() => {
     if (!albumId || !effectiveUsername) return;
     api.get(`/albums/${albumId}/users/${effectiveUsername}/liked`)
-      .then(res => setLiked(res.data.liked))
+      .then(res => {
+        setLiked(res.data.liked);
+        setPendingLiked(res.data.liked);
+      })
       .catch(err => console.error(err));
   }, [albumId, effectiveUsername]);
 
@@ -133,9 +138,14 @@ export default function AlbumDetail({ user }) {
     }
   }, [album]);
 
-  const handleToggleLike = async (newLiked) => {
-    await api.patch(`/albums/${albumId}/users/${effectiveUsername}/liked`, { liked: newLiked });
-    setLiked(newLiked);
+  const handleOpinionChange = (value) => {
+    setPendingLiked(value);
+    setHasChanges(true);
+  };
+
+  const triggerOpinionFlash = () => {
+    setFlashInvalid(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => setFlashInvalid(true)));
   };
 
   const handleLikeComment = async (commentId, likedByMe) => {
@@ -180,6 +190,10 @@ export default function AlbumDetail({ user }) {
   };
 
   const handleSaveRating = async () => {
+    if (pendingLiked === null) {
+      triggerOpinionFlash();
+      return;
+    }
     if (!window.confirm("Are you sure you want to save your changes?")) return;
 
     setIsSaving(true);
@@ -198,6 +212,12 @@ export default function AlbumDetail({ user }) {
       // Save review
       if (pendingReview !== review) {
         await api.patch(`/albums/${albumId}/review/users/${effectiveUsername}`, { review: pendingReview.trim() || null });
+      }
+
+      // Save opinion
+      if (pendingLiked !== liked) {
+        await api.patch(`/albums/${albumId}/users/${effectiveUsername}/liked`, { liked: pendingLiked });
+        setLiked(pendingLiked);
       }
 
       setSongs(pendingSongs);
@@ -624,30 +644,38 @@ export default function AlbumDetail({ user }) {
                   {isOwner ? (
                     <select
                       value={
-                        liked === true
+                        pendingLiked === 1
                           ? "GOOD"
-                          : liked === false
-                            ? "BAD"
-                            : "MID"
+                          : pendingLiked === 0
+                            ? "MID"
+                            : pendingLiked === -1
+                              ? "BAD"
+                              : "SELECT"
                       }
                       onChange={e => {
                         const value = e.target.value;
-                        handleToggleLike(
+                        handleOpinionChange(
                           value === "GOOD"
-                            ? true
-                            : value === "BAD"
-                              ? false
-                              : null
+                            ? 1
+                            : value === "MID"
+                              ? 0
+                              : value === "BAD"
+                                ? -1
+                                : null
                         );
                       }}
+                      onAnimationEnd={() => setFlashInvalid(false)}
+                      className={flashInvalid ? "opinion-select-flash" : undefined}
                       style={{
                         color: "white",
                         background:
-                          liked === true
+                          pendingLiked === 1
                             ? "#1db954"
-                            : liked === false
-                              ? "#e74c3c"
-                              : "#facc15",
+                            : pendingLiked === 0
+                              ? "#facc15"
+                              : pendingLiked === -1
+                                ? "#e74c3c"
+                                : "#999",
                         border: "none",
                         borderRadius: "4px",
                         padding: "2px 6px",
@@ -655,6 +683,9 @@ export default function AlbumDetail({ user }) {
                         cursor: "pointer"
                       }}
                     >
+                      <option value="SELECT" disabled style={{ background: "#999", color: "white" }}>
+                        Select
+                      </option>
                       <option value="GOOD" style={{ background: "#1db954", color: "white" }}>
                         GOOD
                       </option>
@@ -669,21 +700,25 @@ export default function AlbumDetail({ user }) {
                     <span
                       style={{
                         background:
-                          liked === true
+                          liked === 1
                             ? "#1db954"
-                            : liked === false
-                              ? "#e74c3c"
-                              : "#facc15",
+                            : liked === 0
+                              ? "#facc15"
+                              : liked === -1
+                                ? "#e74c3c"
+                                : "#999",
                         borderRadius: "4px",
                         padding: "2px 8px",
                         fontWeight: "bold"
                       }}
                     >
-                      {liked === true
+                      {liked === 1
                         ? "GOOD"
-                        : liked === false
-                          ? "BAD"
-                          : "MID"}
+                        : liked === 0
+                          ? "MID"
+                          : liked === -1
+                            ? "BAD"
+                            : "No opinion yet"}
                     </span>
                   )}
                 </div>
