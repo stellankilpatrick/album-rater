@@ -374,17 +374,19 @@ export default function AlbumDetail({ user }) {
   const getRatingOptionStyle = (value) => ratingOptionStyles[value ?? ""] ?? ratingOptionStyles[""];
 
   const reviewPanel = (
-    <div style={{
-      flexShrink: 0,
-      width: isMobile ? "100%" : "650px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "4px",
-      zIndex: 3,
-      padding: isMobile ? "0 16px 16px 0px" : "8px 32px 8px 8px",
-      marginLeft: isMobile ? undefined : "auto",
-      marginTop: isMobile ? undefined : "16px"
-    }}>
+    <div
+      style={{
+        flexShrink: 0,
+        width: "100%",
+        padding: 0,
+        marginLeft: 0,
+        marginTop: 0,
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+        zIndex: 3,
+      }}
+    >
       {isOwner ? (
         <>
           <textarea
@@ -395,7 +397,9 @@ export default function AlbumDetail({ user }) {
             placeholder="Write a review..."
             maxLength={500}
             style={{
-              background: isMobile ? "rgba(0,0,0,0.1)" : "rgba(0,0,0,0.2)",
+              background: isOwner
+                ? (isMobile ? "rgba(0,0,0,0.1)" : "rgba(0,0,0,0.2)")
+                : "transparent",
               border: reviewFocused
                 ? "1px solid rgba(255,255,255,0.5)"
                 : "1px solid transparent",
@@ -403,9 +407,9 @@ export default function AlbumDetail({ user }) {
               color: isMobile ? "#D3D3D3" : "white",
               padding: "10px",
               resize: "none",
-              width: isMobile ? "100%" : "625px",
-              height: isMobile ? "100px" : "225px",
-              fontSize: "15px",
+              width: "100%",
+              height: "110px",
+              fontSize: "14px",
               lineHeight: "1.5",
               boxSizing: "border-box",
               outline: "none",
@@ -413,17 +417,44 @@ export default function AlbumDetail({ user }) {
             }}
           />
           {reviewFocused && (
-            <span style={{ fontSize: "11px", color: pendingReview.length >= 500 ? "red" : "rgba(255,255,255,0.6)" }}>
+            <span
+              style={{
+                fontSize: "11px",
+                color:
+                  pendingReview.length >= 500
+                    ? "red"
+                    : "rgba(255,255,255,0.6)",
+              }}
+            >
               {pendingReview.length}/500
             </span>
           )}
         </>
       ) : (
-        album?.review && (
-          <p style={{ margin: isMobile ? 0 : "0 30px 0 0", fontSize: "13px", color: "white", fontStyle: "italic" }}>
-            "{renderCommentContent(album.review)}"
-          </p>
-        )
+        <div
+          style={{
+            background: isOwner
+              ? (isMobile ? "rgba(0,0,0,0.1)" : "rgba(0,0,0,0.2)")
+              : "transparent",
+            border: "1px solid transparent",
+            borderRadius: "8px",
+            color: isMobile ? "#D3D3D3" : "white",
+            padding: "10px",
+            width: "100%",
+            height: "110px",
+            fontSize: "14px",
+            lineHeight: "1.5",
+            boxSizing: "border-box",
+            whiteSpace: "pre-wrap",
+            overflowY: "auto",
+          }}
+        >
+          {album?.review || (
+            <span style={{ color: "#888", fontStyle: "italic" }}>
+              No review.
+            </span>
+          )}
+        </div>
       )}
     </div>
   );
@@ -757,35 +788,6 @@ export default function AlbumDetail({ user }) {
             </div>
           </div>
         </div>
-        <div style={{ position: "relative", zIndex: 3, color: "white", flexShrink: 0, marginLeft: "auto" }}>
-          {!isMobile && (
-            <div style={{ position: "relative" }}>
-              {album?.ratingId && (
-                <div style={{ position: "absolute", top: "8px", right: "8px", zIndex: 4 }}>
-                  {!isOwner ? (
-                    <button
-                      onClick={async () => {
-                        if (reviewLikes.likedByMe) {
-                          const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
-                          setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
-                        } else {
-                          const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
-                          setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
-                        }
-                      }}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: reviewLikes.likedByMe ? "#e0245e" : "white", fontSize: "24px" }}
-                    >
-                      ❤︎ {reviewLikes.count}
-                    </button>
-                  ) : (
-                    <span style={{ color: "white", fontSize: "22px" }}>❤︎ {reviewLikes.count}</span>
-                  )}
-                </div>
-              )}
-              {reviewPanel}
-            </div>
-          )}
-        </div>
         <div style={{ position: "absolute", bottom: "12px", right: "12px", zIndex: 4, display: "flex", gap: "6px" }}>
           <button
             className="album-nav-btn"
@@ -806,36 +808,6 @@ export default function AlbumDetail({ user }) {
         </div>
       </div>
 
-      {
-        isMobile && (
-          <div style={{ padding: "0 16px" }}>
-            {album?.ratingId && (
-              <div style={{ marginBottom: "4px" }}>
-                {!isOwner ? (
-                  <button
-                    onClick={async () => {
-                      if (reviewLikes.likedByMe) {
-                        const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
-                        setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
-                      } else {
-                        const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
-                        setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
-                      }
-                    }}
-                    style={{ background: "none", border: "none", cursor: "pointer", color: reviewLikes.likedByMe ? "#e0245e" : "white", fontSize: "24px" }}
-                  >
-                    ❤︎ {reviewLikes.count}
-                  </button>
-                ) : (
-                  <span style={{ color: "white", fontSize: "22px" }}>❤︎ {reviewLikes.count}</span>
-                )}
-              </div>
-            )}
-            {reviewPanel}
-          </div>
-        )
-      }
-
       {/* ===== TRACKLIST + SIDEBAR ===== */}
       <div style={{
         display: "flex",
@@ -849,7 +821,70 @@ export default function AlbumDetail({ user }) {
         justifyContent: "center"
       }}>
         {/* LEFT: Tracklist + Comments */}
-        <div style={{ flex: isMobile ? 1 : "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", alignItems: isMobile ? "stretch" : "flex-end" }}>
+        <div style={{
+          flex: isMobile ? 1 : "1 1 0",
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: isMobile ? "stretch" : "flex-end"
+        }}>
+          {/* Album review */}
+          <div
+            style={{
+              width: "100%",
+              maxWidth: isMobile ? "calc(100vw - 32px)" : "100%",
+              marginBottom: "24px"
+            }}
+          >
+            {album?.ratingId && (
+              <div style={{ marginBottom: "8px" }}>
+                {!isOwner ? (
+                  <button
+                    onClick={async () => {
+                      if (reviewLikes.likedByMe) {
+                        const res = await api.delete("/likes", {
+                          data: {
+                            targetType: "album_review",
+                            targetId: reviewLikes.ratingId
+                          }
+                        });
+                        setReviewLikes(prev => ({
+                          ...prev,
+                          count: res.data.count,
+                          likedByMe: false
+                        }));
+                      } else {
+                        const res = await api.post("/likes", {
+                          targetType: "album_review",
+                          targetId: reviewLikes.ratingId
+                        });
+                        setReviewLikes(prev => ({
+                          ...prev,
+                          count: res.data.count,
+                          likedByMe: true
+                        }));
+                      }
+                    }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: reviewLikes.likedByMe ? "#e0245e" : "white",
+                      fontSize: "24px"
+                    }}
+                  >
+                    ❤︎ {reviewLikes.count}
+                  </button>
+                ) : (
+                  <span style={{ color: "white", fontSize: "22px" }}>
+                    ❤︎ {reviewLikes.count}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {reviewPanel}
+          </div>
           {/* Tracklist */}
           <div style={{ overflowX: "auto", width: "100%", maxWidth: isMobile ? "calc(100vw - 32px)" : "100%" }}>
             <table style={{ borderCollapse: "collapse", width: "auto" }}>
