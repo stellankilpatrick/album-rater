@@ -1,8 +1,9 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import api from "../api/api";
+import DefaultAvatar from "./DefaultAvatar";
 
-function TopNav({ effectiveUsername, onLogout }) {
+function TopNav({ effectiveUsername, email, onLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [query, setQuery] = useState("");
@@ -10,8 +11,9 @@ function TopNav({ effectiveUsername, onLogout }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [dropdownResults, setDropdownResults] = useState(null);
   const dropdownRef = useRef(null);
-  const [communityOpen, setCommunityOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [pfp, setPfp] = useState(null);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
 
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -39,6 +41,20 @@ function TopNav({ effectiveUsername, onLogout }) {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownResults(null);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  useEffect(() => {
+    api.get(`/users/${effectiveUsername}/pfp`).then(res => setPfp(res.data.pfp));
+  }, [effectiveUsername]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
+        setProfileMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -165,30 +181,41 @@ function TopNav({ effectiveUsername, onLogout }) {
           </div>
         )}
       </div>
-      <div
-        style={{ position: "relative" }}
-        onMouseEnter={() => setProfileOpen(true)}
-        onMouseLeave={() => setProfileOpen(false)}
-      >
-        <Link to={`/users/${effectiveUsername}`} className={navClass(`/users/${effectiveUsername}`)}>Profile</Link>
-        {profileOpen && (
-          <div style={{
-            position: "absolute",
-            top: "100%",
-            left: 0,
-            backgroundColor: "#111",
-            border: "1px solid #333",
-            borderRadius: "4px",
-            fontSize: "13px",
-            zIndex: 200,
-            minWidth: "180px",
-            padding: "4px 0",
-          }}>
-            <Link to={`/users/${effectiveUsername}/listen-list`} className="nav-dropdown-item">Listen List</Link>
-          </div>
-        )}
-      </div>
     </>
+  );
+
+  const profileMenu = (
+    <div ref={profileMenuRef} style={{ position: "relative" }}>
+      <button
+        className="nav-avatar-btn"
+        onClick={() => setProfileMenuOpen(o => !o)}
+        aria-label="Profile menu"
+      >
+        {pfp ? (
+          <img src={pfp} alt="" className="nav-avatar-img" />
+        ) : (
+          <DefaultAvatar size={28} />
+        )}
+      </button>
+
+      {profileMenuOpen && (
+        <div className="nav-profile-dropdown">
+          <div className="nav-profile-name">{effectiveUsername}</div>
+          <div className="nav-profile-email">{email}</div>
+          <div className="nav-dropdown-sep" />
+          <Link to={`/users/${effectiveUsername}`} className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>My Page</Link>
+          <Link to={`/users/${effectiveUsername}/listen-list`} className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>Listen List</Link>
+          <Link to="/community/recommendations" className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>Recommendations</Link>
+          <div className="nav-dropdown-sep" />
+          <button
+            className="nav-dropdown-item nav-dropdown-item-btn"
+            onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}
+          >
+            Log out
+          </button>
+        </div>
+      )}
+    </div>
   );
 
   const SearchBox = (
@@ -339,8 +366,9 @@ function TopNav({ effectiveUsername, onLogout }) {
           </>
         ) : (
           <>
+            {profileMenu}
+            <div className="nav-center-group">
             {links}
-            <div style={{ marginLeft: "auto" }} />
             {SearchBox}
             <div ref={notifRef} style={{ position: "relative" }}>
               <button
@@ -400,7 +428,7 @@ function TopNav({ effectiveUsername, onLogout }) {
                 </div>
               )}
             </div>
-            <button onClick={handleSignOut} className="nav-signout">Sign out</button>
+            </div>
           </>
         )}
       </div>

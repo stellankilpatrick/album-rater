@@ -54,6 +54,7 @@ function App() {
       {user && (
         <TopNav
           effectiveUsername={user.username}
+          email={user.email}
           onLogout={handleLogout}
         />
       )}

@@ -478,6 +478,81 @@ html {
   font-weight: bold;
 }
 
+.nav-center-group {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.nav-avatar-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  line-height: 0;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease;
+}
+
+.nav-avatar-btn:hover {
+  opacity: 0.65;
+}
+
+.nav-avatar-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.nav-profile-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  background-color: #111;
+  border: 1px solid #333;
+  border-radius: 4px;
+  font-size: 13px;
+  z-index: 200;
+  min-width: 200px;
+  padding: 10px 0 4px;
+  animation: filterDropdownOpen 0.15s ease;
+}
+
+.nav-profile-name {
+  padding: 0 12px;
+  font-weight: bold;
+  color: white;
+}
+
+.nav-profile-email {
+  padding: 0 12px;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #999;
+}
+
+.nav-dropdown-sep {
+  height: 1px;
+  background-color: #333;
+  margin: 8px 0;
+}
+
+.nav-dropdown-item-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+}
+
 /* ── General UI Button (dark-theme pages) ── */
 .ui-btn {
   height: 32px;
