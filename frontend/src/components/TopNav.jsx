@@ -187,7 +187,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
         {pfp ? (
           <img src={pfp} alt="" className="nav-avatar-img" />
         ) : (
-          <DefaultAvatar size={32} />
+          <DefaultAvatar size={36} />
         )}
       </button>
 
