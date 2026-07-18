@@ -14,6 +14,9 @@ function TopNav({ effectiveUsername, email, onLogout }) {
   const [pfp, setPfp] = useState(null);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const searchWrapRef = useRef(null);
+  const searchInputRef = useRef(null);
 
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -61,6 +64,20 @@ function TopNav({ effectiveUsername, email, onLogout }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  useEffect(() => {
+    const handler = (e) => {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(e.target) && !query.trim()) {
+        setSearchExpanded(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [query]);
+
+  useEffect(() => {
+    if (searchExpanded) searchInputRef.current?.focus();
+  }, [searchExpanded]);
+
   const handleSignOut = () => {
     onLogout();
     navigate("/");
@@ -73,6 +90,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
     setQuery("");
     setDropdownResults(null);
     setMenuOpen(false);
+    setSearchExpanded(false);
   };
 
   useEffect(() => {
@@ -196,13 +214,27 @@ function TopNav({ effectiveUsername, email, onLogout }) {
   );
 
   const SearchBox = (
-    <div ref={dropdownRef} style={{ position: "relative" }}>
+    <div ref={searchWrapRef} className={`nav-search-wrap${isMobile || searchExpanded ? " expanded" : ""}`}>
+      {!isMobile && (
+        <button
+          type="button"
+          className="nav-search-icon"
+          onClick={() => setSearchExpanded(true)}
+          aria-label="Search"
+        >
+          🔍
+        </button>
+      )}
+      <div ref={dropdownRef} style={{ position: "relative" }}>
       <form onSubmit={handleSearch}>
         <input
+          ref={searchInputRef}
           type="text"
           placeholder="Search..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setSearchExpanded(true)}
+          className="nav-search-input"
           style={{ width: isMobile ? "140px" : undefined }}
         />
       </form>
@@ -244,6 +276,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 

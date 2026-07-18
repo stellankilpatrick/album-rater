@@ -553,6 +553,52 @@ html {
   cursor: pointer;
 }
 
+.nav-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.nav-search-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-size: 18px;
+  padding: 0;
+  line-height: 1;
+  transition: opacity 0.15s ease;
+}
+
+.nav-search-icon:hover {
+  opacity: 0.65;
+}
+
+.nav-search-wrap.expanded .nav-search-icon {
+  display: none;
+}
+
+.nav-search-input {
+  width: 0;
+  min-width: 0;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  opacity: 0;
+  color: white;
+  border-radius: 4px;
+  transition: width 0.18s ease, opacity 0.18s ease, padding 0.18s ease;
+}
+
+.nav-search-wrap.expanded .nav-search-input {
+  width: 200px;
+  padding: 4px 8px;
+  opacity: 1;
+  border-color: #333;
+  background-color: #111;
+}
+
 /* ── General UI Button (dark-theme pages) ── */
 .ui-btn {
   height: 32px;
