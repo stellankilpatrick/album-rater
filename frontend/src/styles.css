@@ -578,3 +578,13 @@ html {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ── Album Opinion Select ── */
+@keyframes opinion-flash {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.7); }
+}
+
+.opinion-select-flash {
+  animation: opinion-flash 0.6s ease-in-out 2;
+}
