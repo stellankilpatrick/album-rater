@@ -508,6 +508,9 @@ router.get("/:albumId/users/:username/liked", requireAuth, async (req, res) => {
 router.patch("/:albumId/users/:username/liked", requireAuth, async (req, res) => {
   try {
     const { liked } = req.body;
+    if (![1, 0, -1].includes(liked)) {
+      return res.status(400).json({ error: "liked must be 1 (Good), 0 (Mid), or -1 (Bad)" });
+    }
     await pool.query(
       `UPDATE album_ratings SET liked = $1 WHERE album_id = $2 AND user_id = $3`,
       [liked, req.params.albumId, req.profileUser.id]
@@ -550,12 +553,6 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
 
       // update album_ratings table
       await updateAlbumRatingForUser(req.user.id, Number(req.params.id));
-
-      const liked = ratings.some(r => r.rating >= 1);
-      await client.query(
-        `UPDATE album_ratings SET liked = $1 WHERE user_id = $2 AND album_id = $3`,
-        [liked, req.user.id, Number(req.params.id)]
-      );
 
       await client.query("COMMIT");
     } catch (err) {

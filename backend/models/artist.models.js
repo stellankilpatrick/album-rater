@@ -170,7 +170,7 @@ function getOptimalPower(likePercentage) {
 export async function getUserPower(userId) {
   const { rows } = await pool.query(
     `SELECT
-      COUNT(*) FILTER (WHERE liked = true) AS likes,
+      COUNT(*) FILTER (WHERE liked = 1) AS likes,
       COUNT(*) FILTER (WHERE liked IS NOT NULL) AS total
      FROM album_ratings
      WHERE user_id = $1`,
