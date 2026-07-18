@@ -157,30 +157,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
       >
         {(<Link to="/albums/new" className={navClass("/albums/new")}>Add Album</Link>)}
       </div>
-      <div
-        style={{ position: "relative" }}
-        onMouseEnter={() => setCommunityOpen(true)}
-        onMouseLeave={() => setCommunityOpen(false)}
-      >
-        <Link to="/community" className={navClass("/community")}>Community</Link>
-        {communityOpen && (
-          <div style={{
-            position: "absolute",
-            top: "100%",
-            left: 0,
-            backgroundColor: "#111",
-            border: "1px solid #333",
-            borderRadius: "4px",
-            fontSize: "13px",
-            zIndex: 200,
-            minWidth: "180px",
-            padding: "4px 0",
-          }}>
-            <Link to="/community" className="nav-dropdown-item">Feed</Link>
-            <Link to="/community/recommendations" className="nav-dropdown-item">Recommendations</Link>
-          </div>
-        )}
-      </div>
+      <Link to="/community" className={navClass("/community")}>Community</Link>
     </>
   );
 
