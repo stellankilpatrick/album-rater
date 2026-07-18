@@ -165,8 +165,6 @@ function TopNav({ effectiveUsername, email, onLogout }) {
 
   const links = (
     <>
-      <Link to={`/albums/users/${effectiveUsername}`} className={navClass(`/albums/users/${effectiveUsername}`)}>Album Rankings</Link>
-      <Link to={`/artists/users/${effectiveUsername}`} className={navClass(`/artists/users/${effectiveUsername}`)}>Artist Rankings</Link>
       <Link to="/albums" className={navClass("/albums")}>Albums</Link>
       <Link to="/artists" className={navClass("/artists")}>Artists</Link>
       <div style={{ position: "relative" }}
@@ -457,13 +455,13 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           zIndex: 99
         }}>
           {[
-            { to: `/albums/users/${effectiveUsername}`, label: "Album Rankings" },
-            { to: `/artists/users/${effectiveUsername}`, label: "Artist Rankings" },
             { to: "/albums", label: "Albums" },
             { to: "/artists", label: "Artists" },
             { to: "/albums/new", label: "Add Album" },
             { to: "/community", label: "Community" },
-            { to: `/users/${effectiveUsername}`, label: "Profile" },
+            { to: `/users/${effectiveUsername}`, label: "My Page" },
+            { to: `/users/${effectiveUsername}/listen-list`, label: "Listen List" },
+            { to: "/community/recommendations", label: "Recommendations" },
           ].map(({ to, label }) => (
             <Link
               key={to}
