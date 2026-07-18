@@ -431,30 +431,32 @@ export default function AlbumDetail({ user }) {
           )}
         </>
       ) : (
-        <div
-          style={{
-            background: isOwner
-              ? (isMobile ? "rgba(0,0,0,0.1)" : "rgba(0,0,0,0.2)")
-              : "transparent",
-            border: "1px solid transparent",
-            borderRadius: "8px",
-            color: isMobile ? "#D3D3D3" : "white",
-            padding: "10px",
-            width: "100%",
-            height: "110px",
-            fontSize: "14px",
-            lineHeight: "1.5",
-            boxSizing: "border-box",
-            whiteSpace: "pre-wrap",
-            overflowY: "auto",
-          }}
-        >
-          {album?.review || (
-            <span style={{ color: "#888", fontStyle: "italic" }}>
-              No review.
-            </span>
-          )}
-        </div>
+        album?.review?.trim() && (
+          <div
+            style={{
+              background: isOwner
+                ? (isMobile ? "rgba(0,0,0,0.1)" : "rgba(0,0,0,0.2)")
+                : "transparent",
+              border: "1px solid transparent",
+              borderRadius: "8px",
+              color: isMobile ? "#D3D3D3" : "white",
+              padding: "10px",
+              width: "100%",
+              height: "110px",
+              fontSize: "14px",
+              lineHeight: "1.5",
+              boxSizing: "border-box",
+              whiteSpace: "pre-wrap",
+              overflowY: "auto",
+            }}
+          >
+            {album?.review || (
+              <span style={{ color: "#888", fontStyle: "italic" }}>
+                No review.
+              </span>
+            )}
+          </div>
+        )
       )}
     </div>
   );
