@@ -44,6 +44,7 @@ export default function AlbumDetail({ user }) {
   const [liked, setLiked] = useState(null); // null = not set, 1 = good, 0 = mid, -1 = bad
   const [pendingLiked, setPendingLiked] = useState(null);
   const [flashInvalid, setFlashInvalid] = useState(false);
+  const [showOpinionPopup, setShowOpinionPopup] = useState(false);
 
   useEffect(() => {
     if (user) api.get(`albums/${albumId}/users/${effectiveUsername}/mutuals`).then(res => setFriends(res.data));
@@ -192,6 +193,7 @@ export default function AlbumDetail({ user }) {
   const handleSaveRating = async () => {
     if (pendingLiked === null) {
       triggerOpinionFlash();
+      setShowOpinionPopup(true);
       return;
     }
     if (!window.confirm("Are you sure you want to save your changes?")) return;
@@ -1235,43 +1237,153 @@ export default function AlbumDetail({ user }) {
           </div>
         </div>
       </div>
-      {
-        isSaving && (
-          <div style={{
+      {showOpinionPopup && (
+        <div
+          style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.5)",
+            background: "rgba(0,0,0,0.55)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 9999
-          }}>
-            <div style={{
-              background: "#1a1a1a",
-              border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: "8px",
-              padding: "32px",
+            zIndex: 9998
+          }}
+        >
+          <div
+            style={{
+              background: "#1f1f1f",
+              color: "white",
+              padding: "24px",
+              borderRadius: "10px",
+              width: "320px",
               textAlign: "center",
-              color: "white"
-            }}>
-              <div style={{ marginBottom: "16px", fontSize: "18px" }}>Saving your rating...</div>
-              <div style={{
-                width: "40px",
-                height: "40px",
-                border: "3px solid rgba(255,255,255,0.2)",
-                borderTop: "3px solid white",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-                margin: "0 auto"
-              }} />
-              <style>{`
+              border: "1px solid rgba(255,255,255,0.15)"
+            }}
+          >
+            <h3 style={{ marginTop: 0 }}>Please rate the album</h3>
+
+            <p style={{ color: "#bbb", marginBottom: "20px" }}>
+              Choose your overall opinion before saving.
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "10px",
+                marginBottom: "20px"
+              }}
+            >
+              <button
+                onClick={() => {
+                  setPendingLiked(1);
+                  setHasChanges(true);
+                  setShowOpinionPopup(false);
+                }}
+                style={{
+                  background: "#1db954",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 14px",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                  fontWeight: "bold"
+                }}
+              >
+                GOOD
+              </button>
+
+              <button
+                onClick={() => {
+                  setPendingLiked(0);
+                  setHasChanges(true);
+                  setShowOpinionPopup(false);
+                }}
+                style={{
+                  background: "#facc15",
+                  color: "black",
+                  border: "none",
+                  padding: "8px 14px",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                  fontWeight: "bold"
+                }}
+              >
+                MID
+              </button>
+
+              <button
+                onClick={() => {
+                  setPendingLiked(-1);
+                  setHasChanges(true);
+                  setShowOpinionPopup(false);
+                }}
+                style={{
+                  background: "#e74c3c",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 14px",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                  fontWeight: "bold"
+                }}
+              >
+                BAD
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowOpinionPopup(false)}
+              style={{
+                background: "transparent",
+                color: "#aaa",
+                border: "1px solid #555",
+                padding: "6px 14px",
+                borderRadius: "5px",
+                cursor: "pointer"
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+      {isSaving && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999
+        }}>
+          <div style={{
+            background: "#1a1a1a",
+            border: "1px solid rgba(255,255,255,0.2)",
+            borderRadius: "8px",
+            padding: "32px",
+            textAlign: "center",
+            color: "white"
+          }}>
+            <div style={{ marginBottom: "16px", fontSize: "18px" }}>Saving your rating...</div>
+            <div style={{
+              width: "40px",
+              height: "40px",
+              border: "3px solid rgba(255,255,255,0.2)",
+              borderTop: "3px solid white",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto"
+            }} />
+            <style>{`
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
       `}</style>
-            </div>
           </div>
-        )
+        </div>
+      )
       }
     </div >
   );
