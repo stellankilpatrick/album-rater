@@ -135,7 +135,12 @@ export default function ProfilePage({ user }) {
     if (loading) return <div>Loading...</div>;
 
     return (
-        <div className="page-pad" style={{ textAlign: "center" }}>
+        <div
+            className="page-pad"
+            style={{
+                textAlign: isMobile ? "center" : "left"
+            }}
+        >
             {/* Banner */}
             <div
                 style={{
@@ -149,13 +154,22 @@ export default function ProfilePage({ user }) {
                     marginTop: "-16px",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
+                    justifyContent: isMobile ? "center" : "flex-start",
                 }}
             >
                 {isMe && !banner && <span style={{ color: "#666" }}>Click to add banner</span>}
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "24px", marginBottom: "16px" }}>
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: isMobile ? "column" : "row",
+                    alignItems: isMobile ? "center" : "flex-end",
+                    justifyContent: "flex-start",
+                    gap: "24px",
+                    marginBottom: "16px"
+                }}
+            >
                 {/* Profile Picture */}
                 <img
                     src={pfp}
@@ -171,8 +185,8 @@ export default function ProfilePage({ user }) {
                 />
 
                 {/* User Info */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", paddingBottom: "4px" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "8px", paddingBottom: "4px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: isMobile ? "center" : "flex-start", gap: "12px" }}>
                         <h1 style={{ margin: 0 }}>{effectiveUsername}</h1>
                         {!isMe && (
                             <button className="ui-btn" onClick={toggleFollow}>
@@ -208,7 +222,7 @@ export default function ProfilePage({ user }) {
                         )}
                     </div>
 
-                    <div style={{ display: "flex", justifyContent: "center", gap: "16px" }}>
+                    <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start", gap: "16px" }}>
                         <Link
                             to={`/users/${effectiveUsername}/connections#followers`}
                             style={{ textDecoration: "none", color: "inherit", transition: "opacity 0.15s ease" }}
@@ -227,7 +241,7 @@ export default function ProfilePage({ user }) {
                         </Link>
                     </div>
 
-                    <div style={{ display: "flex", justifyContent: "center", gap: "16px" }}>
+                    <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start", gap: "16px" }}>
                         <div><strong>{ratingCounts.albums}</strong> {ratingCounts.albums === 1 ? "Album" : "Albums"}</div>
                         <div><strong>{ratingCounts.artists}</strong> {ratingCounts.artists === 1 ? "Artist" : "Artists"}</div>
                     </div>
@@ -301,7 +315,7 @@ export default function ProfilePage({ user }) {
                 <h2>Top Albums</h2>
             </Link>
             {topAlbums.length > 0 && (
-                <div style={{ display: "flex", justifyContent: "center", gap: "4px" }}>
+                <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start", gap: "4px" }}>
                     {topAlbums.map(album => (
                         album.coverArt && (
                             <Link
@@ -334,7 +348,7 @@ export default function ProfilePage({ user }) {
                 <h2>Top Artists</h2>
             </Link>
             {topArtists.length > 0 && (
-                <div style={{ display: "flex", justifyContent: "center", gap: "4px" }}>
+                <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start", gap: "4px" }}>
                     {topArtists.map(artist => (
                         artist.image && (
                             <Link

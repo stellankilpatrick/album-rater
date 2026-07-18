@@ -482,7 +482,7 @@ export default function AlbumDetail({ user }) {
                 {/* ALBUM TYPE */}
                 <div
                   style={{
-                    fontSize: "0.95rem",
+                    fontSize: "1.05rem",
                     opacity: 0.85,
                     textTransform: "uppercase",
                     letterSpacing: "0.08em"
@@ -546,7 +546,8 @@ export default function AlbumDetail({ user }) {
                   alignItems: "center",
                   textAlign: "center",
                   flexShrink: 0,
-                  height: "100%"
+                  height: "100%",
+                  gap: "6px"
                 }}
               >
                 {ranks.overall?.rank != null && (
@@ -562,7 +563,7 @@ export default function AlbumDetail({ user }) {
                     <div
                       style={{
                         fontSize: isMobile ? "4rem" : "5.5rem",
-                        fontWeight: 400,
+                        fontWeight: 700,
                         lineHeight: 0.9
                       }}
                     >
@@ -632,9 +633,9 @@ export default function AlbumDetail({ user }) {
                       onChange={e => {
                         const value = e.target.value;
                         handleToggleLike(
-                          value === "good"
+                          value === "GOOD"
                             ? true
-                            : value === "bad"
+                            : value === "BAD"
                               ? false
                               : null
                         );
@@ -654,9 +655,15 @@ export default function AlbumDetail({ user }) {
                         cursor: "pointer"
                       }}
                     >
-                      <option value="good">GOOD</option>
-                      <option value="mid">MID</option>
-                      <option value="bad">BAD</option>
+                      <option value="GOOD" style={{ background: "#1db954", color: "white" }}>
+                        GOOD
+                      </option>
+                      <option value="MID" style={{ background: "#facc15", color: "black" }}>
+                        MID
+                      </option>
+                      <option value="BAD" style={{ background: "#e74c3c", color: "white" }}>
+                        BAD
+                      </option>
                     </select>
                   ) : (
                     <span
@@ -679,40 +686,7 @@ export default function AlbumDetail({ user }) {
                           : "MID"}
                     </span>
                   )}
-
-                  {isOwner && (
-                    <button
-                      onClick={() => setShowRatingHelp(v => !v)}
-                      style={{
-                        width: "18px",
-                        height: "18px",
-                        borderRadius: "50%",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                        fontWeight: "bold"
-                      }}
-                    >
-                      ?
-                    </button>
-                  )}
                 </div>
-
-                {showRatingHelp && (
-                  <div
-                    style={{
-                      maxWidth: "320px",
-                      padding: "8px",
-                      borderRadius: "6px",
-                      background: "rgba(255,255,255,0.15)",
-                      fontSize: "12px",
-                      textAlign: "left"
-                    }}
-                  >
-                    Feedback on this album will be used to improve your scoring algorithms,
-                    affecting that big number.
-                  </div>
-                )}
               </div>
               {/* GENRE COLUMN */}
               {genres.length > 0 && (
@@ -795,33 +769,35 @@ export default function AlbumDetail({ user }) {
         </div>
       </div>
 
-      {isMobile && (
-        <div style={{ padding: "0 16px" }}>
-          {album?.ratingId && (
-            <div style={{ marginBottom: "4px" }}>
-              {!isOwner ? (
-                <button
-                  onClick={async () => {
-                    if (reviewLikes.likedByMe) {
-                      const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
-                      setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
-                    } else {
-                      const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
-                      setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
-                    }
-                  }}
-                  style={{ background: "none", border: "none", cursor: "pointer", color: reviewLikes.likedByMe ? "#e0245e" : "white", fontSize: "24px" }}
-                >
-                  ❤︎ {reviewLikes.count}
-                </button>
-              ) : (
-                <span style={{ color: "white", fontSize: "22px" }}>❤︎ {reviewLikes.count}</span>
-              )}
-            </div>
-          )}
-          {reviewPanel}
-        </div>
-      )}
+      {
+        isMobile && (
+          <div style={{ padding: "0 16px" }}>
+            {album?.ratingId && (
+              <div style={{ marginBottom: "4px" }}>
+                {!isOwner ? (
+                  <button
+                    onClick={async () => {
+                      if (reviewLikes.likedByMe) {
+                        const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
+                        setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
+                      } else {
+                        const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
+                        setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
+                      }
+                    }}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: reviewLikes.likedByMe ? "#e0245e" : "white", fontSize: "24px" }}
+                  >
+                    ❤︎ {reviewLikes.count}
+                  </button>
+                ) : (
+                  <span style={{ color: "white", fontSize: "22px" }}>❤︎ {reviewLikes.count}</span>
+                )}
+              </div>
+            )}
+            {reviewPanel}
+          </div>
+        )
+      }
 
       {/* ===== TRACKLIST + SIDEBAR ===== */}
       <div style={{
@@ -951,7 +927,7 @@ export default function AlbumDetail({ user }) {
           </div>
 
           {/* COMMENTS */}
-          <div style={{ marginBottom: "24px", width: "100%", maxWidth: isMobile ? "calc(100vw - 32px)" : "100%", marginTop: "32px", marginLeft: isMobile ? "16px" : "0", marginRight: isMobile ? "16px" : "0" }}>
+          <div style={{ marginBottom: "24px", width: "100%", maxWidth: isMobile ? "calc(100vw - 32px)" : "100%", marginTop: "-5px", marginLeft: isMobile ? "16px" : "0", marginRight: isMobile ? "16px" : "0" }}>
             <h3 style={{ marginBottom: "8px", fontSize: isMobile ? "16px" : "18px" }}>Comments</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
               {comments.filter(c => !c.parent_id).map(c => (
@@ -1224,42 +1200,44 @@ export default function AlbumDetail({ user }) {
           </div>
         </div>
       </div>
-      {isSaving && (
-        <div style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.5)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 9999
-        }}>
+      {
+        isSaving && (
           <div style={{
-            background: "#1a1a1a",
-            border: "1px solid rgba(255,255,255,0.2)",
-            borderRadius: "8px",
-            padding: "32px",
-            textAlign: "center",
-            color: "white"
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999
           }}>
-            <div style={{ marginBottom: "16px", fontSize: "18px" }}>Saving your rating...</div>
             <div style={{
-              width: "40px",
-              height: "40px",
-              border: "3px solid rgba(255,255,255,0.2)",
-              borderTop: "3px solid white",
-              borderRadius: "50%",
-              animation: "spin 1s linear infinite",
-              margin: "0 auto"
-            }} />
-            <style>{`
+              background: "#1a1a1a",
+              border: "1px solid rgba(255,255,255,0.2)",
+              borderRadius: "8px",
+              padding: "32px",
+              textAlign: "center",
+              color: "white"
+            }}>
+              <div style={{ marginBottom: "16px", fontSize: "18px" }}>Saving your rating...</div>
+              <div style={{
+                width: "40px",
+                height: "40px",
+                border: "3px solid rgba(255,255,255,0.2)",
+                borderTop: "3px solid white",
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite",
+                margin: "0 auto"
+              }} />
+              <style>{`
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
       `}</style>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }
