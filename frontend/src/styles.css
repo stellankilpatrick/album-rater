@@ -422,6 +422,11 @@ html {
   cursor: pointer;
   color: white;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   font-size: 28px;
   padding: 0;
   line-height: 1;
@@ -565,9 +570,16 @@ html {
   border: none;
   cursor: pointer;
   color: white;
-  font-size: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 41px;
   padding: 0;
   line-height: 1;
+  position: relative;
+  top: -5px;
   transition: opacity 0.15s ease;
 }
 
