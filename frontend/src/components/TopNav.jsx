@@ -220,7 +220,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           onClick={() => setSearchExpanded(true)}
           aria-label="Search"
         >
-          🔍
+          ⌕
         </button>
       )}
       <div ref={dropdownRef} style={{ position: "relative" }}>
