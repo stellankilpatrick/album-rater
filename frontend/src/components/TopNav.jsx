@@ -14,9 +14,6 @@ function TopNav({ effectiveUsername, email, onLogout }) {
   const [pfp, setPfp] = useState(null);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
-  const [searchExpanded, setSearchExpanded] = useState(false);
-  const searchWrapRef = useRef(null);
-  const searchInputRef = useRef(null);
 
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -64,20 +61,6 @@ function TopNav({ effectiveUsername, email, onLogout }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  useEffect(() => {
-    const handler = (e) => {
-      if (searchWrapRef.current && !searchWrapRef.current.contains(e.target) && !query.trim()) {
-        setSearchExpanded(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [query]);
-
-  useEffect(() => {
-    if (searchExpanded) searchInputRef.current?.focus();
-  }, [searchExpanded]);
-
   const handleSignOut = () => {
     onLogout();
     navigate("/");
@@ -90,7 +73,6 @@ function TopNav({ effectiveUsername, email, onLogout }) {
     setQuery("");
     setDropdownResults(null);
     setMenuOpen(false);
-    setSearchExpanded(false);
   };
 
   useEffect(() => {
@@ -165,6 +147,8 @@ function TopNav({ effectiveUsername, email, onLogout }) {
 
   const links = (
     <>
+      <Link to={`/albums/users/${effectiveUsername}`} className={navClass(`/albums/users/${effectiveUsername}`)}>Album Rankings</Link>
+      <Link to={`/artists/users/${effectiveUsername}`} className={navClass(`/artists/users/${effectiveUsername}`)}>Artist Rankings</Link>
       <Link to="/albums" className={navClass("/albums")}>Albums</Link>
       <Link to="/artists" className={navClass("/artists")}>Artists</Link>
       <div style={{ position: "relative" }}
@@ -187,7 +171,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
         {pfp ? (
           <img src={pfp} alt="" className="nav-avatar-img" />
         ) : (
-          <DefaultAvatar size={44} />
+          <DefaultAvatar size={28} />
         )}
       </button>
 
@@ -212,27 +196,13 @@ function TopNav({ effectiveUsername, email, onLogout }) {
   );
 
   const SearchBox = (
-    <div ref={searchWrapRef} className={`nav-search-wrap${isMobile || searchExpanded ? " expanded" : ""}`}>
-      {!isMobile && (
-        <button
-          type="button"
-          className="nav-search-icon"
-          onClick={() => setSearchExpanded(true)}
-          aria-label="Search"
-        >
-          ⌕
-        </button>
-      )}
-      <div ref={dropdownRef} style={{ position: "relative" }}>
+    <div ref={dropdownRef} style={{ position: "relative" }}>
       <form onSubmit={handleSearch}>
         <input
-          ref={searchInputRef}
           type="text"
           placeholder="Search..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setSearchExpanded(true)}
-          className="nav-search-input"
           style={{ width: isMobile ? "140px" : undefined }}
         />
       </form>
@@ -274,7 +244,6 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           )}
         </div>
       )}
-      </div>
     </div>
   );
 
@@ -285,9 +254,9 @@ function TopNav({ effectiveUsername, email, onLogout }) {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "18px",
-          padding: "16px 18px",
-          minHeight: "58px"
+          gap: "16px",
+          padding: "10px 16px",
+          minHeight: "40px"
         }}
       >
         {isMobile ? (
@@ -374,8 +343,8 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           </>
         ) : (
           <>
-            <div className="nav-center-group">
             {profileMenu}
+            <div className="nav-center-group">
             {links}
             {SearchBox}
             <div ref={notifRef} style={{ position: "relative" }}>
@@ -389,9 +358,9 @@ function TopNav({ effectiveUsername, email, onLogout }) {
                 🕭
                 {unreadCount > 0 && (
                   <span style={{
-                    position: "absolute", top: "-5px", right: "-5px",
+                    position: "absolute", top: "-4px", right: "-4px",
                     backgroundColor: "red", borderRadius: "50%",
-                    width: "18px", height: "18px", fontSize: "11px",
+                    width: "16px", height: "16px", fontSize: "10px",
                     display: "flex", alignItems: "center", justifyContent: "center"
                   }}>
                     {unreadCount}
@@ -455,13 +424,13 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           zIndex: 99
         }}>
           {[
+            { to: `/albums/users/${effectiveUsername}`, label: "Album Rankings" },
+            { to: `/artists/users/${effectiveUsername}`, label: "Artist Rankings" },
             { to: "/albums", label: "Albums" },
             { to: "/artists", label: "Artists" },
             { to: "/albums/new", label: "Add Album" },
             { to: "/community", label: "Community" },
-            { to: `/users/${effectiveUsername}`, label: "My Page" },
-            { to: `/users/${effectiveUsername}/listen-list`, label: "Listen List" },
-            { to: "/community/recommendations", label: "Recommendations" },
+            { to: `/users/${effectiveUsername}`, label: "Profile" },
           ].map(({ to, label }) => (
             <Link
               key={to}

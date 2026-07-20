@@ -312,7 +312,7 @@ export default function ProfilePage({ user }) {
                 onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
                 onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
             >
-                <h2>Album Rankings</h2>
+                <h2>Top Albums</h2>
             </Link>
             {topAlbums.length > 0 && (
                 <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start", gap: "4px" }}>
@@ -345,7 +345,7 @@ export default function ProfilePage({ user }) {
                 onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
                 onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
             >
-                <h2>Artist Rankings</h2>
+                <h2>Top Artists</h2>
             </Link>
             {topArtists.length > 0 && (
                 <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start", gap: "4px" }}>
