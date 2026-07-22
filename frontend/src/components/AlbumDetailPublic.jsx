@@ -467,24 +467,16 @@ export default function AlbumDetailPublic({ user }) {
                 <option value="soundtrack" style={{ color: "black" }}>Soundtrack</option>
                 <option value="live album" style={{ color: "black" }}>Live Album</option>
               </select>
-            ) : (
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: "1rem",
-                  fontWeight: "normal",
-                  opacity: 0.9,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em"
-                }}
-              >
-                {album.type
-                  ? (album.type.toUpperCase() === "EP"
-                    ? "EP"
-                    : album.type.charAt(0).toUpperCase() + album.type.slice(1))
-                  : "Album"}
-              </p>
+              ) : (
+                !isMobile ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "1rem", textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.9 }}>
+                  <span style={{ color: "inherit" }}>{album.type ? (album.type.toUpperCase() === "EP" ? "EP" : album.type.charAt(0).toUpperCase() + album.type.slice(1)) : "Album"}</span>
+                  <span style={{ color: "inherit", margin: "0 6px" }}>•</span>
+                  <span style={{ color: "inherit", fontSize: "14px" }}>{new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</span>
+                </div>
+              ) : null
             )}
+
             <h1
               style={{
                 margin: isEditing ? 0 : "0 0 -8px 0",
@@ -502,10 +494,10 @@ export default function AlbumDetailPublic({ user }) {
                   style={{ fontStyle: "italic", padding: "4px 8px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.12)", color: "white", width: "min(320px, 100%)", boxSizing: "border-box" }}
                 />
               ) : (
-                <i>{album.title}</i>
+                <span style={{ fontStyle: "normal" }}>{album.title}</span>
               )}
             </h1>
-            <h2 style={{ margin: isEditing ? 0 : "0 0 -4px 0", textAlign: isMobile ? "center" : undefined, lineHeight: 1.2 }}>
+            <h2 style={{ margin: isEditing ? 0 : "0 0 -4px 0", textAlign: isMobile ? "center" : undefined, lineHeight: 1.2, fontWeight: "normal", fontSize: isMobile ? "14px" : "17px" }}>
               {isEditing ? (
                 <input
                   value={editArtist}
@@ -515,9 +507,9 @@ export default function AlbumDetailPublic({ user }) {
                   style={{ padding: "4px 8px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.12)", color: "white", width: "min(300px, 100%)", boxSizing: "border-box" }}
                 />
               ) : (
-                album.artistIds?.map((id, i) => (
-                  <span key={id}>
-                    <Link to={`/artists/${id}`} style={{ color: "white" }}>
+                  album.artistIds?.map((id, i) => (
+                  <span key={id} style={{ fontWeight: "normal" }}>
+                    <Link to={`/artists/${id}`} style={{ color: "white", fontWeight: "normal" }}>
                       {album.artist?.split(' & ')[i]}
                     </Link>
                     {i < album.artistIds.length - 1 && ", "}
@@ -525,22 +517,17 @@ export default function AlbumDetailPublic({ user }) {
                 ))
               )}
             </h2>
-
-            <h4 style={{ margin: 0, lineHeight: 1.3 }}>
-              {isEditing ? (
-                <input
-                  type="date"
-                  value={editReleaseDate}
-                  onChange={e => setEditReleaseDate(e.target.value)}
-                  onBlur={saveAlbumReleaseDate}
-                  style={{ marginLeft: "6px", padding: "4px 8px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.12)", color: "white", boxSizing: "border-box" }}
-                />
-              ) : (
-                new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
-                  "en-US", { year: "numeric", month: "short", day: "numeric" }
-                )
-              )}
-            </h4>
+            {isMobile && (
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", opacity: 0.85, marginTop: "2px", justifyContent: "center" }}>
+                <div style={{ fontSize: "0.90rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "inherit" }}>
+                  {album.type ? (album.type.toUpperCase() === "EP" ? "EP" : album.type.charAt(0).toUpperCase() + album.type.slice(1)) : "Album"}
+                </div>
+                <span style={{ color: "inherit", fontSize: "0.95rem" }}>•</span>
+                <div style={{ fontSize: "0.90rem", color: "inherit" }}>
+                  {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                </div>
+              </div>
+            )}
 
             {isEditing && (
               <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "16px", cursor: "pointer", marginTop: "12px" }}>
@@ -676,13 +663,13 @@ export default function AlbumDetailPublic({ user }) {
                 <>
                   <button
                     onClick={handleSaveChanges}
-                    style={{ backgroundColor: "green", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", padding: "6px 10px", fontWeight: 600 }}
+                    style={{ backgroundColor: "green", color: "white", border: "none", borderRadius: "12px", cursor: "pointer", fontWeight: 600 }}
                   >
                     Save changes
                   </button>
                   <button
                     onClick={handleCancelChanges}
-                    style={{ backgroundColor: "#666", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", padding: "6px 10px", fontWeight: 600 }}
+                    style={{ backgroundColor: "#666", color: "white", border: "none", borderRadius: "12px", cursor: "pointer", fontWeight: 600 }}
                   >
                     Cancel changes
                   </button>
@@ -690,7 +677,7 @@ export default function AlbumDetailPublic({ user }) {
               ) : (
                 <button
                   onClick={handleStartEditing}
-                  style={{ borderRadius: "3px", border: "None", cursor: "pointer" }}
+                  style={{ borderRadius: "12px", border: "None", cursor: "pointer" }}
                 >
                   Edit album
                 </button>
@@ -699,7 +686,7 @@ export default function AlbumDetailPublic({ user }) {
               {user && !isEditing && (
                 <button
                   onClick={handleRateClick}
-                  style={{ backgroundColor: "#1db954", color: "white", borderRadius: "5px", border: "none", fontWeight: "bold", cursor: "pointer" }}
+                  style={{ backgroundColor: "#1db954", color: "white", borderRadius: "12px", border: "none", fontWeight: "bold", cursor: "pointer" }}
                 >
                   Rate album
                 </button>
@@ -710,7 +697,7 @@ export default function AlbumDetailPublic({ user }) {
                     api.post(`/users/${effectiveUsername}/listen-list/${album.id}`);
                     e.target.textContent = "Added to Listen List!";
                   }}
-                  style={{ background: "#fbf0c5", borderRadius: "4px", border: "None" }}
+                  style={{ background: "#fbf0c5", borderRadius: "12px", border: "none" }}
                 >
                   Add to Listen List
                 </button>

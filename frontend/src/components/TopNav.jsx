@@ -180,7 +180,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           <div className="nav-profile-name">{effectiveUsername}</div>
           <div className="nav-profile-email">{email}</div>
           <div className="nav-dropdown-sep" />
-          <Link to={`/users/${effectiveUsername}`} className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>My Page</Link>
+          <Link to={`/users/${effectiveUsername}`} className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>My Account</Link>
           <Link to={`/users/${effectiveUsername}/listen-list`} className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>Listen List</Link>
           <Link to="/community/recommendations" className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>Recommendations</Link>
           <div className="nav-dropdown-sep" />

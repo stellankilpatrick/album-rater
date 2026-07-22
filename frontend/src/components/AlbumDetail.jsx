@@ -532,23 +532,24 @@ export default function AlbumDetail({ user }) {
                 }}
               >
 
-                {/* ALBUM TYPE (desktop) */}
-                {!isMobile && (
-                  <div
-                    style={{
-                      fontSize: "1.05rem",
-                      opacity: 0.85,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.08em"
-                    }}
-                  >
-                    {album.type
-                      ? (album.type.toUpperCase() === "EP"
-                        ? "EP"
-                        : album.type.charAt(0).toUpperCase() + album.type.slice(1))
-                      : "Album"}
-                  </div>
-                )}
+                {/* ALBUM TYPE + DATE (desktop) - shown above title */}
+                    {!isMobile && (
+                      <div
+                        style={{
+                          fontSize: "1.0rem",
+                          opacity: 0.85,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.08em",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px"
+                        }}
+                      >
+                        <span>{album.type ? (album.type.toUpperCase() === "EP" ? "EP" : album.type.charAt(0).toUpperCase() + album.type.slice(1)) : "Album"}</span>
+                        <span style={{ margin: "0 6px" }}>•</span>
+                        <span style={{ fontSize: "1.0rem", letterSpacing: "0.08em" }}>{new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</span>
+                      </div>
+                    )}
 
                 {/* ALBUM TITLE */}
                 <h1
@@ -578,38 +579,17 @@ export default function AlbumDetail({ user }) {
                       {i < album.artistIds.length - 1 && ", "}
                     </span>
                   ))}
-                  {" • "}
-                  {!isMobile && (
-                    <span>
-                      {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        }
-                      )}
-                    </span>
-                  )}
                 </h2>
 
-                {/* Type + Date row on mobile under artist */}
+                {/* Mobile: type + short date under artist */}
                 {isMobile && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px", opacity: 0.85, marginTop: "-5px", justifyContent: "flex-start" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", opacity: 0.85, marginTop: "2px", justifyContent: "flex-start" }}>
                     <div style={{ fontSize: "0.90rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "white" }}>
-                      {album.type
-                        ? (album.type.toUpperCase() === "EP"
-                          ? "EP"
-                          : album.type.charAt(0).toUpperCase() + album.type.slice(1))
-                        : "Album"}
+                      {album.type ? (album.type.toUpperCase() === "EP" ? "EP" : album.type.charAt(0).toUpperCase() + album.type.slice(1)) : "Album"}
                     </div>
                     <span style={{ color: "white", fontSize: "0.95rem" }}>•</span>
                     <div style={{ fontSize: "0.90rem", color: "white" }}>
-                      {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric"
-                      })}
+                      {new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                     </div>
                   </div>
                 )}
@@ -621,11 +601,12 @@ export default function AlbumDetail({ user }) {
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "flex-end",
-                  alignItems: "flex-start",
-                  textAlign: "left",
+                  alignItems: isMobile ? "flex-start" : "center",
+                  textAlign: isMobile ? "left" : "center",
                   flexShrink: 0,
                   height: "100%",
-                  gap: "6px"
+                  gap: "6px",
+                  minWidth: isMobile ? undefined : "120px"
                 }}
               >
                 {ranks.overall?.rank != null && (
@@ -794,7 +775,7 @@ export default function AlbumDetail({ user }) {
                     flexDirection: isMobile ? "row" : "column",
                     flexWrap: isMobile ? "wrap" : "nowrap",
                     justifyContent: isMobile ? "flex-start" : "flex-end",
-                    alignItems: "center",
+                    alignItems: "flex-start",
                     gap: "6px",
                     flexShrink: 0,
                     height: "100%",
@@ -808,7 +789,7 @@ export default function AlbumDetail({ user }) {
                         background: "rgba(255,255,255,0.18)",
                         borderRadius: "999px",
                         padding: "4px 10px",
-                        fontSize: isMobile ? "0.7rem" : "0.9rem",
+                        fontSize: isMobile ? "0.7rem" : "0.8rem",
                         whiteSpace: "nowrap",
                         display: "inline-block"
                       }}
