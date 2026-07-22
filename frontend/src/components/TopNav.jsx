@@ -167,16 +167,17 @@ function TopNav({ effectiveUsername, email, onLogout }) {
         className="nav-avatar-btn"
         onClick={() => setProfileMenuOpen(o => !o)}
         aria-label="Profile menu"
+        style={{ padding: 0, background: 'transparent', border: 'none' }}
       >
         {pfp ? (
-          <img src={pfp} alt="" className="nav-avatar-img" />
+          <img src={pfp} alt="" className="nav-avatar-img" style={{ width: 34, height: 34, borderRadius: '50%' }} />
         ) : (
-          <DefaultAvatar size={28} />
+          <DefaultAvatar size={34} />
         )}
       </button>
 
       {profileMenuOpen && (
-        <div className="nav-profile-dropdown">
+        <div className="nav-profile-dropdown" style={{ position: "absolute", top: "100%", right: 0, transform: "translateX(-190px)", backgroundColor: "#111", border: "1px solid #333", borderRadius: "6px", zIndex: 300, minWidth: "220px", padding: "8px 0" }}>
           <div className="nav-profile-name">{effectiveUsername}</div>
           <div className="nav-profile-email">{email}</div>
           <div className="nav-dropdown-sep" />
@@ -343,8 +344,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           </>
         ) : (
           <>
-            {profileMenu}
-            <div className="nav-center-group">
+            <div className="nav-center-group" style={{ display: "flex", alignItems: "center", gap: "16px", flex: 1 }}>
             {links}
             {SearchBox}
             <div ref={notifRef} style={{ position: "relative" }}>
@@ -406,6 +406,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
               )}
             </div>
             </div>
+            <div style={{ marginLeft: "auto" }}>{profileMenu}</div>
           </>
         )}
       </div>
