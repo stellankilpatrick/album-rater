@@ -767,90 +767,11 @@ export default function AlbumDetail({ user }) {
                   )}
                 </div>
               </div>
-              {/* GENRE COLUMN */}
-              {genres.length > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: isMobile ? "row" : "column",
-                    flexWrap: isMobile ? "wrap" : "nowrap",
-                    justifyContent: isMobile ? "flex-start" : "flex-end",
-                    alignItems: "flex-start",
-                    gap: "6px",
-                    flexShrink: 0,
-                    height: "100%",
-                    marginTop: isMobile ? "-12px" : "0px"
-                  }}
-                >
-                  {genres.map(g => (
-                    <span
-                      key={g.id}
-                      style={{
-                        background: "rgba(255,255,255,0.18)",
-                        borderRadius: "999px",
-                        padding: "4px 10px",
-                        fontSize: isMobile ? "0.7rem" : "0.8rem",
-                        whiteSpace: "nowrap",
-                        display: "inline-block"
-                      }}
-                    >
-                      {g.name}
-                    </span>
-                  ))}
-                </div>
-              )}
+              {/* genres moved below header */}
             </div>
           </div>
         </div>
-        <div style={{ position: "absolute", bottom: "12px", right: "12px", zIndex: 4, display: "flex", gap: "6px" }}>
-          {album?.ratingId && (
-            <div style={{ marginBottom: "8px" }}>
-              {!isOwner ? (
-                <button
-                  onClick={async () => {
-                    if (reviewLikes.likedByMe) {
-                      const res = await api.delete("/likes", {
-                        data: {
-                          targetType: "album_review",
-                          targetId: reviewLikes.ratingId
-                        }
-                      });
-                      setReviewLikes(prev => ({
-                        ...prev,
-                        count: res.data.count,
-                        likedByMe: false
-                      }));
-                    } else {
-                      const res = await api.post("/likes", {
-                        targetType: "album_review",
-                        targetId: reviewLikes.ratingId
-                      });
-                      setReviewLikes(prev => ({
-                        ...prev,
-                        count: res.data.count,
-                        likedByMe: true
-                      }));
-                    }
-                  }}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: reviewLikes.likedByMe ? "#e0245e" : "white",
-                    fontSize: "22px"
-                  }}
-                >
-                  ❤︎ {reviewLikes.count}
-                </button>
-              ) : (
-                <span style={{ color: "white", fontSize: "22px" }}>
-                  ❤︎ {reviewLikes.count}
-                </span>
-              )}
-            </div>
-          )}
-          {/* adjacent album buttons removed */}
-        </div>
+        {/* header corner controls removed; heart + genres moved below header */}
       </div>
 
       {/* ===== TRACKLIST + SIDEBAR ===== */}
@@ -878,9 +799,71 @@ export default function AlbumDetail({ user }) {
             style={{
               width: "100%",
               maxWidth: isMobile ? "95%" : "100%",
-              marginBottom: "24px"
+              marginBottom: "24px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px"
             }}
           >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+              <div>
+                {album?.ratingId && (
+                  <div style={{ marginBottom: "0" }}>
+                    {!isOwner ? (
+                      <button
+                        onClick={async () => {
+                          if (reviewLikes.likedByMe) {
+                            const res = await api.delete("/likes", {
+                              data: {
+                                targetType: "album_review",
+                                targetId: reviewLikes.ratingId
+                              }
+                            });
+                            setReviewLikes(prev => ({
+                              ...prev,
+                              count: res.data.count,
+                              likedByMe: false
+                            }));
+                          } else {
+                            const res = await api.post("/likes", {
+                              targetType: "album_review",
+                              targetId: reviewLikes.ratingId
+                            });
+                            setReviewLikes(prev => ({
+                              ...prev,
+                              count: res.data.count,
+                              likedByMe: true
+                            }));
+                          }
+                        }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: reviewLikes.likedByMe ? "#e0245e" : "white",
+                          fontSize: "20px"
+                        }}
+                      >
+                        ❤︎ {reviewLikes.count}
+                      </button>
+                    ) : (
+                      <span style={{ color: "white", fontSize: "20px" }}>
+                        ❤︎ {reviewLikes.count}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                {genres.map(g => (
+                  <span key={g.id} style={{ background: "rgba(255,255,255,0.18)", borderRadius: "999px", padding: "6px 10px", fontSize: "0.85rem", whiteSpace: "nowrap" }}>
+                    {g.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+
             {reviewPanel}
           </div>
           {/* Tracklist */}
