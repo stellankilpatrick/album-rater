@@ -849,26 +849,7 @@ export default function AlbumDetail({ user }) {
               )}
             </div>
           )}
-          {!isMobile && (
-            <>
-              <button
-                className="album-nav-btn"
-                disabled={!adjacent.higherAlbumId}
-                onClick={() => goToAdjacentAlbum(adjacent.higherAlbumId)}
-                title="Next higher rated album"
-              >
-                ▲
-              </button>
-              <button
-                className="album-nav-btn"
-                disabled={!adjacent.lowerAlbumId}
-                onClick={() => goToAdjacentAlbum(adjacent.lowerAlbumId)}
-                title="Next lower rated album"
-              >
-                ▼
-              </button>
-            </>
-          )}
+          {/* adjacent album buttons removed */}
         </div>
       </div>
 
