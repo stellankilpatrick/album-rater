@@ -162,12 +162,12 @@ function TopNav({ effectiveUsername, email, onLogout }) {
   );
 
   const profileMenu = (
-    <div ref={profileMenuRef} style={{ position: "relative" }}>
+    <div ref={profileMenuRef} style={{ position: "relative" }} onMouseEnter={() => setProfileMenuOpen(true)} onMouseLeave={() => setProfileMenuOpen(false)}>
       <button
         className="nav-avatar-btn"
-        onClick={() => setProfileMenuOpen(o => !o)}
-        aria-label="Profile menu"
-        style={{ padding: 0, background: 'transparent', border: 'none' }}
+        onClick={() => navigate(`/users/${effectiveUsername}`)}
+        aria-label="Profile page"
+        style={{ padding: 0, background: 'transparent', border: 'none', cursor: 'pointer' }}
       >
         {pfp ? (
           <img src={pfp} alt="" className="nav-avatar-img" style={{ width: 34, height: 34, borderRadius: '50%' }} />
@@ -177,7 +177,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
       </button>
 
       {profileMenuOpen && (
-        <div className="nav-profile-dropdown" style={{ position: "absolute", top: "100%", right: 0, transform: "translateX(-190px)", backgroundColor: "#111", border: "1px solid #333", borderRadius: "6px", zIndex: 300, minWidth: "220px", padding: "8px 0" }}>
+        <div className="nav-profile-dropdown" style={{ position: "absolute", top: "100%", right: 0, backgroundColor: "#111", border: "1px solid #333", borderRadius: "6px", zIndex: 300, minWidth: "220px", padding: "8px 0" }}>
           <div className="nav-profile-name">{effectiveUsername}</div>
           <div className="nav-profile-email">{email}</div>
           <div className="nav-dropdown-sep" />

@@ -420,6 +420,7 @@ export default function AlbumDetail({ user }) {
             {album?.ratingId && (
               <button
                 onClick={async () => {
+                  if (isOwner) return;
                   if (reviewLikes.likedByMe) {
                     const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
                     setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
@@ -434,11 +435,14 @@ export default function AlbumDetail({ user }) {
                   bottom: "8px",
                   background: "none",
                   border: "none",
-                  cursor: "pointer",
-                  color: reviewLikes.likedByMe ? "#e0245e" : "white",
+                  cursor: isOwner ? "default" : "pointer",
+                  color: reviewLikes.likedByMe ? "#e0245e" : (isOwner ? "rgba(255,255,255,0.5)" : "white"),
                   fontSize: "18px",
-                  padding: 0
+                  padding: 0,
+                  opacity: isOwner ? 0.9 : 1
                 }}
+                aria-disabled={isOwner}
+                title={isOwner ? "You can't like your own review" : undefined}
               >
                 ❤︎ {reviewLikes.count}
               </button>
@@ -487,6 +491,7 @@ export default function AlbumDetail({ user }) {
             {album?.ratingId && (
               <button
                 onClick={async () => {
+                  if (isOwner) return;
                   if (reviewLikes.likedByMe) {
                     const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
                     setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
@@ -501,11 +506,14 @@ export default function AlbumDetail({ user }) {
                   bottom: "8px",
                   background: "none",
                   border: "none",
-                  cursor: "pointer",
-                  color: reviewLikes.likedByMe ? "#e0245e" : "white",
+                  cursor: isOwner ? "default" : "pointer",
+                  color: reviewLikes.likedByMe ? "#e0245e" : (isOwner ? "rgba(255,255,255,0.5)" : "white"),
                   fontSize: "18px",
-                  padding: 0
+                  padding: 0,
+                  opacity: isOwner ? 0.9 : 1
                 }}
+                aria-disabled={isOwner}
+                title={isOwner ? "You can't like your own review" : undefined}
               >
                 ❤︎ {reviewLikes.count}
               </button>
