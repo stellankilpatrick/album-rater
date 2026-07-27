@@ -512,7 +512,7 @@ html {
 .nav-profile-dropdown {
   position: absolute;
   top: 100%;
-  left: 0;
+  right: 0;
   margin-top: 8px;
   background-color: #111;
   border: 1px solid #333;
