@@ -486,7 +486,7 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
 /**
  * Calculate and upsert album rating for a specific user
  */
-export async function updateAlbumRatingForUser(userId, albumId) {
+export async function updateAlbumRatingForUser(userId, albumId, bumpActivity = true) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -521,8 +521,8 @@ export async function updateAlbumRatingForUser(userId, albumId) {
           rating = EXCLUDED.rating,
           non_skips = EXCLUDED.non_skips,
           rated_songs = EXCLUDED.rated_songs,
-          updated_at = NOW()`,
-        [userId, albumId, totalRating, nonSkips, ratedSongs]
+          updated_at = CASE WHEN $6 THEN NOW() ELSE album_ratings.updated_at END`,
+        [userId, albumId, totalRating, nonSkips, ratedSongs, bumpActivity]
       );
     }
 
@@ -803,13 +803,13 @@ export async function getAdjacentAlbums(albumId, userId) {
   };
 }
 
-export async function updateAlbumReview(userId, albumId, review) {
+export async function updateAlbumReview(userId, albumId, review, bumpActivity = true) {
   if (review && review.length > 1000) throw new Error("Review exceeds 1000 character limit");
   const result = await pool.query(`
     INSERT INTO album_ratings (user_id, album_id, rating, non_skips, rated_songs, review, updated_at)
     VALUES ($1, $2, 0, 0, 0, $3, NOW())
     ON CONFLICT (user_id, album_id)
-    DO UPDATE SET review = EXCLUDED.review, updated_at = NOW()
+    DO UPDATE SET review = EXCLUDED.review, updated_at = CASE WHEN $4 THEN NOW() ELSE album_ratings.updated_at END
     RETURNING *
   `, [userId, albumId, review]);
   return result.rows[0];

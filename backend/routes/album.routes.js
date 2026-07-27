@@ -75,7 +75,7 @@ router.get("/:id", async (req, res) => {
 // ---------------------
 router.post("/:id/rate", requireAuth, async (req, res) => {
   try {
-    const { ratings } = req.body;
+    const { ratings, bumpActivity = true } = req.body;
     if (!Array.isArray(ratings)) return res.status(400).json({ error: "Invalid ratings" });
 
     const client = await pool.connect();
@@ -546,13 +546,13 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
           `INSERT INTO song_ratings (user_id, song_id, rating, updated_at)
           VALUES ($1, $2, $3, NOW())
           ON CONFLICT (user_id, song_id)
-          DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()`,
-          [req.user.id, r.songId, r.rating]
+          DO UPDATE SET rating = EXCLUDED.rating, updated_at = CASE WHEN $4 THEN NOW() ELSE song_ratings.updated_at END`,
+          [req.user.id, r.songId, r.rating, bumpActivity]
         );
       }
 
-      // update album_ratings table
-      await updateAlbumRatingForUser(req.user.id, Number(req.params.id));
+      // update album_ratings table (pass bumpActivity so silent saves don't bump timestamps)
+      await updateAlbumRatingForUser(req.user.id, Number(req.params.id), bumpActivity);
 
       await client.query("COMMIT");
     } catch (err) {
@@ -722,8 +722,8 @@ router.patch("/:id/review/users/:username", requireAuth, async (req, res) => {
     if (req.user.username !== req.params.username) {
       return res.status(403).json({ error: "Forbidden" });
     }
-    const { review } = req.body;
-    const result = await updateAlbumReview(req.user.id, req.params.id, review);
+    const { review, bumpActivity = true } = req.body;
+    const result = await updateAlbumReview(req.user.id, req.params.id, review, bumpActivity);
     res.json(result);
   } catch (err) {
     console.error(err);
