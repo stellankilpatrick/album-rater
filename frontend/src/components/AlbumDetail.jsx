@@ -389,33 +389,61 @@ export default function AlbumDetail({ user }) {
     >
       {isOwner ? (
         <>
-          <textarea
-            value={pendingReview}
-            onChange={e => handleReviewChange(e.target.value)}
-            onFocus={() => setReviewFocused(true)}
-            onBlur={() => setReviewFocused(false)}
-            placeholder="Write a review..."
-            maxLength={500}
-            style={{
-              background: isOwner
-                ? (isMobile ? "rgba(0,0,0,0.1)" : "rgba(0,0,0,0.2)")
-                : "transparent",
-              border: reviewFocused
-                ? "1px solid rgba(255,255,255,0.5)"
-                : "1px solid transparent",
-              borderRadius: "8px",
-              color: isMobile ? "#D3D3D3" : "white",
-              padding: "10px",
-              resize: "none",
-              width: "100%",
-              height: isMobile ? "75px" : "110px",
-              fontSize: isMobile ? "12px" : "14px",
-              lineHeight: "1.5",
-              boxSizing: "border-box",
-              outline: "none",
-              transition: "border 0.15s ease",
-            }}
-          />
+          <div style={{ position: "relative", width: "100%" }}>
+            <textarea
+              value={pendingReview}
+              onChange={e => handleReviewChange(e.target.value)}
+              onFocus={() => setReviewFocused(true)}
+              onBlur={() => setReviewFocused(false)}
+              placeholder="Write a review..."
+              maxLength={500}
+              style={{
+                background: isOwner
+                  ? (isMobile ? "rgba(0,0,0,0.1)" : "rgba(0,0,0,0.2)")
+                  : "transparent",
+                border: reviewFocused
+                  ? "1px solid rgba(255,255,255,0.5)"
+                  : "1px solid transparent",
+                borderRadius: "8px",
+                color: isMobile ? "#D3D3D3" : "white",
+                padding: "10px",
+                resize: "none",
+                width: "100%",
+                height: isMobile ? "75px" : "110px",
+                fontSize: isMobile ? "12px" : "14px",
+                lineHeight: "1.5",
+                boxSizing: "border-box",
+                outline: "none",
+                transition: "border 0.15s ease",
+              }}
+            />
+            {album?.ratingId && (
+              <button
+                onClick={async () => {
+                  if (reviewLikes.likedByMe) {
+                    const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
+                    setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
+                  } else {
+                    const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
+                    setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
+                  }
+                }}
+                style={{
+                  position: "absolute",
+                  right: "8px",
+                  bottom: "8px",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: reviewLikes.likedByMe ? "#e0245e" : "white",
+                  fontSize: "18px",
+                  padding: 0
+                }}
+              >
+                ❤︎ {reviewLikes.count}
+              </button>
+            )}
+          </div>
           {reviewFocused && (
             <span
               style={{
@@ -430,13 +458,14 @@ export default function AlbumDetail({ user }) {
             </span>
           )}
         </>
-      ) : (
+        ) : (
         album?.review?.trim() && (
           <div
             style={{
+              position: "relative",
               background: isOwner
                 ? (isMobile ? "rgba(0,0,0,0.1)" : "rgba(0,0,0,0.2)")
-                : "transparent",
+                : (isMobile ? "rgba(0,0,0,0.14)" : "rgba(0,0,0,0.26)"),
               border: "1px solid transparent",
               borderRadius: "8px",
               color: isMobile ? "#D3D3D3" : "white",
@@ -454,6 +483,32 @@ export default function AlbumDetail({ user }) {
               <span style={{ color: "#888", fontStyle: "italic" }}>
                 No review.
               </span>
+            )}
+            {album?.ratingId && (
+              <button
+                onClick={async () => {
+                  if (reviewLikes.likedByMe) {
+                    const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
+                    setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
+                  } else {
+                    const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
+                    setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
+                  }
+                }}
+                style={{
+                  position: "absolute",
+                  right: "8px",
+                  bottom: "8px",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: reviewLikes.likedByMe ? "#e0245e" : "white",
+                  fontSize: "18px",
+                  padding: 0
+                }}
+              >
+                ❤︎ {reviewLikes.count}
+              </button>
             )}
           </div>
         )
@@ -494,7 +549,8 @@ export default function AlbumDetail({ user }) {
             <div style={{
               position: "relative", width: isMobile ? "200px" : "270px",
               height: isMobile ? "200px" : "270px", overflow: "hidden",
-              borderRadius: "12px", flexShrink: 0, margin: "0px 0px 0px 0px"
+              borderRadius: "12px", flexShrink: 0, margin: "0px 0px 0px 0px",
+              boxShadow: isMobile ? "0 8px 20px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.35)" : "0 20px 60px rgba(0,0,0,0.75), 0 6px 20px rgba(0,0,0,0.5), 0 0 0 4px rgba(0,0,0,0.08)"
             }}>
               <img src={album.coverArt} alt="" style={{
                 position: "absolute", inset: 0, width: "100%", height: "100%",
@@ -526,30 +582,30 @@ export default function AlbumDetail({ user }) {
                   flexDirection: "column",
                   justifyContent: isMobile ? "flex-start" : "flex-end",
                   gap: "8px",
-                  flex: 1,
+                  flex: isMobile ? 1 : "0 1 auto",
                   minWidth: 0,
                   height: "100%"
                 }}
               >
 
                 {/* ALBUM TYPE + DATE (desktop) - shown above title */}
-                    {!isMobile && (
-                      <div
-                        style={{
-                          fontSize: "1.0rem",
-                          opacity: 0.85,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.08em",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px"
-                        }}
-                      >
-                        <span>{album.type ? (album.type.toUpperCase() === "EP" ? "EP" : album.type.charAt(0).toUpperCase() + album.type.slice(1)) : "Album"}</span>
-                        <span style={{ margin: "0 6px" }}>•</span>
-                        <span style={{ fontSize: "1.0rem", letterSpacing: "0.08em" }}>{new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</span>
-                      </div>
-                    )}
+                {!isMobile && (
+                  <div
+                    style={{
+                      fontSize: "0.9rem",
+                      opacity: 0.85,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px"
+                    }}
+                  >
+                    <span>{album.type ? (album.type.toUpperCase() === "EP" ? "EP" : album.type.charAt(0).toUpperCase() + album.type.slice(1)) : "Album"}</span>
+                    <span style={{ margin: "0 6px" }}>•</span>
+                    <span style={{ fontSize: "0.9rem", letterSpacing: "0.08em" }}>{new Date(`${album.releaseDate.split("T")[0]}T12:00:00`).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</span>
+                  </div>
+                )}
 
                 {/* ALBUM TITLE */}
                 <h1
@@ -583,7 +639,7 @@ export default function AlbumDetail({ user }) {
 
                 {/* Mobile: type + short date under artist */}
                 {isMobile && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px", opacity: 0.85, marginTop: "2px", justifyContent: "flex-start" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", opacity: 0.85, marginTop: "2px", marginBottom: "-45px", justifyContent: "flex-start" }}>
                     <div style={{ fontSize: "0.90rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "white" }}>
                       {album.type ? (album.type.toUpperCase() === "EP" ? "EP" : album.type.charAt(0).toUpperCase() + album.type.slice(1)) : "Album"}
                     </div>
@@ -595,183 +651,33 @@ export default function AlbumDetail({ user }) {
                 )}
               </div>
 
+              {/* Spacer between title and score to push score to far right */}
+              <div style={{ flex: isMobile ? "0 0 0px" : "1 1 0" }} />
+
               {/* RIGHT COLUMN */}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "flex-end",
-                  alignItems: isMobile ? "flex-start" : "center",
-                  textAlign: isMobile ? "left" : "center",
-                  flexShrink: 0,
-                  height: "100%",
-                  gap: "6px",
-                  minWidth: isMobile ? undefined : "120px"
-                }}
-              >
-                {ranks.overall?.rank != null && (
-                  <div style={{ fontSize: isMobile ? "0.95rem" : "17px", opacity: 0.85, marginTop: isMobile ? "-25px" : "0px" }}>
-                    <span style={{ fontWeight: "bold", fontSize: isMobile ? "1.1rem" : "26px" }}>
-                      {ordinal(ranks.overall.rank)}
-                    </span>{" "}
-                    of {ranks.overall.total} albums
-                  </div>
-                )}
-                {album.score10 != null && (
-                  <>
-                    <div
-                      style={{
-                        fontSize: isMobile ? "3.6rem" : "5rem",
-                        fontWeight: 700,
-                        lineHeight: 0.9
-                      }}
-                    >
-                      {album.score10.toFixed(1)}
+              <div style={{ display: "flex", flexDirection: isMobile ? "row" : "row", alignItems: "flex-start", gap: "18px", flex: "0 0 auto" }}>
+                {/* Score column (score + overall rank) */}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
+                  {album.score10 != null && (
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
+                      <div style={{ fontSize: isMobile ? "3.6rem" : "6rem", fontWeight: 600, lineHeight: 0.9 }}>
+                        {album.score10.toFixed(1)}
+                      </div>
+                      <div style={{ fontSize: isMobile ? "0.9rem" : "1rem", opacity: 0.85 }}>
+                        out of 10
+                      </div>
                     </div>
-                  </>
-                )}
-
-                {!isMobile ? (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      fontSize: "15px"
-                    }}
-                  >
-                    {album.pfp && (
-                      <img
-                        src={album.pfp}
-                        alt=""
-                        style={{
-                          width: "20px",
-                          height: "20px",
-                          borderRadius: "50%"
-                        }}
-                      />
-                    )}
-
-                    {effectiveUsername === user?.username
-                      ? `My likes: ${goodSongs} of ${ratedSongs} tracks`
-                      : (
-                        <>
-                          <Link
-                            to={`/users/${effectiveUsername}`}
-                            style={{ color: "white" }}
-                          >
-                            {effectiveUsername}'s likes:
-                          </Link>
-                          {` ${goodSongs} of ${ratedSongs} tracks`}
-                        </>
-                      )}
-                  </div>
-                ) : null}
-
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    fontSize: "14px",
-                    justifyContent: isMobile ? "flex-start" : "center"
-                  }}
-                >
-                  <span>
-                    {isMobile
-                      ? "This album is"
-                      : (isOwner
-                        ? "This album is"
-                        : `${effectiveUsername} thinks this album is`)}
-                  </span>
-
-                  {isOwner ? (
-                    <select
-                      value={
-                        pendingLiked === 1
-                          ? "GOOD"
-                          : pendingLiked === 0
-                            ? "MID"
-                            : pendingLiked === -1
-                              ? "BAD"
-                              : "SELECT"
-                      }
-                      onChange={e => {
-                        const value = e.target.value;
-                        handleOpinionChange(
-                          value === "GOOD"
-                            ? 1
-                            : value === "MID"
-                              ? 0
-                              : value === "BAD"
-                                ? -1
-                                : null
-                        );
-                      }}
-                      onAnimationEnd={() => setFlashInvalid(false)}
-                      className={flashInvalid ? "opinion-select-flash" : undefined}
-                      style={{
-                        color: "white",
-                        background:
-                          pendingLiked === 1
-                            ? "#1db954"
-                            : pendingLiked === 0
-                              ? "#facc15"
-                              : pendingLiked === -1
-                                ? "#e74c3c"
-                                : "#999",
-                        border: "none",
-                        borderRadius: "4px",
-                        padding: "2px 6px",
-                        fontWeight: "bold",
-                        cursor: "pointer"
-                      }}
-                    >
-                      <option value="SELECT" disabled style={{ background: "#999", color: "white" }}>
-                        Select
-                      </option>
-                      <option value="GOOD" style={{ background: "#1db954", color: "white" }}>
-                        GOOD
-                      </option>
-                      <option value="MID" style={{ background: "#facc15", color: "black" }}>
-                        MID
-                      </option>
-                      <option value="BAD" style={{ background: "#e74c3c", color: "white" }}>
-                        BAD
-                      </option>
-                    </select>
-                  ) : (
-                    <span
-                      style={{
-                        background:
-                          liked === 1
-                            ? "#1db954"
-                            : liked === 0
-                              ? "#facc15"
-                              : liked === -1
-                                ? "#e74c3c"
-                                : "#999",
-                        borderRadius: "4px",
-                        padding: "2px 8px",
-                        fontWeight: "bold"
-                      }}
-                    >
-                      {liked === 1
-                        ? "GOOD"
-                        : liked === 0
-                          ? "MID"
-                          : liked === -1
-                            ? "BAD"
-                            : "No opinion yet"}
-                    </span>
+                  )}
+                  {ranks.overall?.rank != null && (
+                    <div style={{ fontSize: isMobile ? "0.95rem" : "17px", opacity: 0.85, marginTop: "6px" }}>
+                      <span style={{ fontWeight: "bold", fontSize: isMobile ? "1.1rem" : "20px" }}>{ordinal(ranks.overall.rank)}</span>{" "}of {ranks.overall.total} albums
+                    </div>
                   )}
                 </div>
               </div>
-              {/* genres moved below header */}
             </div>
           </div>
         </div>
-        {/* header corner controls removed; heart + genres moved below header */}
       </div>
 
       {/* ===== TRACKLIST + SIDEBAR ===== */}
@@ -806,58 +712,67 @@ export default function AlbumDetail({ user }) {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
-              <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1, justifyContent: "center" }}>
                 {album?.ratingId && (
-                  <div style={{ marginBottom: "0" }}>
-                    {!isOwner ? (
+                  <div style={{ marginBottom: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+                    {/* Opinion buttons (GOOD / MID / BAD) */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginLeft: "8px" }}>
                       <button
-                        onClick={async () => {
-                          if (reviewLikes.likedByMe) {
-                            const res = await api.delete("/likes", {
-                              data: {
-                                targetType: "album_review",
-                                targetId: reviewLikes.ratingId
-                              }
-                            });
-                            setReviewLikes(prev => ({
-                              ...prev,
-                              count: res.data.count,
-                              likedByMe: false
-                            }));
-                          } else {
-                            const res = await api.post("/likes", {
-                              targetType: "album_review",
-                              targetId: reviewLikes.ratingId
-                            });
-                            setReviewLikes(prev => ({
-                              ...prev,
-                              count: res.data.count,
-                              likedByMe: true
-                            }));
-                          }
-                        }}
+                        onClick={() => { if (isOwner) handleOpinionChange(1); }}
+                        disabled={!isOwner}
                         style={{
-                          background: "none",
+                          padding: "6px 10px",
+                          borderRadius: "6px",
                           border: "none",
-                          cursor: "pointer",
-                          color: reviewLikes.likedByMe ? "#e0245e" : "white",
-                          fontSize: "20px"
+                          cursor: isOwner ? "pointer" : "default",
+                          fontWeight: "bold",
+                          background: pendingLiked === 1 ? "#1db954" : "transparent",
+                          color: pendingLiked === 1 ? "white" : (isOwner ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.36)"),
+                          opacity: isOwner ? 1 : 0.7
                         }}
                       >
-                        ❤︎ {reviewLikes.count}
+                        GOOD
                       </button>
-                    ) : (
-                      <span style={{ color: "white", fontSize: "20px" }}>
-                        ❤︎ {reviewLikes.count}
-                      </span>
-                    )}
+                      <button
+                        onClick={() => { if (isOwner) handleOpinionChange(0); }}
+                        disabled={!isOwner}
+                        style={{
+                          padding: "6px 10px",
+                          borderRadius: "6px",
+                          border: "none",
+                          cursor: isOwner ? "pointer" : "default",
+                          fontWeight: "bold",
+                          background: pendingLiked === 0 ? "#facc15" : "transparent",
+                          color: pendingLiked === 0 ? "black" : (isOwner ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.36)"),
+                          opacity: isOwner ? 1 : 0.7
+                        }}
+                      >
+                        MID
+                      </button>
+                      <button
+                        onClick={() => { if (isOwner) handleOpinionChange(-1); }}
+                        disabled={!isOwner}
+                        style={{
+                          padding: "6px 10px",
+                          borderRadius: "6px",
+                          border: "none",
+                          cursor: isOwner ? "pointer" : "default",
+                          fontWeight: "bold",
+                          background: pendingLiked === -1 ? "#e74c3c" : "transparent",
+                          color: pendingLiked === -1 ? "white" : (isOwner ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.36)"),
+                          opacity: isOwner ? 1 : 0.7
+                        }}
+                      >
+                        BAD
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
 
               <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                 {genres.map(g => (
-                  <span key={g.id} style={{ background: "rgba(255,255,255,0.18)", borderRadius: "999px", padding: "6px 10px", fontSize: "0.85rem", whiteSpace: "nowrap" }}>
+                  <span key={g.id} style={{ background: "rgba(255,255,255,0.18)", borderRadius: "999px", padding: "6px 10px", fontSize: "0.75rem", whiteSpace: "nowrap" }}>
                     {g.name}
                   </span>
                 ))}
@@ -914,7 +829,7 @@ export default function AlbumDetail({ user }) {
                               <option value={1} style={{ color: ratingOptionStyles[1].color, backgroundColor: ratingOptionStyles[1].background }}>+ Play</option>
                               <option value={2} style={{ color: ratingOptionStyles[2].color, backgroundColor: ratingOptionStyles[2].background }}>++ Special</option>
                             </select>
-                          ) : (
+                            ) : (
                             <span style={{
                               color: song.localRating == null ? "#c8c8c8" : selectedStyle.color,
                               background: song.localRating == null ? "#4b4b4b" : selectedStyle.background,
@@ -922,6 +837,8 @@ export default function AlbumDetail({ user }) {
                               padding: "2px 4px",
                               fontSize: "12px",
                               display: "inline-block",
+                              width: "85px",
+                              textAlign: "center",
                               margin: 0
                             }}>
                               {song.localRating == null ? "Interlude" : selectedStyle.label}
@@ -958,14 +875,6 @@ export default function AlbumDetail({ user }) {
               </div>
             ) : (
               <table style={{ borderCollapse: "collapse", width: "auto" }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: "left", paddingRight: "12px", width: "30px", fontSize: isMobile ? "12px" : "14px", fontWeight: 400 }}>#</th>
-                    <th style={{ textAlign: "left", paddingRight: "12px", minWidth: isMobile ? "250px" : undefined, fontSize: isMobile ? "12px" : "14px", fontWeight: 400 }}>Title</th>
-                    <th style={{ textAlign: "left", paddingRight: "24px", fontSize: isMobile ? "12px" : "14px", fontWeight: 400 }}>Rating</th>
-                    <th style={{ textAlign: "left", fontSize: isMobile ? "12px" : "14px", fontWeight: 400 }}>Comment</th>
-                  </tr>
-                </thead>
                 <tbody>
                   {pendingSongs.map(song => {
                     const selectedStyle = getRatingOptionStyle(song.localRating);
@@ -1006,7 +915,7 @@ export default function AlbumDetail({ user }) {
                               color: song.localRating == null ? "#c8c8c8" : selectedStyle.color,
                               background: song.localRating == null ? "#4b4b4b" : selectedStyle.background,
                               borderRadius: "4px",
-                              width: "64px",
+                              width: "85px",
                               padding: "2px 4px",
                               fontSize: "12px",
                               display: "inline-block",
@@ -1247,18 +1156,19 @@ export default function AlbumDetail({ user }) {
 
         {/* RIGHT: Ranks */}
         <div style={{ flex: isMobile ? 1 : "0 0 300px", display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, paddingLeft: isMobile ? "10px" : "0", alignItems: "flex-start" }}>
-          {friends.length > 0 && user.username === effectiveUsername && (
-            <div style={{ marginBottom: "-10px" }}>
-              <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
-                <option value="">Recommend to...</option>
-                {friends.map(f => <option key={f.id} value={f.username}>{f.username}</option>)}
-              </select>
-              <button onClick={sendRec} disabled={!selectedFriend}>{recSent ? "Sent!" : "Send"}</button>
-            </div>
-          )}
+          {/* likes summary*/}
+          <div style={{ fontSize: "14px", color: "#ddd", display: "flex", alignItems: "center", gap: "8px", marginBottom: "-3px" }}>
+            {album.pfp && <img src={album.pfp} alt="" style={{ width: "20px", height: "20px", borderRadius: "50%" }} />}
+            {effectiveUsername === user?.username ? `My likes: ${goodSongs} of ${ratedSongs} tracks` : (
+              <>
+                <Link to={`/users/${effectiveUsername}`} style={{ color: "white" }}>{effectiveUsername}</Link>
+                {`likes ${goodSongs} of ${ratedSongs} tracks`}
+              </>
+            )}
+          </div>
+          {/* recommend UI moved below ranks */}
           {/* Ranks */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
-            <h3 style={{ margin: 0 }}>Ranks</h3>
             {ranks.year?.rank != null && (
               <Link
                 to={`/albums/users/${effectiveUsername}?minYear=${album.releaseDate?.slice(0, 4)}&maxYear=${album.releaseDate?.slice(0, 4)}`}
@@ -1267,7 +1177,7 @@ export default function AlbumDetail({ user }) {
                 onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
               >
                 <div style={{ fontSize: "16px" }}>
-                  <strong style={{ fontSize: "28px" }}>{ordinal(ranks.year.rank)} </strong>
+                  <strong style={{ fontSize: "28px", fontWeight: 600 }}>{ordinal(ranks.year.rank)} </strong>
                   <span style={{ color: "#999" }}>of {ranks.year.total} <strong style={{ fontSize: "15px" }}>{album.releaseDate?.slice(0, 4)}</strong> albums</span>
                 </div>
               </Link>
@@ -1280,7 +1190,7 @@ export default function AlbumDetail({ user }) {
                 onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
               >
                 <div style={{ fontSize: "16px" }}>
-                  <strong style={{ fontSize: "28px" }}>{ordinal(ranks.decade.rank)} </strong>
+                  <strong style={{ fontSize: "28px", fontWeight: 600 }}>{ordinal(ranks.decade.rank)} </strong>
                   <span style={{ color: "#999" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> albums</span>
                 </div>
               </Link>
@@ -1294,7 +1204,7 @@ export default function AlbumDetail({ user }) {
                 onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
               >
                 <div style={{ fontSize: "16px" }}>
-                  <strong style={{ fontSize: "28px" }}>{ordinal(a.rank)} </strong>
+                  <strong style={{ fontSize: "28px", fontWeight: 600 }}>{ordinal(a.rank)} </strong>
                   <span style={{ color: "#999" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> albums</span>
                 </div>
               </Link>
@@ -1308,12 +1218,23 @@ export default function AlbumDetail({ user }) {
                 onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
               >
                 <div style={{ fontSize: "16px" }}>
-                  <strong style={{ fontSize: "28px" }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
+                  <strong style={{ fontSize: "28px", fontWeight: 600 }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
                   <span style={{ color: "#999" }}>of {ranks[`genre_${g.name}`].total} <strong style={{ fontSize: "15px" }}>{g.name}</strong> albums</span>
                 </div>
               </Link>
             ))}
           </div>
+
+          {friends.length > 0 && user.username === effectiveUsername && (
+            <div style={{ marginTop: "8px", marginBottom: "-6px" }}>
+              <select value={selectedFriend} onChange={e => { setSelectedFriend(e.target.value); setRecSent(false); }}>
+                <option value="">Recommend to...</option>
+                {friends.map(f => <option key={f.id} value={f.username}>{f.username}</option>)}
+              </select>
+              <button onClick={sendRec} disabled={!selectedFriend} style={{ marginLeft: "6px" }}>{recSent ? "Sent!" : "Send"}</button>
+            </div>
+          )}
+
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
             {!isMobile && (<button style={{ minWidth: "30px", borderRadius: "4px" }}>
               <Link
