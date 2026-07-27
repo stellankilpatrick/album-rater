@@ -612,6 +612,7 @@ export default function AlbumDetail({ user }) {
                   style={{
                     margin: 0,
                     fontSize: isMobile ? "1.3rem" : "3.2rem",
+                    fontWeight: 600,
                     lineHeight: 1.05
                   }}
                 >
