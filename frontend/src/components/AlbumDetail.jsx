@@ -458,7 +458,7 @@ export default function AlbumDetail({ user }) {
             </span>
           )}
         </>
-        ) : (
+      ) : (
         album?.review?.trim() && (
           <div
             style={{
@@ -830,7 +830,7 @@ export default function AlbumDetail({ user }) {
                               <option value={1} style={{ color: ratingOptionStyles[1].color, backgroundColor: ratingOptionStyles[1].background }}>+ Play</option>
                               <option value={2} style={{ color: ratingOptionStyles[2].color, backgroundColor: ratingOptionStyles[2].background }}>++ Special</option>
                             </select>
-                            ) : (
+                          ) : (
                             <span style={{
                               color: song.localRating == null ? "#c8c8c8" : selectedStyle.color,
                               background: song.localRating == null ? "#4b4b4b" : selectedStyle.background,
@@ -1170,6 +1170,20 @@ export default function AlbumDetail({ user }) {
           {/* recommend UI moved below ranks */}
           {/* Ranks */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
+            {Array.isArray(ranks.artist) && ranks.artist.map(a => a.rank != null && (
+              <Link
+                key={a.name}
+                to={`/albums/users/${effectiveUsername}?artist=${encodeURIComponent(a.name)}`}
+                style={{ textDecoration: "none", color: "inherit", cursor: "pointer", transition: "opacity 0.15s ease" }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+              >
+                <div style={{ fontSize: "16px" }}>
+                  <strong style={{ fontSize: "28px", fontWeight: 600 }}>{ordinal(a.rank)} </strong>
+                  <span style={{ color: "#999" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> albums</span>
+                </div>
+              </Link>
+            ))}
             {ranks.year?.rank != null && (
               <Link
                 to={`/albums/users/${effectiveUsername}?minYear=${album.releaseDate?.slice(0, 4)}&maxYear=${album.releaseDate?.slice(0, 4)}`}
@@ -1196,20 +1210,6 @@ export default function AlbumDetail({ user }) {
                 </div>
               </Link>
             )}
-            {Array.isArray(ranks.artist) && ranks.artist.map(a => a.rank != null && (
-              <Link
-                key={a.name}
-                to={`/albums/users/${effectiveUsername}?artist=${encodeURIComponent(a.name)}`}
-                style={{ textDecoration: "none", color: "inherit", cursor: "pointer", transition: "opacity 0.15s ease" }}
-                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
-                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-              >
-                <div style={{ fontSize: "16px" }}>
-                  <strong style={{ fontSize: "28px", fontWeight: 600 }}>{ordinal(a.rank)} </strong>
-                  <span style={{ color: "#999" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> albums</span>
-                </div>
-              </Link>
-            ))}
             {genres.map(g => ranks[`genre_${g.name}`]?.rank != null && (
               <Link
                 key={g.name}
