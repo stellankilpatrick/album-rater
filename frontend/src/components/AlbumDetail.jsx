@@ -728,8 +728,8 @@ export default function AlbumDetail({ user }) {
                           cursor: isOwner ? "pointer" : "default",
                           fontWeight: "bold",
                           background: pendingLiked === 1 ? "#1db954" : "transparent",
-                          color: pendingLiked === 1 ? "white" : (isOwner ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.36)"),
-                          opacity: isOwner ? 1 : 0.7
+                          color: pendingLiked === 1 ? "white" : "rgba(255,255,255,0.6)",
+                          opacity: 1
                         }}
                       >
                         GOOD
@@ -744,8 +744,8 @@ export default function AlbumDetail({ user }) {
                           cursor: isOwner ? "pointer" : "default",
                           fontWeight: "bold",
                           background: pendingLiked === 0 ? "#facc15" : "transparent",
-                          color: pendingLiked === 0 ? "black" : (isOwner ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.36)"),
-                          opacity: isOwner ? 1 : 0.7
+                          color: pendingLiked === 0 ? "black" : "rgba(255,255,255,0.6)",
+                          opacity: 1
                         }}
                       >
                         MID
@@ -760,8 +760,8 @@ export default function AlbumDetail({ user }) {
                           cursor: isOwner ? "pointer" : "default",
                           fontWeight: "bold",
                           background: pendingLiked === -1 ? "#e74c3c" : "transparent",
-                          color: pendingLiked === -1 ? "white" : (isOwner ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.36)"),
-                          opacity: isOwner ? 1 : 0.7
+                          color: pendingLiked === -1 ? "white" : "rgba(255,255,255,0.6)",
+                          opacity: 1
                         }}
                       >
                         BAD
@@ -839,7 +839,7 @@ export default function AlbumDetail({ user }) {
                               fontSize: "12px",
                               display: "inline-block",
                               width: "85px",
-                              textAlign: "center",
+                              textAlign: "left",
                               margin: 0
                             }}>
                               {song.localRating == null ? "Interlude" : selectedStyle.label}
@@ -918,6 +918,7 @@ export default function AlbumDetail({ user }) {
                               borderRadius: "4px",
                               width: "85px",
                               padding: "2px 4px",
+                              textAlign: "left",
                               fontSize: "12px",
                               display: "inline-block",
                               margin: 0
