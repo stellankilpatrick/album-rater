@@ -190,13 +190,14 @@ export default function AlbumDetail({ user }) {
     setHasChanges(true);
   };
 
-  const handleSaveRating = async () => {
+  const handleSaveRating = async (bumpActivity = false) => {
     if (pendingLiked === null) {
       triggerOpinionFlash();
       setShowOpinionPopup(true);
       return;
     }
-    if (!window.confirm("Are you sure you want to save your changes?")) return;
+    const confirmMsg = bumpActivity ? "Are you sure you want to save and post to community?" : "Are you sure you want to save your changes?";
+    if (!window.confirm(confirmMsg)) return;
 
     setIsSaving(true);
     try {
@@ -204,16 +205,16 @@ export default function AlbumDetail({ user }) {
       for (const song of pendingSongs) {
         const original = songs.find(s => s.id === song.id);
         if (original?.localRating !== song.localRating) {
-          await api.patch(`/songs/${song.id}/rating`, { rating: song.localRating ?? null });
+          await api.patch(`/songs/${song.id}/rating`, { rating: song.localRating ?? null, bumpActivity });
         }
         if (original?.comment !== song.comment) {
-          await api.patch(`/songs/${song.id}/comment`, { comment: song.comment });
+          await api.patch(`/songs/${song.id}/comment`, { comment: song.comment, bumpActivity });
         }
       }
 
       // Save review
       if (pendingReview !== review) {
-        await api.patch(`/albums/${albumId}/review/users/${effectiveUsername}`, { review: pendingReview.trim() || null });
+        await api.patch(`/albums/${albumId}/review/users/${effectiveUsername}`, { review: pendingReview.trim() || null, bumpActivity });
       }
 
       // Save opinion
@@ -972,21 +973,56 @@ export default function AlbumDetail({ user }) {
             )}
 
             {isOwner && hasChanges && (
-              <button
-                onClick={handleSaveRating}
-                style={{
-                  marginTop: "16px",
-                  backgroundColor: "#1db954",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "3px",
-                  padding: "8px 8px",
-                  cursor: "pointer",
-                  fontWeight: "bold"
-                }}
-              >
-                Save Rating
-              </button>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <button
+                  onClick={() => handleSaveRating(true)}
+                  style={{
+                    marginTop: "16px",
+                    backgroundColor: "#0b7a3a",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "3px",
+                    padding: "8px 8px",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                >
+                  Save & Post
+                </button>
+                <button
+                  onClick={() => handleSaveRating(false)}
+                  style={{
+                    marginTop: "16px",
+                    backgroundColor: "white",
+                    color: "#1db954",
+                    border: "none",
+                    borderRadius: "3px",
+                    padding: "8px 8px",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                >
+                  Incognito Save
+                </button>
+                <div
+                  title={"Incognito Save: silent save (won't post to community). Save & Post: posts activity on community tab."}
+                  style={{
+                    marginTop: "16px",
+                    width: "20px",
+                    height: "20px",
+                    borderRadius: "50%",
+                    background: "rgba(255,255,255,0.06)",
+                    color: "#D3D3D3",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "12px",
+                    cursor: "default"
+                  }}
+                >
+                  ?
+                </div>
+              </div>
             )}
           </div>
 

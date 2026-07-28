@@ -132,12 +132,13 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
         [songId, req.user.id]
       );
     } else {
+      const { bumpActivity = true } = req.body;
       await pool.query(
         `INSERT INTO song_ratings (song_id, user_id, rating)
          VALUES ($1, $2, $3)
          ON CONFLICT (song_id, user_id)
-         DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()`,
-        [songId, req.user.id, rating]
+         DO UPDATE SET rating = EXCLUDED.rating, updated_at = CASE WHEN $4 THEN NOW() ELSE song_ratings.updated_at END`,
+        [songId, req.user.id, rating, bumpActivity]
       );
     }
 
