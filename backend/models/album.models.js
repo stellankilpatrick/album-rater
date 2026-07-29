@@ -811,7 +811,7 @@ export async function updateAlbumReview(userId, albumId, review, bumpActivity = 
     ON CONFLICT (user_id, album_id)
     DO UPDATE SET review = EXCLUDED.review, updated_at = CASE WHEN $4 THEN NOW() ELSE album_ratings.updated_at END
     RETURNING *
-  `, [userId, albumId, review]);
+  `, [userId, albumId, review, bumpActivity]);
   return result.rows[0];
 }
 
