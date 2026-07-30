@@ -21,22 +21,33 @@ import Home from "./components/Home"
 import Recommendations from "./components/Recommendations";
 
 function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(undefined); // undefined = loading, null = no user
+  const [authChecking, setAuthChecking] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    const bootstrap = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setUser(null);
+        setAuthChecking(false);
+        return;
+      }
 
-    api
-      .get("/auth/me", { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => setUser(res.data))
-      .catch((err) => {
+      try {
+        const res = await api.get("/auth/me", { headers: { Authorization: `Bearer ${token}` } });
+        setUser(res.data);
+      } catch (err) {
         const status = err?.response?.status;
         if (status === 401 || status === 403) {
           localStorage.removeItem("token");
-          setUser(null);
         }
-      });
+        setUser(null);
+      } finally {
+        setAuthChecking(false);
+      }
+    };
+
+    bootstrap();
   }, []);
 
   const handleLogin = (userData, token) => {
@@ -48,6 +59,16 @@ function App() {
     localStorage.removeItem("token");
     setUser(null);
   };
+
+  if (authChecking) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 48, height: 48, borderRadius: 6, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 24, height: 24, border: '3px solid rgba(255,255,255,0.15)', borderTopColor: '#22c55e', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
@@ -61,7 +82,7 @@ function App() {
       <div style={{ padding: "10px 16px 0 10px" }}>
         <Routes>
           {/* not logged in */}
-          {!user && (
+          {user === null && (
             <Route path="/*" element={<AuthPage onLogin={handleLogin} />} />
           )}
 

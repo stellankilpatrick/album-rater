@@ -187,6 +187,10 @@ button {
     to { transform: rotate(360deg); }
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .auth-delay-note {
     font-size: 0.75rem;
     color: #555;
