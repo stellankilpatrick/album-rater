@@ -58,7 +58,8 @@ export default function AlbumDetail({ user }) {
 
   const goToAdjacentAlbum = (id) => {
     if (!id) return;
-    navigate(`/albums/${id}/users/${effectiveUsername}`);
+    // force a full page load so the album detail refreshes completely
+    window.location.href = `/albums/${id}/users/${effectiveUsername}`;
   };
 
   const ordinal = n => {
@@ -665,7 +666,7 @@ export default function AlbumDetail({ user }) {
               <div style={{ flex: isMobile ? "0 0 0px" : "1 1 0" }} />
 
               {/* RIGHT COLUMN */}
-              <div style={{ display: "flex", flexDirection: isMobile ? "row" : "row", alignItems: "flex-start", gap: "18px", flex: "0 0 auto" }}>
+              <div style={{ display: "flex", flexDirection: isMobile ? "row" : "row", alignItems: isMobile ? "flex-start" : "flex-end", gap: "18px", flex: "0 0 auto" }}>
                 {/* Score column (score + overall rank) */}
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
                   {album.score10 != null && (
@@ -679,11 +680,34 @@ export default function AlbumDetail({ user }) {
                     </div>
                   )}
                   {ranks.overall?.rank != null && (
-                    <div style={{ fontSize: isMobile ? "0.95rem" : "17px", opacity: 0.85, marginTop: "6px" }}>
-                      <span style={{ fontWeight: "bold", fontSize: isMobile ? "1.1rem" : "20px" }}>{ordinal(ranks.overall.rank)}</span>{" "}of {ranks.overall.total} albums
+                    <div style={{ fontSize: isMobile ? "0.95rem" : "17px", opacity: 0.85, marginTop: "6px", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
+                        <span style={{ fontWeight: "bold", fontSize: isMobile ? "1.1rem" : "20px" }}>{ordinal(ranks.overall.rank)}</span>{" "}of {ranks.overall.total} albums
+                      </div>
+                      <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                        <button
+                          onClick={() => adjacent.higherAlbumId && goToAdjacentAlbum(adjacent.higherAlbumId)}
+                          disabled={!adjacent.higherAlbumId}
+                          title={adjacent.higherAlbumId ? "Go to higher-ranked album" : "No higher album"}
+                          className={`adjacent-btn ${adjacent.higherAlbumId ? '' : 'disabled'}`}
+                          style={{ color: adjacent.higherAlbumId ? "white" : "#666" }}
+                        >
+                          ▲
+                        </button>
+                        <button
+                          onClick={() => adjacent.lowerAlbumId && goToAdjacentAlbum(adjacent.lowerAlbumId)}
+                          disabled={!adjacent.lowerAlbumId}
+                          title={adjacent.lowerAlbumId ? "Go to lower-ranked album" : "No lower album"}
+                          className={`adjacent-btn ${adjacent.lowerAlbumId ? '' : 'disabled'}`}
+                          style={{ color: adjacent.lowerAlbumId ? "white" : "#666" }}
+                        >
+                          ▼
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
+                {/* buttons moved into overall-rank div above */}
               </div>
             </div>
           </div>
