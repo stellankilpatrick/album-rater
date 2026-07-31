@@ -162,7 +162,9 @@ export default function AlbumDetail({ user }) {
 
   const handlePostReply = async (parentId, replyToUsername) => {
     if (!replyInput.trim()) return;
-    const content = replyInput;
+    // strip any leading @username from the typed reply and store only the message
+    const stripped = replyInput.replace(/^@[^\s]+\s*/, "");
+    const content = stripped.trim();
     const res = await api.post(`/albums/${albumId}/users/${effectiveUsername}/comments`, {
       content,
       parentId
@@ -1074,7 +1076,7 @@ export default function AlbumDetail({ user }) {
                       <button
                         onClick={() => {
                           setReplyingTo(replyingTo === c.id ? null : c.id);
-                          setReplyInput(replyingTo === c.id ? "" : `@${c.username} `);
+                          setReplyInput("");
                         }}
                         style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: isMobile ? "10px" : "11px", padding: "4px 0 0 0" }}
                       >
@@ -1140,11 +1142,14 @@ export default function AlbumDetail({ user }) {
                           <span style={{ fontSize: isMobile ? "10px" : "11px", color: "#999", marginLeft: "8px" }}>
                             {timeAgo(reply.created_at)}
                           </span>
-                          <div style={{ fontSize: isMobile ? "12px" : "13px", marginTop: "2px", wordBreak: "break-word" }}>{renderCommentContent(reply.content)}</div>
+                          <div style={{ fontSize: isMobile ? "12px" : "13px", marginTop: "2px", wordBreak: "break-word", display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                            <span style={{ color: '#999', fontWeight: 600 }}>@{c.username}</span>
+                            <div style={{ flex: 1 }}>{renderCommentContent(reply.content)}</div>
+                          </div>
                           <button
                             onClick={() => {
                               setReplyingTo(replyingTo === `${c.id}-${reply.id}` ? null : `${c.id}-${reply.id}`);
-                              setReplyInput(replyingTo === `${c.id}-${reply.id}` ? "" : `@${reply.username} `);
+                              setReplyInput("");
                             }}
                             style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: isMobile ? "10px" : "11px", padding: "4px 0 0 0" }}
                           >
