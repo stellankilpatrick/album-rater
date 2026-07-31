@@ -8,7 +8,7 @@ export default function AddAlbumForm({ onAdd }) {
     const [releaseDate, setReleaseDate] = useState("");
     const [coverArt, setCoverArt] = useState("");
     const [type, setType] = useState("album");
-    const [official, setOfficial] = useState(false);
+    const [official, setOfficial] = useState(true);
 
     const handleSubmit = e => {
         e.preventDefault();
