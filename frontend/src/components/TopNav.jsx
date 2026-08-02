@@ -14,6 +14,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
   const [pfp, setPfp] = useState(null);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
+  const profileCloseTimeout = useRef(null);
 
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -162,7 +163,19 @@ function TopNav({ effectiveUsername, email, onLogout }) {
   );
 
   const profileMenu = (
-    <div ref={profileMenuRef} style={{ position: "relative" }} onMouseEnter={() => setProfileMenuOpen(true)} onMouseLeave={() => setProfileMenuOpen(false)}>
+    <div
+      ref={profileMenuRef}
+      style={{ position: "relative" }}
+      onMouseEnter={() => {
+        if (profileCloseTimeout.current) { clearTimeout(profileCloseTimeout.current); profileCloseTimeout.current = null; }
+        setProfileMenuOpen(true);
+      }}
+      onMouseLeave={() => {
+        // delay closing slightly so cursor can move to dropdown without it disappearing
+        if (profileCloseTimeout.current) clearTimeout(profileCloseTimeout.current);
+        profileCloseTimeout.current = setTimeout(() => setProfileMenuOpen(false), 180);
+      }}
+    >
       <button
         className="nav-avatar-btn"
         onClick={() => navigate(`/users/${effectiveUsername}`)}
