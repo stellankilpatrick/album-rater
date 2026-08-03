@@ -782,7 +782,18 @@ export default function AlbumDetailPublic({ user }) {
                             placeholder="Featured artists"
                             onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, featured: e.target.value } : s))}
                             onBlur={() => saveSongFeatured(song)}
-                            onKeyDown={e => { if (e.key === "Enter") e.target.blur(); }}
+                            onKeyDown={e => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                e.target.blur();
+                                // move focus to the next song's title input (if any)
+                                const row = e.target.closest('tr');
+                                if (row && row.nextElementSibling) {
+                                  const nextTitle = row.nextElementSibling.querySelector('input[type="text"]');
+                                  if (nextTitle) nextTitle.focus();
+                                }
+                              }
+                            }}
                             style={{ flex: isMobile ? 1 : "0 1 220px", padding: "3px 8px", borderRadius: "6px", border: "1px solid #ccc" }}
                           />
                         </div>

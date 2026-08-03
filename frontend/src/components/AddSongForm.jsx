@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import api from "../api/api";
 
 export default function AddSongForm({ albumId, onAdd, nextNum }) {
@@ -18,8 +18,12 @@ export default function AddSongForm({ albumId, onAdd, nextNum }) {
         onAdd(res.data);
         setTitle("");
         setFeatured("");
+        // focus the title input for the next song
+        if (titleRef.current) titleRef.current.focus();
       }).catch(err => console.error(err));
   };
+
+  const titleRef = useRef(null);
 
   return (
     <form onSubmit={handleSubmit} style={{ display: "grid", gridTemplateColumns: "minmax(90px, 95px) minmax(220px, 1.2fr) minmax(200px, 1fr) auto", gap: "5px", marginTop: "10px", padding: 0, background: "transparent", border: "none", borderRadius: 0, alignItems: "center" }}>
@@ -33,6 +37,7 @@ export default function AddSongForm({ albumId, onAdd, nextNum }) {
         style={{ width: "95px", padding: "8px 10px", borderRadius: "8px", border: "1px solid #ccc", boxSizing: "border-box" }}
       />
       <input
+        ref={titleRef}
         type="text"
         value={title}
         onChange={e => setTitle(e.target.value)}
