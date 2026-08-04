@@ -251,20 +251,7 @@ export default function ProfilePage({ user }) {
                         <div><strong>{ratingCounts.artists}</strong> {ratingCounts.artists === 1 ? "Artist" : "Artists"}</div>
                     </div>
 
-                    {userStats && (
-                        <div style={{ marginTop: "8px", color: "#ccc", fontSize: "14px" }}>
-                            <div><strong>{userStats.totalRatedSongs}</strong> total songs rated</div>
-                            <div>
-                                Ratio (play+good): {userStats.totalRatedSongs > 0 ? `${((userStats.goodPlayCount / userStats.totalRatedSongs) * 100).toFixed(0)}%` : "—"}
-                            </div>
-                            <div>
-                                Special rate: {userStats.totalRatedSongs > 0 ? `${((userStats.specialCount / userStats.totalRatedSongs) * 100).toFixed(0)}%` : "—"}
-                            </div>
-                            {userStats.topGenres && userStats.topGenres.length > 0 && (
-                                <div>Top genres: {userStats.topGenres.map(g => g.name).join(", ")}</div>
-                            )}
-                        </div>
-                    )}
+                    
 
                     {!editingPfp && (
                         <p style={{ color: "#ccc", margin: 0 }}>
@@ -314,82 +301,120 @@ export default function ProfilePage({ user }) {
             )}
 
 
-            <h3>
-                <Link
-                    to={`/users/${effectiveUsername}/listen-list`}
-                    style={{ color: "inherit", transition: "opacity 0.15s ease" }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
-                    onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-                >
-                    Listen List
-                </Link>
-            </h3>
+            <div style={{ display: isMobile ? "block" : "flex", gap: "24px", alignItems: "flex-start" }}>
+                <div style={{ flex: 1 }}>
+                    <h3>
+                        <Link
+                            to={`/users/${effectiveUsername}/listen-list`}
+                            style={{ color: "inherit", transition: "opacity 0.15s ease" }}
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+                        >
+                            Listen List
+                        </Link>
+                    </h3>
 
-            {/* Top 5 Albums */}
-            <Link
-                to={`/albums/users/${effectiveUsername}`}
-                style={{ color: "inherit", transition: "opacity 0.15s ease" }}
-                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
-                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-            >
-                <h2>Top Albums</h2>
-            </Link>
-            {topAlbums.length > 0 && (
-                <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start", gap: "4px" }}>
-                    {topAlbums.map(album => (
-                        album.coverArt && (
-                            <Link
-                                key={album.id}
-                                to={`/albums/${album.id}/users/${effectiveUsername}`}
-                            >
-                                <img
-                                    src={album.coverArt}
-                                    alt={album.title}
-                                    style={{
-                                        width: isMobile ? "20%wv" : "140px",
-                                        height: isMobile ? "90px" : "140px",
-                                        objectFit: "cover",
-                                        borderRadius: "4px"
-                                    }}
-                                />
-                            </Link>
-                        )
-                    ))}
-                </div>
-            )}
+                    {/* Top 5 Albums */}
+                    <Link
+                        to={`/albums/users/${effectiveUsername}`}
+                        style={{ color: "inherit", transition: "opacity 0.15s ease" }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+                    >
+                        <h2>Top Albums</h2>
+                    </Link>
+                    {topAlbums.length > 0 && (
+                        <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start", gap: "8px", flexWrap: "wrap" }}>
+                            {topAlbums.map(album => (
+                                album.coverArt && (
+                                    <Link
+                                        key={album.id}
+                                        to={`/albums/${album.id}/users/${effectiveUsername}`}
+                                    >
+                                        <img
+                                            src={album.coverArt}
+                                            alt={album.title}
+                                            style={{
+                                                width: isMobile ? "40vw" : "140px",
+                                                height: isMobile ? "90px" : "140px",
+                                                objectFit: "cover",
+                                                borderRadius: "4px"
+                                            }}
+                                        />
+                                    </Link>
+                                )
+                            ))}
+                        </div>
+                    )}
 
-            {/* Top 5 Artists */}
-            <Link
-                to={`/artists/users/${effectiveUsername}`}
-                style={{ color: "inherit", transition: "opacity 0.15s ease" }}
-                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
-                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-            >
-                <h2>Top Artists</h2>
-            </Link>
-            {topArtists.length > 0 && (
-                <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start", gap: "4px" }}>
-                    {topArtists.map(artist => (
-                        artist.image && (
-                            <Link
-                                key={artist.id}
-                                to={`/artists/${artist.id}/users/${effectiveUsername}`}
-                            >
-                                <img
-                                    src={artist.image}
-                                    alt=""
-                                    style={{
-                                        width: isMobile ? "90px" : "140px",
-                                        height: isMobile ? "90px" : "140px",
-                                        objectFit: "cover",
-                                        borderRadius: "50%"
-                                    }}
-                                />
-                            </Link>
-                        )
-                    ))}
+                    {/* Top 5 Artists */}
+                    <Link
+                        to={`/artists/users/${effectiveUsername}`}
+                        style={{ color: "inherit", transition: "opacity 0.15s ease" }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = "0.65"}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+                    >
+                        <h2>Top Artists</h2>
+                    </Link>
+                    {topArtists.length > 0 && (
+                        <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start", gap: "8px", flexWrap: "wrap" }}>
+                            {topArtists.map(artist => (
+                                artist.image && (
+                                    <Link
+                                        key={artist.id}
+                                        to={`/artists/${artist.id}/users/${effectiveUsername}`}
+                                    >
+                                        <img
+                                            src={artist.image}
+                                            alt=""
+                                            style={{
+                                                width: isMobile ? "40vw" : "140px",
+                                                height: isMobile ? "40vw" : "140px",
+                                                objectFit: "cover",
+                                                borderRadius: "50%"
+                                            }}
+                                        />
+                                    </Link>
+                                )
+                            ))}
+                        </div>
+                    )}
                 </div>
-            )}
+
+                <aside style={{ width: isMobile ? "100%" : "300px", background: "rgba(255,255,255,0.02)", padding: "12px", borderRadius: "8px", color: "#ddd" }}>
+                    <h3 style={{ marginTop: 0 }}>Stats</h3>
+                    {userStats ? (
+                        <div style={{ fontSize: "14px", lineHeight: 1.5 }}>
+                            <div><strong style={{ color: "white" }}>{userStats.totalRatedSongs}</strong> songs rated</div>
+                            <div>Liked: {userStats.totalRatedSongs > 0 ? `${((userStats.goodPlayCount / userStats.totalRatedSongs) * 100).toFixed(0)}%` : "—"}</div>
+                            <div>Special: {userStats.totalRatedSongs > 0 ? `${((userStats.specialCount / userStats.totalRatedSongs) * 100).toFixed(0)}%` : "—"}</div>
+                            <div>Albums liked: {userStats.albumOpinionPct != null ? `${(userStats.albumOpinionPct * 100).toFixed(0)}%` : "—"}</div>
+                            {userStats.topGenres && userStats.topGenres.length > 0 && (
+                                <div style={{ marginTop: "8px" }}>
+                                    <div style={{ fontWeight: "bold" }}>Top genres</div>
+                                    <ol style={{ margin: 0, paddingLeft: "18px" }}>
+                                        {userStats.topGenres.map(g => (
+                                            <li key={g.name}>{g.name} <span style={{ color: "#999" }}>({g.count})</span></li>
+                                        ))}
+                                    </ol>
+                                </div>
+                            )}
+                            {userStats.topYears && userStats.topYears.length > 0 && (
+                                <div style={{ marginTop: "8px" }}>
+                                    <div style={{ fontWeight: "bold" }}>Top years</div>
+                                    <ol style={{ margin: 0, paddingLeft: "18px" }}>
+                                        {userStats.topYears.map(y => (
+                                            <li key={y.year}>{y.year} <span style={{ color: "#999" }}>({y.count})</span></li>
+                                        ))}
+                                    </ol>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div style={{ color: "#888" }}>No stats available</div>
+                    )}
+                </aside>
+            </div>
         </div>
     );
 }

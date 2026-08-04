@@ -229,7 +229,7 @@ export async function getUserSongStats(userId) {
 
   // top genres for albums the user has rated (counting album occurrences)
   const genresRes = await pool.query(`
-    SELECT g.name, COUNT(*) AS cnt
+    SELECT g.name, COUNT(DISTINCT a.id) AS cnt
     FROM song_ratings sr
     JOIN songs s ON s.id = sr.song_id
     JOIN albums a ON a.id = s.album_id
@@ -249,4 +249,38 @@ export async function getUserSongStats(userId) {
     specialCount: Number(special_count) || 0,
     topGenres
   };
+}
+
+
+/**
+ * Variation: include top years for albums the user rated
+ */
+export async function getUserSongStatsWithYears(userId) {
+  const base = await getUserSongStats(userId);
+
+  const yearsRes = await pool.query(`
+    SELECT EXTRACT(YEAR FROM a.release_date)::int AS year, COUNT(DISTINCT a.id) AS cnt
+    FROM song_ratings sr
+    JOIN songs s ON s.id = sr.song_id
+    JOIN albums a ON a.id = s.album_id
+    WHERE sr.user_id = $1 AND a.release_date IS NOT NULL
+    GROUP BY year
+    ORDER BY cnt DESC
+    LIMIT 3
+  `, [userId]);
+
+  base.topYears = yearsRes.rows.map(r => ({ year: r.year, count: Number(r.cnt) }));
+  // album opinion counts (liked field: 1=good, 0=mid, -1=bad)
+  const opinionRes = await pool.query(`
+    SELECT
+      COUNT(*) FILTER (WHERE liked = 1) AS good_count,
+      COUNT(*) FILTER (WHERE liked IS NOT NULL) AS opinion_total
+    FROM album_ratings
+    WHERE user_id = $1
+  `, [userId]);
+
+  const good = Number(opinionRes.rows[0]?.good_count || 0);
+  const totalOpinions = Number(opinionRes.rows[0]?.opinion_total || 0);
+  base.albumOpinionPct = totalOpinions > 0 ? good / totalOpinions : null;
+  return base;
 }

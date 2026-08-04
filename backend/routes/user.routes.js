@@ -7,7 +7,7 @@ import {
   getFollowers, getFollowing, getFriends, isFollowing,
   getFollowCounts, getRatingCounts, getProfilePic
 } from "../models/user.models.js";
-import { getUserSongStats } from "../models/user.models.js";
+import { getUserSongStats, getUserSongStatsWithYears } from "../models/user.models.js";
 import { createNotification } from "../routes/notification.routes.js"
 import pool from "../db/database.js";
 
@@ -182,7 +182,7 @@ router.get("/:username/rating-counts", async (req, res) => {
 
 router.get("/:username/stats", async (req, res) => {
   try {
-    const stats = await getUserSongStats(req.profileUser.id);
+    const stats = await getUserSongStatsWithYears(req.profileUser.id);
     res.json(stats);
   } catch (err) {
     console.error(err);
