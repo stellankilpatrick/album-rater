@@ -210,3 +210,43 @@ export async function getProfilePic(username) {
   `, [username]);
   return rows[0]?.pfp || DEFAULT_PFP;
 }
+
+/**
+ * Get song-level stats for a user: total rated songs, play/good ratio, special rate, top genres
+ */
+export async function getUserSongStats(userId) {
+  // total rated songs and counts by rating
+  const countsRes = await pool.query(`
+    SELECT
+      COUNT(r.rating) FILTER (WHERE r.rating IS NOT NULL) AS total_rated,
+      COUNT(r.rating) FILTER (WHERE r.rating IN (1,2)) AS good_play_count,
+      COUNT(r.rating) FILTER (WHERE r.rating = 2) AS special_count
+    FROM song_ratings r
+    WHERE r.user_id = $1
+  `, [userId]);
+
+  const { total_rated = 0, good_play_count = 0, special_count = 0 } = countsRes.rows[0] || {};
+
+  // top genres for albums the user has rated (counting album occurrences)
+  const genresRes = await pool.query(`
+    SELECT g.name, COUNT(*) AS cnt
+    FROM song_ratings sr
+    JOIN songs s ON s.id = sr.song_id
+    JOIN albums a ON a.id = s.album_id
+    JOIN album_genres ag ON ag.album_id = a.id
+    JOIN genres g ON g.id = ag.genre_id
+    WHERE sr.user_id = $1
+    GROUP BY g.name
+    ORDER BY cnt DESC
+    LIMIT 3
+  `, [userId]);
+
+  const topGenres = genresRes.rows.map(r => ({ name: r.name, count: Number(r.cnt) }));
+
+  return {
+    totalRatedSongs: Number(total_rated) || 0,
+    goodPlayCount: Number(good_play_count) || 0,
+    specialCount: Number(special_count) || 0,
+    topGenres
+  };
+}

@@ -9,6 +9,7 @@ export default function ProfilePage({ user }) {
     const [loading, setLoading] = useState(false);
     const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
     const [ratingCounts, setRatingCounts] = useState({ albums: 0, artists: 0 });
+    const [userStats, setUserStats] = useState(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
     const [pfp, setPfp] = useState(null);
@@ -122,6 +123,10 @@ export default function ProfilePage({ user }) {
     useEffect(() => {
         api.get(`/users/${effectiveUsername}/rating-counts`)
             .then(res => setRatingCounts(res.data));
+    }, [user.id]);
+
+    useEffect(() => {
+        api.get(`/users/${effectiveUsername}/stats`).then(res => setUserStats(res.data)).catch(() => setUserStats(null));
     }, [user.id]);
 
     useEffect(() => {
@@ -245,6 +250,21 @@ export default function ProfilePage({ user }) {
                         <div><strong>{ratingCounts.albums}</strong> {ratingCounts.albums === 1 ? "Album" : "Albums"}</div>
                         <div><strong>{ratingCounts.artists}</strong> {ratingCounts.artists === 1 ? "Artist" : "Artists"}</div>
                     </div>
+
+                    {userStats && (
+                        <div style={{ marginTop: "8px", color: "#ccc", fontSize: "14px" }}>
+                            <div><strong>{userStats.totalRatedSongs}</strong> total songs rated</div>
+                            <div>
+                                Ratio (play+good): {userStats.totalRatedSongs > 0 ? `${((userStats.goodPlayCount / userStats.totalRatedSongs) * 100).toFixed(0)}%` : "—"}
+                            </div>
+                            <div>
+                                Special rate: {userStats.totalRatedSongs > 0 ? `${((userStats.specialCount / userStats.totalRatedSongs) * 100).toFixed(0)}%` : "—"}
+                            </div>
+                            {userStats.topGenres && userStats.topGenres.length > 0 && (
+                                <div>Top genres: {userStats.topGenres.map(g => g.name).join(", ")}</div>
+                            )}
+                        </div>
+                    )}
 
                     {!editingPfp && (
                         <p style={{ color: "#ccc", margin: 0 }}>
