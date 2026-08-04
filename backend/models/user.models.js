@@ -258,18 +258,19 @@ export async function getUserSongStats(userId) {
 export async function getUserSongStatsWithYears(userId) {
   const base = await getUserSongStats(userId);
 
-  const yearsRes = await pool.query(`
-    SELECT EXTRACT(YEAR FROM a.release_date)::int AS year, COUNT(DISTINCT a.id) AS cnt
+  // compute top 3 decades by distinct albums the user has rated
+  const decadesRes = await pool.query(`
+    SELECT (FLOOR(EXTRACT(YEAR FROM a.release_date)/10)*10)::int AS decade, COUNT(DISTINCT a.id) AS cnt
     FROM song_ratings sr
     JOIN songs s ON s.id = sr.song_id
     JOIN albums a ON a.id = s.album_id
     WHERE sr.user_id = $1 AND a.release_date IS NOT NULL
-    GROUP BY year
+    GROUP BY decade
     ORDER BY cnt DESC
     LIMIT 3
   `, [userId]);
 
-  base.topYears = yearsRes.rows.map(r => ({ year: r.year, count: Number(r.cnt) }));
+  base.topYears = decadesRes.rows.map(r => ({ year: r.decade, count: Number(r.cnt) }));
   // album opinion counts (liked field: 1=good, 0=mid, -1=bad)
   const opinionRes = await pool.query(`
     SELECT

@@ -381,34 +381,92 @@ export default function ProfilePage({ user }) {
                     )}
                 </div>
 
-                <aside style={{ width: isMobile ? "100%" : "300px", background: "rgba(255,255,255,0.02)", padding: "12px", borderRadius: "8px", color: "#ddd" }}>
+                <aside style={{ width: isMobile ? "100%" : "320px", background: "rgba(255,255,255,0.02)", padding: "14px", borderRadius: "10px", color: "#ddd" }}>
                     <h3 style={{ marginTop: 0 }}>Stats</h3>
                     {userStats ? (
-                        <div style={{ fontSize: "14px", lineHeight: 1.5 }}>
-                            <div><strong style={{ color: "white" }}>{userStats.totalRatedSongs}</strong> songs rated</div>
-                            <div>Liked: {userStats.totalRatedSongs > 0 ? `${((userStats.goodPlayCount / userStats.totalRatedSongs) * 100).toFixed(0)}%` : "—"}</div>
-                            <div>Special: {userStats.totalRatedSongs > 0 ? `${((userStats.specialCount / userStats.totalRatedSongs) * 100).toFixed(0)}%` : "—"}</div>
-                            <div>Albums liked: {userStats.albumOpinionPct != null ? `${(userStats.albumOpinionPct * 100).toFixed(0)}%` : "—"}</div>
+                        <div>
+                            {/* Big stat grid */}
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginBottom: "12px" }}>
+                                <div style={{ background: "rgba(255,255,255,0.03)", padding: "12px", borderRadius: "8px", textAlign: "center" }}>
+                                    <div style={{ fontSize: "28px", fontWeight: 700, color: "#fff" }}>{userStats.totalRatedSongs}</div>
+                                    <div style={{ fontSize: "12px", color: "#bbb" }}>Songs rated</div>
+                                </div>
+                                <div style={{ background: "rgba(255,255,255,0.03)", padding: "12px", borderRadius: "8px", textAlign: "center" }}>
+                                    <div style={{ fontSize: "28px", fontWeight: 700, color: "#fff" }}>{userStats.albumOpinionPct != null ? `${(userStats.albumOpinionPct * 100).toFixed(0)}%` : "—"}</div>
+                                    <div style={{ fontSize: "12px", color: "#bbb" }}>Albums liked</div>
+                                </div>
+                                <div style={{ background: "rgba(255,255,255,0.03)", padding: "12px", borderRadius: "8px", textAlign: "center" }}>
+                                    <div style={{ fontSize: "28px", fontWeight: 700, color: "#fff" }}>{userStats.totalRatedSongs > 0 ? `${((userStats.goodPlayCount / userStats.totalRatedSongs) * 100).toFixed(0)}%` : "—"}</div>
+                                    <div style={{ fontSize: "12px", color: "#bbb" }}>Songs liked</div>
+                                </div>
+                                <div style={{ background: "rgba(255,255,255,0.03)", padding: "12px", borderRadius: "8px", textAlign: "center" }}>
+                                    <div style={{ fontSize: "28px", fontWeight: 700, color: "#fff" }}>{userStats.totalRatedSongs > 0 ? `${((userStats.specialCount / userStats.totalRatedSongs) * 100).toFixed(0)}%` : "—"}</div>
+                                    <div style={{ fontSize: "12px", color: "#bbb" }}>Special</div>
+                                </div>
+                            </div>
+
+                            {/* Top genres */}
                             {userStats.topGenres && userStats.topGenres.length > 0 && (
-                                <div style={{ marginTop: "8px" }}>
-                                    <div style={{ fontWeight: "bold" }}>Top genres</div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <div style={{ fontWeight: "bold", marginBottom: "6px" }}>Top genres</div>
                                     <ol style={{ margin: 0, paddingLeft: "18px" }}>
-                                        {userStats.topGenres.map(g => (
-                                            <li key={g.name}>{g.name} <span style={{ color: "#999" }}>({g.count})</span></li>
+                                        {userStats.topGenres.map((g, i) => (
+                                            <li key={g.name} style={{ fontSize: i === 0 ? "16px" : "14px", marginBottom: "4px" }}>
+                                                <span style={{ fontWeight: i === 0 ? 700 : 600 }}>{g.name}</span>
+                                                <span style={{ color: "#999", marginLeft: "6px" }}>({g.count})</span>
+                                            </li>
                                         ))}
                                     </ol>
                                 </div>
                             )}
-                            {userStats.topYears && userStats.topYears.length > 0 && (
-                                <div style={{ marginTop: "8px" }}>
-                                    <div style={{ fontWeight: "bold" }}>Top years</div>
-                                    <ol style={{ margin: 0, paddingLeft: "18px" }}>
-                                        {userStats.topYears.map(y => (
-                                            <li key={y.year}>{y.year} <span style={{ color: "#999" }}>({y.count})</span></li>
-                                        ))}
-                                    </ol>
-                                </div>
-                            )}
+
+                            {/* Top decades (converted from topYears) */}
+                            {userStats.topYears && userStats.topYears.length > 0 && (() => {
+                                // convert years -> decades
+                                const decadeMap = new Map();
+                                userStats.topYears.forEach(y => {
+                                    const year = Number(y.year);
+                                    if (!year) return;
+                                    const decade = Math.floor(year / 10) * 10;
+                                    decadeMap.set(decade, (decadeMap.get(decade) || 0) + Number(y.count));
+                                });
+                                let decades = Array.from(decadeMap.entries()).map(([decade, count]) => ({ decade, count }))
+                                    .sort((a,b) => b.count - a.count);
+                                // ensure we always show 3 decades: if aggregation collapsed to fewer, pad with nearby decades
+                                if (decades.length < 3) {
+                                    const existing = new Set(decades.map(d => d.decade));
+                                    // find candidate decades from the raw years list
+                                    const yearsList = userStats.topYears.map(y => Number(y.year)).filter(Boolean).sort((a,b)=>b-a);
+                                    let seed = yearsList[0] ? Math.floor(yearsList[0]/10)*10 : (decades[0]?.decade || new Date().getFullYear() - (new Date().getFullYear()%10));
+                                    let offset = 0;
+                                    while (decades.length < 3 && offset < 10) {
+                                        const cand = seed - (offset+1)*10;
+                                        if (!existing.has(cand)) {
+                                            decades.push({ decade: cand, count: 0 });
+                                            existing.add(cand);
+                                        }
+                                        offset++;
+                                    }
+                                }
+                                decades = decades.slice(0,3);
+
+                                return (
+                                    <div>
+                                        <div style={{ fontWeight: "bold", marginBottom: "6px" }}>Top decades</div>
+                                        <ol style={{ margin: 0, paddingLeft: "18px" }}>
+                                            {decades.map((d, i) => (
+                                                <li key={d.decade} style={{ marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                                    <div style={{ display: "flex", gap: "8px", alignItems: "baseline" }}>
+                                                        <div style={{ fontSize: i === 0 ? "18px" : "14px", fontWeight: 800 }}>{i+1}.</div>
+                                                        <div style={{ fontSize: i === 0 ? "16px" : "14px", fontWeight: i === 0 ? 700 : 600 }}>{d.decade}s</div>
+                                                    </div>
+                                                    <div style={{ color: "#999" }}>({d.count})</div>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    </div>
+                                );
+                            })()}
                         </div>
                     ) : (
                         <div style={{ color: "#888" }}>No stats available</div>
