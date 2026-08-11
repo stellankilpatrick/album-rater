@@ -40,13 +40,13 @@ router.get("/my-activity", requireAuth, async (req, res) => {
 router.get("/recommendations/received", requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT r.id, r.from_user_id, u.username AS from_username,
-              r.album_id, a.title AS album_title, a.cover_art
-       FROM recommendations r
-       JOIN users u ON u.id = r.from_user_id
-       JOIN albums a ON a.id = r.album_id
-       WHERE r.to_user_id = $1
-       ORDER BY u.username, r.created_at DESC`,
+            `SELECT r.id, r.from_user_id, u.username AS from_username, u.pfp AS from_pfp,
+              r.album_id, a.title AS album_title, a.cover_art, r.created_at
+             FROM recommendations r
+             JOIN users u ON u.id = r.from_user_id
+             JOIN albums a ON a.id = r.album_id
+             WHERE r.to_user_id = $1
+             ORDER BY r.created_at DESC`,
       [req.user.id]
     );
 
@@ -61,6 +61,8 @@ router.get("/recommendations/received", requireAuth, async (req, res) => {
         albumId: row.album_id,
         title: row.album_title,
         coverArt: row.cover_art,
+        recommenderPfp: row.from_pfp,
+        createdAt: row.created_at
       });
     }
 
