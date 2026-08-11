@@ -219,24 +219,21 @@ export default function ArtistDetail({ user }) {
                         <div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '12px' }}>
                                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>{artistStats.songsRated}</div>
+                                    <div style={{ fontSize: '34px', fontWeight: 600, color: '#fff' }}>{artistStats.songsRated}</div>
                                     <div style={{ fontSize: '12px', color: '#bbb' }}>Songs rated</div>
                                 </div>
                                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>{artistStats.projectsRated}</div>
-                                    <div style={{ fontSize: '12px', color: '#bbb' }}>Projects rated</div>
+                                    <div style={{ fontSize: '34px', fontWeight: 600, color: '#fff' }}>{artistStats.projectsLikedPct != null ? `${Math.round(artistStats.projectsLikedPct)}%` : '—'}</div>
+                                    <div style={{ fontSize: '12px', color: '#bbb' }}>Projects liked</div>
                                 </div>
                                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>{artistStats.songsLikedPct != null ? `${artistStats.songsLikedPct}%` : '—'}</div>
+                                    <div style={{ fontSize: '34px', fontWeight: 600, color: '#fff' }}>{artistStats.songsLikedPct != null ? `${Math.round(artistStats.songsLikedPct)}%` : '—'}</div>
                                     <div style={{ fontSize: '12px', color: '#bbb' }}>Songs liked</div>
                                 </div>
                                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>{artistStats.songsSpecialPct != null ? `${artistStats.songsSpecialPct}%` : '—'}</div>
+                                    <div style={{ fontSize: '34px', fontWeight: 600, color: '#fff' }}>{artistStats.songsSpecialPct != null ? `${Math.round(artistStats.songsSpecialPct)}%` : '—'}</div>
                                     <div style={{ fontSize: '12px', color: '#bbb' }}>Special songs</div>
                                 </div>
-                            </div>
-                            <div style={{ marginTop: '6px', fontSize: '12px', color: '#bbb' }}>
-                                <div><strong>{artistStats.projectsLikedPct != null ? `${artistStats.projectsLikedPct}%` : '—'}</strong> Projects liked</div>
                             </div>
                         </div>
                     ) : (

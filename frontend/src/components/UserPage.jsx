@@ -388,19 +388,19 @@ export default function ProfilePage({ user }) {
                             {/* Big stat grid */}
                             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginBottom: "12px" }}>
                                 <div style={{ background: "rgba(255,255,255,0.03)", padding: "12px", borderRadius: "8px", textAlign: "center" }}>
-                                    <div style={{ fontSize: "28px", fontWeight: 700, color: "#fff" }}>{userStats.totalRatedSongs}</div>
+                                    <div style={{ fontSize: "34px", fontWeight: 600, color: "#fff" }}>{userStats.totalRatedSongs}</div>
                                     <div style={{ fontSize: "12px", color: "#bbb" }}>Songs rated</div>
                                 </div>
                                 <div style={{ background: "rgba(255,255,255,0.03)", padding: "12px", borderRadius: "8px", textAlign: "center" }}>
-                                    <div style={{ fontSize: "28px", fontWeight: 700, color: "#fff" }}>{userStats.albumOpinionPct != null ? `${(userStats.albumOpinionPct * 100).toFixed(0)}%` : "—"}</div>
+                                    <div style={{ fontSize: "34px", fontWeight: 600, color: "#fff" }}>{userStats.albumOpinionPct != null ? `${Math.round(userStats.albumOpinionPct * 100)}%` : "—"}</div>
                                     <div style={{ fontSize: "12px", color: "#bbb" }}>Albums liked</div>
                                 </div>
                                 <div style={{ background: "rgba(255,255,255,0.03)", padding: "12px", borderRadius: "8px", textAlign: "center" }}>
-                                    <div style={{ fontSize: "28px", fontWeight: 700, color: "#fff" }}>{userStats.totalRatedSongs > 0 ? `${((userStats.goodPlayCount / userStats.totalRatedSongs) * 100).toFixed(0)}%` : "—"}</div>
+                                    <div style={{ fontSize: "34px", fontWeight: 600, color: "#fff" }}>{userStats.totalRatedSongs > 0 ? `${Math.round((userStats.goodPlayCount / userStats.totalRatedSongs) * 100)}%` : "—"}</div>
                                     <div style={{ fontSize: "12px", color: "#bbb" }}>Songs liked</div>
                                 </div>
                                 <div style={{ background: "rgba(255,255,255,0.03)", padding: "12px", borderRadius: "8px", textAlign: "center" }}>
-                                    <div style={{ fontSize: "28px", fontWeight: 700, color: "#fff" }}>{userStats.totalRatedSongs > 0 ? `${((userStats.specialCount / userStats.totalRatedSongs) * 100).toFixed(0)}%` : "—"}</div>
+                                    <div style={{ fontSize: "34px", fontWeight: 600, color: "#fff" }}>{userStats.totalRatedSongs > 0 ? `${Math.round((userStats.specialCount / userStats.totalRatedSongs) * 100)}%` : "—"}</div>
                                     <div style={{ fontSize: "12px", color: "#bbb" }}>Special</div>
                                 </div>
                             </div>
