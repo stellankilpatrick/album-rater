@@ -77,7 +77,7 @@ router.get("/recommendations/received", requireAuth, async (req, res) => {
 router.get("/recommendations/sent", requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT r.id, r.to_user_id, u.username AS to_username,
+      `SELECT r.id, r.to_user_id, u.username AS to_username, u.pfp AS to_pfp,
               r.album_id, a.title AS album_title, a.cover_art
        FROM recommendations r
        JOIN users u ON u.id = r.to_user_id
@@ -90,7 +90,7 @@ router.get("/recommendations/sent", requireAuth, async (req, res) => {
     const grouped = {};
     for (const row of rows) {
       if (!grouped[row.to_user_id]) {
-        grouped[row.to_user_id] = { username: row.to_username, albums: [] };
+        grouped[row.to_user_id] = { username: row.to_username, pfp: row.to_pfp, albums: [] };
       }
       grouped[row.to_user_id].albums.push({
         recId: row.id,
