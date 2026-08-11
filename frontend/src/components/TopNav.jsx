@@ -18,6 +18,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
   const profileCloseTimeout = useRef(null);
+  const [ratingMode, setRatingMode] = useState(localStorage.getItem('ratingMode') || 'score');
 
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -215,13 +216,30 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           <div className="nav-profile-name">{effectiveUsername}</div>
           <div className="nav-profile-email">{email}</div>
           <div className="nav-dropdown-sep" />
+          {/* rating mode selector moved below */}
+          <Link to={`/users/${effectiveUsername}`} className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>My Account</Link>
+          <Link to={`/users/${effectiveUsername}/listen-list`} className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>Listen List</Link>
+          <Link to="/community/recommendations" className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>Recommendations</Link>
           <Link to={`/users/${effectiveUsername}`} className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>My Account</Link>
           <Link to={`/users/${effectiveUsername}/listen-list`} className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>Listen List</Link>
           <Link to="/community/recommendations" className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>Recommendations</Link>
           <div className="nav-dropdown-sep" />
+          <div style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ fontSize: '12px', color: '#bbb' }}>Display:</div>
+            <button
+              onClick={() => { setRatingMode('score'); localStorage.setItem('ratingMode','score'); }}
+              style={{ padding: '4px 8px', fontSize: '12px', borderRadius: 6, backgroundColor: ratingMode === 'score' ? '#222' : 'transparent', color: ratingMode === 'score' ? '#fff' : '#ddd', border: '1px solid #333', cursor: 'pointer' }}
+            >Score</button>
+            <button
+              onClick={() => { setRatingMode('stars'); localStorage.setItem('ratingMode','stars'); }}
+              style={{ padding: '4px 8px', fontSize: '12px', borderRadius: 6, backgroundColor: ratingMode === 'stars' ? '#222' : 'transparent', color: ratingMode === 'stars' ? '#fff' : '#ddd', border: '1px solid #333', cursor: 'pointer' }}
+            >Stars</button>
+          </div>
+          <div className="nav-dropdown-sep" />
           <button
             className="nav-dropdown-item nav-dropdown-item-btn"
             onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}
+            style={{ padding: '8px 12px', fontSize: '13px' }}
           >
             Log out
           </button>

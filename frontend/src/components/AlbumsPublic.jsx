@@ -228,7 +228,7 @@ export default function AlbumsPublic({ user }) {
                 <td><Link to={`/artists/${album.artistId}`}>{album.artist}</Link></td>
                 <td>{album.releaseDate?.slice(0, 4)}</td>
                 <td>{album.ratingCount ?? 0}</td>
-                <td>{album.avgScore?.toFixed(1) ?? "0.0"}</td>
+                <td>{(() => { const mode = localStorage.getItem('ratingMode') || 'score'; const r = album.avgScore; if (mode === 'stars') { const Star = require('./StarRating').default; const v = require('../utils/rating').score10ToStarValue(r); return v != null ? <Star value={v} size={14} /> : (r?.toFixed(1) ?? '0.0'); } return (album.avgScore?.toFixed(1) ?? '0.0'); })()}</td>
               </tr>
             ))}
           </tbody>

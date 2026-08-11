@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../api/api";
+import { getRatingMode, score10ToStarValue, renderScore } from "../utils/rating";
+import StarRating from "./StarRating";
 import { useNavigate, Navigate, useParams, useSearchParams } from "react-router-dom";
 
 export default function AlbumList({ user }) {
@@ -285,7 +287,7 @@ export default function AlbumList({ user }) {
                                             {album.artist}
                                         </td>
                                         <td>{album.releaseDate?.slice(0, 4)}</td>
-                                        <td>{album.score10.toFixed(1)}</td>
+                                        <td>{getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(album.score10)} size={14}/> : renderScore(album.score10)}</td>
                                         <td>{album.rate}</td>
                                     </tr>
                                 ))}
@@ -309,7 +311,7 @@ export default function AlbumList({ user }) {
                                         style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: "6px" }}
                                     />
                                     <div style={{ fontSize: isMobile ? "11px" : "13.5px", fontWeight: 500 }}>
-                                        {i + 1}. <i>{album.title}</i> · {album.score10.toFixed(1)}
+                                        {i + 1}. <i>{album.title}</i> · {getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(album.score10)} size={14}/> : renderScore(album.score10)}
                                     </div>
                                     <div style={{ fontSize: isMobile ? "10px" : "12.5px", color: "#888", marginBottom: "-8px" }}>
                                         {album.artist}
