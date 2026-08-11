@@ -313,3 +313,42 @@ export async function updateArtistName(artistId, name) {
   );
   return res.rows[0];
 }
+
+// Get artist-specific stats for a user (projects/albums and songs rated/liked)
+export async function getArtistUserStats(userId, artistId) {
+  const { rows } = await pool.query(
+    `SELECT
+       COUNT(DISTINCT a.id) FILTER (WHERE ar.score10 IS NOT NULL OR ar.liked IS NOT NULL) AS projects_rated,
+       COUNT(sr.rating) FILTER (WHERE sr.rating IS NOT NULL) AS songs_rated,
+       COUNT(sr.rating) FILTER (WHERE sr.rating >= 4) AS songs_liked_count,
+       COUNT(sr.rating) FILTER (WHERE sr.rating = 5) AS songs_special_count,
+       COUNT(DISTINCT a.id) FILTER (WHERE ar.liked = 1) AS projects_liked_count,
+       COUNT(DISTINCT a.id) FILTER (WHERE ar.liked IS NOT NULL) AS projects_opinion_total
+     FROM albums a
+     JOIN album_artists aa ON aa.album_id = a.id
+     LEFT JOIN song_ratings sr ON sr.song_id IN (SELECT id FROM songs WHERE album_id = a.id) AND sr.user_id = $1
+     LEFT JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $1
+     WHERE aa.artist_id = $2`,
+    [userId, artistId]
+  );
+
+  const r = rows[0] || {};
+  const projectsRated = Number(r.projects_rated || 0);
+  const songsRated = Number(r.songs_rated || 0);
+  const songsLikedCount = Number(r.songs_liked_count || 0);
+  const songsSpecialCount = Number(r.songs_special_count || 0);
+  const projectsLikedCount = Number(r.projects_liked_count || 0);
+  const projectsOpinionTotal = Number(r.projects_opinion_total || 0);
+
+  const songsLikedPct = songsRated > 0 ? (songsLikedCount / songsRated) * 100 : null;
+  const songsSpecialPct = songsRated > 0 ? (songsSpecialCount / songsRated) * 100 : null;
+  const projectsLikedPct = projectsOpinionTotal > 0 ? (projectsLikedCount / projectsOpinionTotal) * 100 : null;
+
+  return {
+    projectsRated,
+    songsRated,
+    songsLikedPct: songsLikedPct == null ? null : Number(songsLikedPct.toFixed(1)),
+    songsSpecialPct: songsSpecialPct == null ? null : Number(songsSpecialPct.toFixed(1)),
+    projectsLikedPct: projectsLikedPct == null ? null : Number(projectsLikedPct.toFixed(1)),
+  };
+}

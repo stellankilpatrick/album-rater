@@ -10,6 +10,7 @@ export default function ArtistDetail({ user }) {
     const [artist, setArtist] = useState(null);
     const [albums, setAlbums] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [artistStats, setArtistStats] = useState(null);
     const token = localStorage.getItem("token");
 
     const [sortMode, setSortMode] = useState("rating");
@@ -34,6 +35,20 @@ export default function ArtistDetail({ user }) {
     useEffect(() => {
         if (!token) return;
         fetchArtist();
+    }, [artistId, effectiveUsername, token]);
+
+    useEffect(() => {
+        if (!token) return;
+        const fetchStats = async () => {
+            try {
+                const res = await api.get(`/artists/${artistId}/users/${effectiveUsername}/stats`, { headers: { Authorization: `Bearer ${token}` } });
+                setArtistStats(res.data);
+            } catch (err) {
+                console.error('Failed to fetch artist stats', err);
+                setArtistStats(null);
+            }
+        };
+        fetchStats();
     }, [artistId, effectiveUsername, token]);
 
     const fetchArtist = async () => {
@@ -134,9 +149,11 @@ export default function ArtistDetail({ user }) {
                 </Link>
             </button>
 
-            {albums.length === 0 ? (
+            <div style={{ display: isMobile ? 'block' : 'flex', gap: '24px', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                    {albums.length === 0 ? (
                 <p>No albums for this artist.</p>
-            ) : viewMode === "list" ? (
+                    ) : viewMode === "list" ? (
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>
                         <tr>
@@ -165,12 +182,12 @@ export default function ArtistDetail({ user }) {
                         ))}
                     </tbody>
                 </table>
-            ) : (
-                <div style={{
-                    display: "grid",
-                    gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(auto-fill, minmax(200px, 1fr))",
-                    gap: isMobile ? "10px" : "16px"
-                }}>
+                    ) : (
+                        <div style={{
+                            display: "grid",
+                            gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(auto-fill, minmax(200px, 1fr))",
+                            gap: isMobile ? "10px" : "16px"
+                        }}>
                     {sortedAlbums.map((album, i) => (
                         <div
                             key={album.id}
@@ -192,8 +209,41 @@ export default function ArtistDetail({ user }) {
                             </div>
                         </div>
                     ))}
+                        </div>
+                    )}
                 </div>
-            )}
+
+                <aside style={{ width: isMobile ? '100%' : '320px', background: 'rgba(255,255,255,0.02)', padding: '14px', borderRadius: '10px', color: '#ddd' }}>
+                    <h3 style={{ marginTop: 0 }}>Stats</h3>
+                    {artistStats ? (
+                        <div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '12px' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>{artistStats.songsRated}</div>
+                                    <div style={{ fontSize: '12px', color: '#bbb' }}>Songs rated</div>
+                                </div>
+                                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>{artistStats.projectsRated}</div>
+                                    <div style={{ fontSize: '12px', color: '#bbb' }}>Projects rated</div>
+                                </div>
+                                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>{artistStats.songsLikedPct != null ? `${artistStats.songsLikedPct}%` : '—'}</div>
+                                    <div style={{ fontSize: '12px', color: '#bbb' }}>Songs liked</div>
+                                </div>
+                                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>{artistStats.songsSpecialPct != null ? `${artistStats.songsSpecialPct}%` : '—'}</div>
+                                    <div style={{ fontSize: '12px', color: '#bbb' }}>Special songs</div>
+                                </div>
+                            </div>
+                            <div style={{ marginTop: '6px', fontSize: '12px', color: '#bbb' }}>
+                                <div><strong>{artistStats.projectsLikedPct != null ? `${artistStats.projectsLikedPct}%` : '—'}</strong> Projects liked (of those you've opined on)</div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div style={{ color: '#888' }}>No stats available.</div>
+                    )}
+                </aside>
+            </div>
         </div>
     );
 }

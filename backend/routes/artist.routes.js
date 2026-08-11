@@ -2,7 +2,7 @@ import { requireAuth } from "../auth/auth.middleware.js";
 import { Router } from "express";
 import {
   getArtistAlbumsWithTotal, getAllRatedArtists, getUserArtistStats,
-  getUserRatedAlbumsByArtist, attachUserAlbumStats, updateArtistName
+  getUserRatedAlbumsByArtist, attachUserAlbumStats, updateArtistName, getArtistUserStats
 } from "../models/artist.models.js";
 import { createNotification } from "../routes/notification.routes.js"
 import pool from "../db/database.js";
@@ -129,6 +129,19 @@ router.get("/:artistId/users/:username", requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to load artist albums" });
+  }
+});
+
+// artist user stats
+router.get("/:artistId/users/:username/stats", requireAuth, async (req, res) => {
+  try {
+    const { artistId } = req.params;
+    const userId = req.profileUser.id;
+    const stats = await getArtistUserStats(userId, artistId);
+    res.json(stats);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to load artist user stats" });
   }
 });
 
