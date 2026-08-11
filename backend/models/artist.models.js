@@ -320,8 +320,9 @@ export async function getArtistUserStats(userId, artistId) {
     `SELECT
        COUNT(DISTINCT a.id) FILTER (WHERE ar.score10 IS NOT NULL OR ar.liked IS NOT NULL) AS projects_rated,
        COUNT(sr.rating) FILTER (WHERE sr.rating IS NOT NULL) AS songs_rated,
-       COUNT(sr.rating) FILTER (WHERE sr.rating >= 4) AS songs_liked_count,
-       COUNT(sr.rating) FILTER (WHERE sr.rating = 5) AS songs_special_count,
+      -- song_ratings use a 0-2 scale per schema: treat >0 as liked, 2 as special
+      COUNT(sr.rating) FILTER (WHERE sr.rating > 0) AS songs_liked_count,
+      COUNT(sr.rating) FILTER (WHERE sr.rating = 2) AS songs_special_count,
        COUNT(DISTINCT a.id) FILTER (WHERE ar.liked = 1) AS projects_liked_count,
        COUNT(DISTINCT a.id) FILTER (WHERE ar.liked IS NOT NULL) AS projects_opinion_total
      FROM albums a
