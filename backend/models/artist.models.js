@@ -326,7 +326,8 @@ export async function getArtistUserStats(userId, artistId) {
        COUNT(DISTINCT a.id) FILTER (WHERE ar.liked IS NOT NULL) AS projects_opinion_total
      FROM albums a
      JOIN album_artists aa ON aa.album_id = a.id
-     LEFT JOIN song_ratings sr ON sr.song_id IN (SELECT id FROM songs WHERE album_id = a.id) AND sr.user_id = $1
+     LEFT JOIN songs s ON s.album_id = a.id
+     LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
      LEFT JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $1
      WHERE aa.artist_id = $2`,
     [userId, artistId]

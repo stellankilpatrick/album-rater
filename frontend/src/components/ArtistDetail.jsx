@@ -236,7 +236,7 @@ export default function ArtistDetail({ user }) {
                                 </div>
                             </div>
                             <div style={{ marginTop: '6px', fontSize: '12px', color: '#bbb' }}>
-                                <div><strong>{artistStats.projectsLikedPct != null ? `${artistStats.projectsLikedPct}%` : '—'}</strong> Projects liked (of those you've opined on)</div>
+                                <div><strong>{artistStats.projectsLikedPct != null ? `${artistStats.projectsLikedPct}%` : '—'}</strong> Projects liked</div>
                             </div>
                         </div>
                     ) : (
