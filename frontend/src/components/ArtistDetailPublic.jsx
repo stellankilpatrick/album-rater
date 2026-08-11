@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../api/api";
+import { getRatingMode, score10ToStarValue } from "../utils/rating";
+import StarRating from "./StarRating";
 
 export default function ArtistDetailPublic({ user }) {
   const { artistId } = useParams();
@@ -213,7 +215,7 @@ export default function ArtistDetailPublic({ user }) {
                 </td>
                 <td style={{ padding: "4px 8px" }}><i>{album.title}</i></td>
                 <td style={{ padding: "4px 8px" }}>{album.releaseDate ? album.releaseDate.slice(0, 4) : ""}</td>
-                <td style={{ padding: "4px 8px" }}>{(album.avgScore ?? 0).toFixed(1)}</td>
+                <td style={{ padding: "4px 8px" }}>{getRatingMode() === 'stars' ? ((album.avgScore != null) ? ((Number(album.avgScore)/2).toFixed(1) + ' ') : '0.0 ') : ((album.avgScore ?? 0).toFixed(1))}{getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(album.avgScore)} size={14} /> : null}</td>
                 <td style={{ padding: "4px 8px" }}>{album.ratingCount ?? 0}</td>
               </tr>
             ))}
@@ -241,8 +243,8 @@ export default function ArtistDetailPublic({ user }) {
               <div style={{ fontSize: isMobile ? "11px" : "15px", fontWeight: 500 }}>
                 <i>{album.title}</i> · {album.releaseDate?.slice(0, 4)}
               </div>
-              <div style={{ fontSize: isMobile ? "10px" : "14px", color: "#888" }}>
-                {album.ratingCount ?? 0} reviews · {(album.avgScore ?? 0).toFixed(1)} avg
+                <div style={{ fontSize: isMobile ? "10px" : "14px", color: "#888" }}>
+                {album.ratingCount ?? 0} reviews · {getRatingMode() === 'stars' ? ((album.avgScore != null) ? (Number(album.avgScore)/2).toFixed(1) : '0.0') : ((album.avgScore ?? 0).toFixed(1))} {getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(album.avgScore)} size={12} /> : 'avg'}
               </div>
             </div>
           ))}

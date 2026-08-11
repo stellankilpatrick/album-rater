@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/api";
+import StarRating from "./StarRating";
+import { getRatingMode, score10ToStarValue, renderScore } from "../utils/rating";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
 export default function AlbumDetail({ user }) {
@@ -671,16 +673,21 @@ export default function AlbumDetail({ user }) {
               <div style={{ display: "flex", flexDirection: isMobile ? "row" : "row", alignItems: isMobile ? "flex-start" : "flex-end", gap: "18px", flex: "0 0 auto" }}>
                 {/* Score column (score + overall rank) */}
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
-                  {album.score10 != null && (
-                    <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-                      <div style={{ fontSize: isMobile ? "3.6rem" : "6rem", fontWeight: 600, lineHeight: 0.9 }}>
-                        {album.score10.toFixed(1)}
+                  {album.score10 != null && (() => {
+                    const mode = typeof getRatingMode === 'function' ? getRatingMode() : 'score';
+                    return (
+                      <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
+                        <div style={{ fontSize: isMobile ? "3.6rem" : "6rem", fontWeight: 600, lineHeight: 0.9 }}>
+                          {mode === 'stars' ? <StarRating value={score10ToStarValue(album.score10)} size={40} /> : renderScore(album.score10)}
+                        </div>
+                        {mode !== 'stars' && (
+                          <div style={{ fontSize: isMobile ? "0.9rem" : "1rem", opacity: 0.85 }}>
+                            out of 10
+                          </div>
+                        )}
                       </div>
-                      <div style={{ fontSize: isMobile ? "0.9rem" : "1rem", opacity: 0.85 }}>
-                        out of 10
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                   {ranks.overall?.rank != null && (
                     <div style={{ fontSize: isMobile ? "0.95rem" : "17px", opacity: 0.85, marginTop: "6px", display: "flex", alignItems: "center", gap: "8px" }}>
                       <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>

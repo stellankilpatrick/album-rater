@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import api from "../api/api";
 import AddSongForm from "./AddSongForm";
+import { getRatingMode, score10ToStarValue } from "../utils/rating";
+import StarRating from "./StarRating";
 
 export default function AlbumDetailPublic({ user }) {
   const { albumId } = useParams();
@@ -653,9 +655,14 @@ export default function AlbumDetailPublic({ user }) {
               )}
             </div>
 
-            <p style={{ margin: isEditing ? 0 : "0 0 -4px 0", lineHeight: 1.4 }}>
-              Average Score: {album.avgScore?.toFixed(1) || "0.0"} |{" "}
-              {album.ratingCount ?? 0} rating{album.ratingCount !== 1 ? "s" : ""}
+            <p style={{ margin: isEditing ? 0 : "0 0 -4px 0", lineHeight: 1.4, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>Average Score: {getRatingMode() === 'stars' ? (album.avgScore != null ? (Number(album.avgScore)/2).toFixed(1) : '0.0') : (album.avgScore != null ? Number(album.avgScore).toFixed(1) : '0.0')}</span>
+              {getRatingMode() === 'stars' && (
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  {(() => { try { const v = require('../utils/rating').score10ToStarValue(album.avgScore); if (v == null) return null; const Star = require('./StarRating').default; return <Star value={v} size={14} /> } catch(e){ return null } })()}
+                </span>
+              )}
+              <span>| {album.ratingCount ?? 0} rating{album.ratingCount !== 1 ? "s" : ""}</span>
             </p>
 
             <div style={{ display: "flex", gap: "10px", marginTop: isEditing ? "10px" : "8px", flexWrap: "wrap", justifyContent: isMobile ? "center" : "flex-start" }}>
@@ -839,7 +846,7 @@ export default function AlbumDetailPublic({ user }) {
             {myReview?.score10 != null && myReview?.userRating != null && (
               <h3>
                 <Link to={`/albums/${albumId}/users/${effectiveUsername}`}>
-                  Your rating: {myReview.score10.toFixed(1)}
+                  Your rating: {getRatingMode() === 'stars' ? (() => { try { const v = require('../utils/rating').score10ToStarValue(myReview.score10); const Star = require('./StarRating').default; return v != null ? <Star value={v} size={12} /> : 'N/A' } catch(e){ return null } })() : (myReview.score10 != null ? Number(myReview.score10).toFixed(1) : 'N/A')}
                 </Link>
               </h3>
             )}
@@ -855,7 +862,7 @@ export default function AlbumDetailPublic({ user }) {
                           ? <img src={r.pfp} alt={r.username} style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />
                           : <div style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "#444" }} />
                         }
-                        {r.username} <b>{r.score10 != null ? r.score10.toFixed(1) : "N/A"}</b>
+                        {r.username} <b>{getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(r.score10)} size={12}/> : (r.score10 != null ? r.score10.toFixed(1) : "N/A")}</b>
                       </Link>
                     </li>
                   ))}
@@ -871,7 +878,7 @@ export default function AlbumDetailPublic({ user }) {
           {myReview?.score10 != null && myReview?.userRating != null && (
             <h3>
               <Link to={`/albums/${albumId}/users/${effectiveUsername}`}>
-                Your rating: {myReview.score10.toFixed(1)}
+                Your rating: {getRatingMode() === 'stars' ? (() => { try { const v = require('../utils/rating').score10ToStarValue(myReview.score10); const Star = require('./StarRating').default; return v != null ? <Star value={v} size={12} /> : 'N/A' } catch(e){ return null } })() : (myReview.score10 != null ? Number(myReview.score10).toFixed(1) : 'N/A')}
               </Link>
             </h3>
           )}
@@ -887,7 +894,7 @@ export default function AlbumDetailPublic({ user }) {
                         ? <img src={r.pfp} alt={r.username} style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />
                         : <div style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "#444" }} />
                       }
-                      {r.username} <b>{r.score10 != null ? r.score10.toFixed(1) : "N/A"}</b>
+                      {r.username} <b>{getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(r.score10)} size={12}/> : (r.score10 != null ? r.score10.toFixed(1) : "N/A")}</b>
                     </Link>
                   </li>
                 ))}

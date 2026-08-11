@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link, Navigate } from "react-router-dom";
 import api from "../api/api";
+import { getRatingMode, score10ToStarValue, renderScore } from "../utils/rating";
+import StarRating from "./StarRating";
 
 export default function ArtistDetail({ user }) {
     const { artistId, username } = useParams();
@@ -176,7 +178,7 @@ export default function ArtistDetail({ user }) {
                                 </td>
                                 <td style={{ padding: "4px 8px" }}><i>{album.title}</i></td>
                                 <td style={{ padding: "4px 8px" }}>{album.releaseDate ? album.releaseDate.slice(0, 4) : ""}</td>
-                                <td style={{ padding: "4px 8px" }}>{album.score10?.toFixed(1)}</td>
+                                <td style={{ padding: "4px 8px" }}>{getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(album.score10)} size={14}/> : renderScore(album.score10)}</td>
                                 <td style={{ padding: "4px 8px" }}>{album.rate}</td>
                             </tr>
                         ))}
@@ -202,7 +204,7 @@ export default function ArtistDetail({ user }) {
                                 />
                             )}
                             <div style={{ fontSize: isMobile ? "11px" : "15px", fontWeight: 500 }}>
-                                {sortMode === "rating" && `${i + 1}. `}<i>{album.title}</i> · {album.score10?.toFixed(1)}
+                                {sortMode === "rating" && `${i + 1}. `}<i>{album.title}</i> · {getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(album.score10)} size={14}/> : renderScore(album.score10)}
                             </div>
                             <div style={{ fontSize: isMobile ? "10px" : "14px", color: "#888" }}>
                                 {album.releaseDate?.slice(0, 4)}
