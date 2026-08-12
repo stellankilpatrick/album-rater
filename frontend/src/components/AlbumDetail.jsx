@@ -205,26 +205,37 @@ export default function AlbumDetail({ user }) {
     if (!window.confirm(confirmMsg)) return;
 
     setIsSaving(true);
+    const bump = Boolean(bumpActivity);
+    console.debug('handleSaveRating called, bumpActivity=', bump);
     try {
       // Save all song ratings
       for (const song of pendingSongs) {
         const original = songs.find(s => s.id === song.id);
-        if (original?.localRating !== song.localRating) {
-          await api.patch(`/songs/${song.id}/rating`, { rating: song.localRating ?? null, bumpActivity });
+        const origRating = original?.localRating ?? null;
+        const newRating = song.localRating ?? null;
+        if (origRating !== newRating) {
+          console.debug('Patching song rating', song.id, { rating: newRating, bumpActivity: bump });
+          await api.patch(`/songs/${song.id}/rating`, { rating: newRating, bumpActivity: bump });
         }
-        if (original?.comment !== song.comment) {
-          await api.patch(`/songs/${song.id}/comment`, { comment: song.comment, bumpActivity });
+        const origComment = original?.comment ?? null;
+        const newComment = song.comment ?? null;
+        if (origComment !== newComment) {
+          console.debug('Patching song comment', song.id, { comment: newComment, bumpActivity: bump });
+          await api.patch(`/songs/${song.id}/comment`, { comment: newComment, bumpActivity: bump });
         }
       }
 
       // Save review
-      if (pendingReview !== review) {
-        await api.patch(`/albums/${albumId}/review/users/${effectiveUsername}`, { review: pendingReview.trim() || null, bumpActivity });
+      if ((pendingReview ?? null) !== (review ?? null)) {
+        const reviewBody = { review: (pendingReview || "").trim() || null, bumpActivity: bump };
+        console.debug('Patching album review', reviewBody);
+        await api.patch(`/albums/${albumId}/review/users/${effectiveUsername}`, reviewBody);
       }
 
       // Save opinion
-      if (pendingLiked !== liked) {
-        await api.patch(`/albums/${albumId}/users/${effectiveUsername}/liked`, { liked: pendingLiked });
+      if ((pendingLiked ?? null) !== (liked ?? null)) {
+        console.debug('Patching album opinion', { liked: pendingLiked, bumpActivity: bump });
+        await api.patch(`/albums/${albumId}/users/${effectiveUsername}/liked`, { liked: pendingLiked, bumpActivity: bump });
         setLiked(pendingLiked);
       }
 
