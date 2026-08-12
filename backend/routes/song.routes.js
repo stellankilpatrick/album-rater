@@ -280,7 +280,8 @@ router.delete("/:songId", requireAuth, async (req, res) => {
 router.patch("/:songId/comment", requireAuth, async (req, res) => {
   try {
     const { comment } = req.body;
-    const result = await updateSongComment(req.user.id, req.params.songId, comment);
+    const bump = Boolean(req.body.bumpActivity);
+    const result = await updateSongComment(req.user.id, req.params.songId, comment, bump);
     res.json(result);
   } catch (err) {
     console.error(err);
