@@ -16,7 +16,15 @@ import notificationRoutes from "./routes/notification.routes.js";
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+
+// Configure CORS to allow requests from frontend (set FRONTEND_URL in env)
+const corsOptions = {
+	origin: process.env.FRONTEND_URL || true,
+	methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+	allowedHeaders: ["Content-Type", "Authorization"],
+	credentials: true,
+};
+app.use(cors(corsOptions));
 
 // Mount auth routes
 app.use("/auth", authRoutes);
