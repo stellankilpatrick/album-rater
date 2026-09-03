@@ -224,11 +224,11 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           <div style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ fontSize: '12px', color: '#bbb' }}>Display:</div>
             <button
-              onClick={() => { setRatingMode('score'); localStorage.setItem('ratingMode','score'); }}
+              onClick={() => { setRatingMode('score'); localStorage.setItem('ratingMode','score'); window.location.reload(); }}
               style={{ padding: '4px 8px', fontSize: '12px', borderRadius: 6, backgroundColor: ratingMode === 'score' ? '#222' : 'transparent', color: ratingMode === 'score' ? '#fff' : '#ddd', border: '1px solid #333', cursor: 'pointer' }}
             >Score</button>
             <button
-              onClick={() => { setRatingMode('stars'); localStorage.setItem('ratingMode','stars'); }}
+              onClick={() => { setRatingMode('stars'); localStorage.setItem('ratingMode','stars'); window.location.reload(); }}
               style={{ padding: '4px 8px', fontSize: '12px', borderRadius: 6, backgroundColor: ratingMode === 'stars' ? '#222' : 'transparent', color: ratingMode === 'stars' ? '#fff' : '#ddd', border: '1px solid #333', cursor: 'pointer' }}
             >Stars</button>
           </div>
