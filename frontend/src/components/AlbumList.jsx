@@ -247,14 +247,7 @@ export default function AlbumList({ user }) {
                         <p className="filter-meta" style={{ textAlign: "center" }}>Showing {sortedAlbums.length} of {albums.length} albums</p>
                     </div>
 
-                    {/* Toggle button — hidden on mobile */}
-                    {!isMobile && (
-                        <div style={{ display: "flex", justifyContent: "center" }}>
-                            <button className="ui-btn" style={{ marginBottom: "10px" }} onClick={() => setViewMode(prev => prev === "list" ? "grid" : "list")}>
-                                {viewMode === "list" ? "Grid View" : "List View"}
-                            </button>
-                        </div>
-                    )}
+                    {/* View mode fixed to grid — list view button removed */}
 
                     {sortedAlbums.length === 0 ? (
                         <p>No albums match your filters.</p>

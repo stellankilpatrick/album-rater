@@ -174,13 +174,13 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           </div>
         )}
       </div>
+      <Link to="/community" className={navClass("/community")}>Activity</Link>
       <div style={{ position: "relative" }}
         onMouseEnter={() => setAddAlbumOpen(true)}
         onMouseLeave={() => setAddAlbumOpen(false)}
       >
         {(<Link to="/albums/new" className={navClass("/albums/new")}>Add Album</Link>)}
       </div>
-      <Link to="/community" className={navClass("/community")}>Community</Link>
     </>
   );
 
@@ -298,7 +298,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
   );
 
   return (
-    <div style={{ backgroundColor: "black", position: "relative", zIndex: 100 }}>
+    <div style={{ backgroundColor: "#1a1a1a", position: "relative", zIndex: 100 }}>
       <div
         className="top-nav"
         style={{
@@ -393,6 +393,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           </>
         ) : (
           <>
+            <Link to="/" style={{ color: 'white', fontWeight: 600, fontSize: '1.4rem', marginRight: '12px', textDecoration: 'none' }}>arrva</Link>
             <div className="nav-center-group" style={{ display: "flex", alignItems: "center", gap: "16px", flex: 1 }}>
             {links}
             {SearchBox}
@@ -478,8 +479,8 @@ function TopNav({ effectiveUsername, email, onLogout }) {
             { to: `/artists/users/${effectiveUsername}`, label: "Artist Rankings" },
             { to: "/albums", label: "Albums" },
             { to: "/artists", label: "Artists" },
+            { to: "/community", label: "Activity" },
             { to: "/albums/new", label: "Add Album" },
-            { to: "/community", label: "Community" },
             { to: `/users/${effectiveUsername}`, label: "Profile" },
           ].map(({ to, label }) => (
             <Link

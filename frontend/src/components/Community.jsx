@@ -4,7 +4,7 @@ import api from "../api/api";
 
 export default function Community() {
     const [feed, setFeed] = useState([]);
-    const [anniversaryAlbums, setAnniversaryAlbums] = useState([]);
+    
     const [loading, setLoading] = useState(true);
     const [showMyActivity, setShowMyActivity] = useState(false);
 
@@ -20,12 +20,8 @@ export default function Community() {
         const fetchData = async () => {
             try {
                 const endpoint = showMyActivity ? "/community/my-activity" : "/community";
-                const [feedRes, anniversaryRes] = await Promise.all([
-                    api.get(endpoint),
-                    api.get("/community/albums")
-                ]);
+                const feedRes = await api.get(endpoint);
                 setFeed(feedRes.data);
-                setAnniversaryAlbums(anniversaryRes.data);
             } finally {
                 setLoading(false);
             }
@@ -49,8 +45,8 @@ export default function Community() {
     if (loading) return <p>Loading…</p>;
 
     return (
-        <div className="community page-pad">
-            <h1>Community</h1>
+            <div className="community page-pad">
+                <h1 style={{ textAlign: "center" }}>Activity</h1>
             <div style={{
                 display: "flex",
                 flexDirection: isMobile ? "column" : "row",
@@ -59,8 +55,10 @@ export default function Community() {
             }}>
                 {/* Left: activity feed */}
                 <div style={{ flex: isMobile ? undefined : "1 1 0", minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                    <div style={{ marginBottom: "8px", textAlign: "center" }}>
                         <h2 style={{ marginTop: 0, marginBottom: 0 }}>{showMyActivity ? "Your" : "Friend"} Recent Activity</h2>
+                    </div>
+                    <div style={{ textAlign: "center", marginBottom: "12px" }}>
                         <button
                             onClick={() => setShowMyActivity(!showMyActivity)}
                             style={{ padding: "6px 12px", cursor: "pointer" }}
@@ -71,9 +69,10 @@ export default function Community() {
                     {feed.length === 0 ? (
                         <p>No activity yet. Follow more people.</p>
                     ) : (
-                        <div style={{ maxHeight: isMobile ? "60vh" : "70vh", overflowY: "auto", paddingRight: "8px" }}>
+                        <div style={{ minHeight: isMobile ? "60vh" : "75vh", overflowY: "visible", paddingRight: "8px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                            <div style={{ width: isMobile ? "100%" : "720px" }}>
                             {feed.map(item => (
-                                <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className="community-item" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className="community-item" style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
                                     {item.pfp && (
                                         <Link to={`/users/${item.username}`}>
                                             <img src={item.pfp} alt="" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
@@ -81,57 +80,29 @@ export default function Community() {
                                     )}
                                     <div>
                                         <Link to={`/users/${item.username}`}>
-                                            <strong>{item.username}</strong>
+                                            <strong style={{ fontWeight: 600 }}>{item.username}</strong>
                                         </Link>
                                         {" "}
                                         {Math.abs(new Date(item.updated_at) - new Date(item.created_at)) < 60000 ? "rated" : "updated"}
                                         {" "}
                                         <Link to={`/albums/${item.album_id}/users/${item.username}`}>
-                                            <strong>{item.album_title}</strong>
+                                            <strong style={{ fontWeight: 600 }}>{item.album_title}</strong>
                                         </Link>
                                         {" by "}
                                         {item.artist_name}
                                         {" "}
-                                        <span className="time">{timeAgo(item.updated_at)}</span>
+                                        <span className="time" style={{ fontSize: "12px", color: "#999" }}>{timeAgo(item.updated_at)}</span>
                                     </div>
                                 </div>
                             ))}
+                            </div>
                         </div>
                     )}
                 </div>
 
-                {/* Right: anniversary albums */}
-                {anniversaryAlbums.length > 0 && (
-                    <div style={{ flex: isMobile ? undefined : "0 0 640px", width: isMobile ? "100%" : undefined, paddingRight: isMobile ? "0px" : "50px" }}>
-                        <h3 style={{ marginTop: 0 }}>Released This Week In History</h3>
-                        <p style={{ marginTop: "-5px" }}>Consider re-listening!</p>
-                        <div style={{
-                            display: "grid",
-                            gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(4, 1fr)",
-                            gap: "12px"
-                        }}>
-                            {anniversaryAlbums.map(album => (
-                                <div key={album.id} style={{ textAlign: "center" }}>
-                                    <Link to={`/albums/${album.id}/me`}>
-                                        <img
-                                            src={album.coverArt}
-                                            alt={album.title}
-                                            style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: "6px" }}
-                                        />
-                                    </Link>
-                                    <div style={{ fontSize: "13px", fontWeight: 500 }}>
-                                        <i>{album.title}</i> ({album.releaseDate.slice(0, 4)})
-                                    </div>
-                                    <div style={{ fontSize: "12px", color: "#666" }}>
-                                        {album.artist}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                {/* no right column (anniversary removed) */}
             </div>
-            <h3><Link to="/community/recommendations">Recommended Albums</Link></h3>
+            
         </div>
     );
 }

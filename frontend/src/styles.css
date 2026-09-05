@@ -32,6 +32,16 @@ body {
   color: #D3D3D3;
 }
 
+/* Slightly soften bold text globally */
+strong, b {
+  font-weight: 600;
+}
+
+/* Reduce H1 weight to be less bold (approx 2/3 of heavier weight) */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+}
+
 th {
   cursor: pointer;
 }

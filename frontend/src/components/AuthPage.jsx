@@ -34,7 +34,8 @@ export default function AuthPage({ onLogin }) {
             localStorage.setItem("token", res.data.token);
             onLogin(res.data.user, res.data.token);
             const loggedInUsername = res.data.user?.username ?? normalizedUsername;
-            navigate(`/albums/users/${loggedInUsername}`);
+            // After login, go to the Home landing page
+            navigate(`/`);
         } catch (err) {
             console.error(err);
             setError(err.response?.data?.error || "Something went wrong");
