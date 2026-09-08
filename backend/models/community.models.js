@@ -9,7 +9,7 @@ export async function getCommunityFeed(userId, limit = 500) {
       u.pfp,
       al.id AS album_id,
       al.title AS album_title,
-      MAX(al.cover_art) AS coverArt,
+      MAX(al.cover_art) AS "coverArt",
       (
         SELECT STRING_AGG(ar.name, ' & ' ORDER BY ar.name)
         FROM album_artists aa
@@ -88,7 +88,7 @@ export async function getMyActivityFeed(userId, limit = 500) {
       u.pfp,
       al.id AS album_id,
       al.title AS album_title,
-      MAX(al.cover_art) AS coverArt,
+      MAX(al.cover_art) AS "coverArt",
       (
         SELECT STRING_AGG(ar.name, ' & ' ORDER BY ar.name)
         FROM album_artists aa
