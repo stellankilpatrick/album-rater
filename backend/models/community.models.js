@@ -35,6 +35,21 @@ export async function getCommunityFeed(userId, limit = 500) {
     [userId, limit]
   );
 
+  // debug: log returned rows briefly
+  try {
+    console.log('[community.models] getCommunityFeed rows=', res.rows.length);
+    if (res.rows[0]) {
+      console.log('[community.models] getCommunityFeed sample=', {
+        activity_id: res.rows[0].activity_id,
+        album_id: res.rows[0].album_id,
+        album_title: res.rows[0].album_title,
+        coverArt: res.rows[0].coverart ?? res.rows[0].coverArt ?? res.rows[0].album_cover
+      });
+    }
+  } catch (e) {
+    console.error('[community.models] logging error', e);
+  }
+
   return res.rows;
 }
 
@@ -97,6 +112,21 @@ export async function getMyActivityFeed(userId, limit = 500) {
     LIMIT $2`,
     [userId, limit]
   );
+
+  // debug: log returned rows briefly
+  try {
+    console.log('[community.models] getMyActivityFeed rows=', res.rows.length);
+    if (res.rows[0]) {
+      console.log('[community.models] getMyActivityFeed sample=', {
+        activity_id: res.rows[0].activity_id,
+        album_id: res.rows[0].album_id,
+        album_title: res.rows[0].album_title,
+        coverArt: res.rows[0].coverart ?? res.rows[0].coverArt ?? res.rows[0].album_cover
+      });
+    }
+  } catch (e) {
+    console.error('[community.models] logging error', e);
+  }
 
   return res.rows;
 }

@@ -13,9 +13,13 @@ export default function Home({ user }) {
       api.get("/community"),
       api.get("/community/albums")
     ]).then(([feedRes, annRes]) => {
-      setRecent((feedRes.data || []).slice(0, 6));
+      const feed = feedRes.data || [];
+      console.log('[/community] feed length=', feed.length);
+      if (feed[0]) console.log('[/community] sample=', { album_id: feed[0].album_id, album_title: feed[0].album_title, coverArt: feed[0].coverArt, album_cover: feed[0].album_cover });
+      setRecent(feed.slice(0, 6));
+      console.log('[/community/albums] anniversary count=', (annRes.data || []).length);
       setAnniversary(annRes.data || []);
-    }).catch(() => {});
+    }).catch((err) => { console.error('[/community] fetch error', err); });
   }, [user]);
 
   return (
@@ -30,6 +34,7 @@ export default function Home({ user }) {
                 {recent.map(item => (
                   <Link key={`${item.username}-${item.album_id}-${item.updated_at}`} to={`/albums/${item.album_id}/users/${item.username}`} style={{ textDecoration: "none", color: "inherit" }}>
                     <div style={{ textAlign: "center" }}>
+                      {console.log('[Home] thumbnail src for', item.album_id, '=', item.coverArt || item.album_cover)}
                       <img src={item.coverArt || item.album_cover || ""} alt={item.album_title} style={{ width: "96px", height: "96px", objectFit: "cover", borderRadius: "6px", display: "block", margin: "0 auto" }} />
                       <div style={{ fontSize: "13px", fontWeight: 500, marginTop: "6px" }}>
                         <i>{item.album_title}</i>

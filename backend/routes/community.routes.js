@@ -9,6 +9,9 @@ const router = express.Router();
 router.get("/", requireAuth, async (req, res) => {
   try {
     const feed = await getCommunityFeed(req.user.id);
+    console.log('[community.routes] sending feed length=', Array.isArray(feed) ? feed.length : (feed.rows?.length ?? null));
+    // show a sample for debugging
+    if (Array.isArray(feed) && feed[0]) console.log('[community.routes] sample feed item=', { album_id: feed[0].album_id, album_title: feed[0].album_title, coverArt: feed[0].coverArt ?? feed[0].album_cover });
     res.json(feed);
   } catch (err) {
     console.error(err);
