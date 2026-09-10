@@ -14,12 +14,9 @@ export default function Home({ user }) {
       api.get("/community/albums")
     ]).then(([feedRes, annRes]) => {
       const feed = feedRes.data || [];
-      console.log('[/community] feed length=', feed.length);
-      if (feed[0]) console.log('[/community] sample=', { album_id: feed[0].album_id, album_title: feed[0].album_title, coverArt: feed[0].coverArt, album_cover: feed[0].album_cover });
       setRecent(feed.slice(0, 6));
-      console.log('[/community/albums] anniversary count=', (annRes.data || []).length);
       setAnniversary(annRes.data || []);
-    }).catch((err) => { console.error('[/community] fetch error', err); });
+    }).catch(() => {});
   }, [user]);
 
   return (
@@ -30,12 +27,11 @@ export default function Home({ user }) {
       {user ? (
         <>
           {recent.length > 0 ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "12px", marginTop: "18px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginTop: "18px" }}>
                 {recent.map(item => (
                   <Link key={`${item.username}-${item.album_id}-${item.updated_at}`} to={`/albums/${item.album_id}/users/${item.username}`} style={{ textDecoration: "none", color: "inherit" }}>
                     <div style={{ textAlign: "center" }}>
-                      {console.log('[Home] thumbnail src for', item.album_id, '=', item.coverArt || item.album_cover)}
-                      <img src={item.coverArt || item.album_cover || ""} alt={item.album_title} style={{ width: "96px", height: "96px", objectFit: "cover", borderRadius: "6px", display: "block", margin: "0 auto" }} />
+                      <img src={item.coverArt || item.album_cover || ""} alt={item.album_title} style={{ width: "140px", height: "140px", objectFit: "cover", borderRadius: "6px", display: "block", margin: "0 auto" }} />
                       <div style={{ fontSize: "13px", fontWeight: 500, marginTop: "6px" }}>
                         <i>{item.album_title}</i>
                       </div>
@@ -56,11 +52,11 @@ export default function Home({ user }) {
             <div style={{ marginTop: "28px" }}>
               <h3 style={{ marginBottom: "6px" }}>Released This Week In History</h3>
               <p style={{ color: "#bbb", marginTop: 0, marginBottom: "12px" }}>Consider re-listening!</p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, 120px)", gap: "28px", rowGap: "30px", justifyContent: "start", justifyItems: "start" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, 160px)", gap: "28px", rowGap: "30px", justifyContent: "start", justifyItems: "start" }}>
                 {anniversary.map(album => (
                   <Link key={album.id} to={`/albums/${album.id}/me`} style={{ textDecoration: "none", color: "inherit" }}>
                     <div style={{ textAlign: "center" }}>
-                      <img src={album.coverArt} alt={album.title} style={{ width: "140px", height: "140px", objectFit: "cover", borderRadius: "6px", display: "block", margin: "0 auto" }} />
+                      <img src={album.coverArt} alt={album.title} style={{ width: "180px", height: "180px", objectFit: "cover", borderRadius: "6px", display: "block", margin: "0 auto" }} />
                       <div style={{ fontSize: "13px", fontWeight: 500, marginTop: "6px" }}>
                         <i>{album.title}</i>
                       </div>
