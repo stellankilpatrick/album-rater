@@ -17,14 +17,28 @@ const app = express();
 
 app.use(express.json());
 
-// Configure CORS to allow requests from frontend (set FRONTEND_URL in env)
-const corsOptions = {
-	origin: process.env.FRONTEND_URL || true,
-	methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-	allowedHeaders: ["Content-Type", "Authorization"],
-	credentials: true,
-};
-app.use(cors(corsOptions));
+// Configure CORS: if FRONTEND_URLS or FRONTEND_URL is set, treat it as a whitelist (comma-separated).
+// If neither env is set, allow all origins (dev-friendly). Example:
+// FRONTEND_URLS=https://album-rater-rho.vercel.app,http://localhost:3001
+const rawFrontend = process.env.FRONTEND_URLS || process.env.FRONTEND_URL;
+if (rawFrontend) {
+	const whitelist = rawFrontend.split(',').map(s => s.trim()).filter(Boolean);
+	const corsOptions = {
+		origin: (origin, callback) => {
+			// allow requests with no origin (curl, server-to-server, same-origin)
+			if (!origin) return callback(null, true);
+			if (whitelist.includes(origin)) return callback(null, true);
+			return callback(new Error('CORS_NOT_ALLOWED'));
+		},
+		methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+		allowedHeaders: ["Content-Type", "Authorization"],
+		credentials: true,
+	};
+	app.use(cors(corsOptions));
+} else {
+	// no frontend env configured — allow all origins (like previous default)
+	app.use(cors({ origin: true, methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], allowedHeaders: ["Content-Type", "Authorization"], credentials: true }));
+}
 
 // Mount auth routes
 app.use("/auth", authRoutes);
