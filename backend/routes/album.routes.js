@@ -4,6 +4,7 @@ import { requireAuth } from "../auth/auth.middleware.js";
 import {
   getAlbumDetailsPublic, createAlbum,
   getAllAlbumsPublic, updateAlbumTitle, updateAlbumArtist, updateAlbumCover,
+  updateAlbumAdjustor,
   getUserRatedAlbums, updateAlbumRatingForUser, getAlbumDetailsPrivate,
   getUserAlbumScores, updateAlbumReleaseDate, deleteUserAlbumRating,
   getAlbumGenres, getAllGenres, addGenreToAlbum, removeGenreFromAlbum,
@@ -271,6 +272,26 @@ router.patch("/:id/official", requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to update album official status" });
+  }
+});
+
+// PATCH /albums/:id/adjustor - allow logged-in user to set their per-review adjustor
+router.patch("/:id/adjustor", requireAuth, async (req, res) => {
+  try {
+    const albumId = Number(req.params.id);
+    const userId = req.user.id;
+    let parsed = Number(req.body.adjustor);
+    if (!isFinite(parsed)) return res.status(400).json({ error: "Invalid adjustor" });
+
+    // Confine adjusted rating contribution to range [0, 10]
+    if (parsed < 0) parsed = 0;
+    if (parsed > 10) parsed = 10;
+
+    const updated = await updateAlbumAdjustor(userId, albumId, parsed);
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update adjustor" });
   }
 });
 

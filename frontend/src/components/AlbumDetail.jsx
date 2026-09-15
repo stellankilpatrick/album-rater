@@ -48,6 +48,9 @@ export default function AlbumDetail({ user }) {
   const [flashInvalid, setFlashInvalid] = useState(false);
   const [showOpinionPopup, setShowOpinionPopup] = useState(false);
 
+  const [editAdjustOpen, setEditAdjustOpen] = useState(false);
+  const [adjustValue, setAdjustValue] = useState(0);
+
   useEffect(() => {
     if (user) api.get(`albums/${albumId}/users/${effectiveUsername}/mutuals`).then(res => setFriends(res.data));
   }, [user]);
@@ -113,6 +116,7 @@ export default function AlbumDetail({ user }) {
         setAlbum(res.data);
         setSongs(res.data.songs);
         setPendingSongs(res.data.songs);
+        setAdjustValue(res.data.adjustor ?? 0);
       })
       .catch(err => console.error(err));
   }, [albumId, effectiveUsername]);
@@ -434,6 +438,7 @@ export default function AlbumDetail({ user }) {
                 transition: "border 0.15s ease",
               }}
             />
+            {/* owner adjustor editor removed from review panel; edit pencil moved next to header score */}
             {album?.ratingId && (
               <button
                 onClick={async () => {
@@ -687,16 +692,37 @@ export default function AlbumDetail({ user }) {
                   {album.score10 != null && (() => {
                     const mode = typeof getRatingMode === 'function' ? getRatingMode() : 'score';
                     return (
-                      <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-                        <div style={{ fontSize: isMobile ? "3.6rem" : "6rem", fontWeight: 600, lineHeight: 0.9 }}>
-                          {mode === 'stars' ? <StarRating value={score10ToStarValue(album.score10)} size={40} /> : renderScore(album.score10)}
+                      <>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
+                          <div style={{ fontSize: isMobile ? "3.6rem" : "6rem", fontWeight: 600, lineHeight: 0.9 }}>
+                            {mode === 'stars' ? <StarRating value={score10ToStarValue(album.score10)} size={40} /> : renderScore(album.score10)}
+                          </div>
+                          {mode !== 'stars' && (
+                            <div style={{ fontSize: isMobile ? "0.9rem" : "1rem", opacity: 0.85, display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <div>out of 10</div>
+                              {isOwner && (
+                                <button onClick={() => setEditAdjustOpen(prev => !prev)} style={{ cursor: 'pointer', fontSize: '0.9rem', background: 'transparent', border: 'none', color: 'white' }} aria-label="Edit adjustor">✎</button>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        {mode !== 'stars' && (
-                          <div style={{ fontSize: isMobile ? "0.9rem" : "1rem", opacity: 0.85 }}>
-                            out of 10
+                        {editAdjustOpen && isOwner && (
+                          <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <input type="number" step="0.1" value={adjustValue} onChange={e => setAdjustValue(e.target.value)} style={{ width: 90, padding: '4px 6px', borderRadius: 6 }} />
+                            <button onClick={async () => {
+                              try {
+                                const res = await api.patch(`/albums/${albumId}/adjustor`, { adjustor: Number(adjustValue) });
+                                setAlbum(res.data);
+                                setEditAdjustOpen(false);
+                              } catch (err) {
+                                console.error(err);
+                                alert('Failed to save adjustor');
+                              }
+                            }}>Save</button>
+                            <button onClick={() => { setEditAdjustOpen(false); setAdjustValue(album.adjustor ?? 0); }}>Cancel</button>
                           </div>
                         )}
-                      </div>
+                      </>
                     );
                   })()}
                   {ranks.overall?.rank != null && (

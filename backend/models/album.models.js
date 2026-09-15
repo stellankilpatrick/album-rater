@@ -444,6 +444,7 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
       a.cover_art AS "coverArt",
       a.type,
       alr.untracked,
+      alr.adjustor AS "adjustor",
       ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
       STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
       alr.id AS "ratingId",
@@ -481,6 +482,21 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
 
   album.tracks = tracksRes.rows;
   return album;
+}
+
+export async function updateAlbumAdjustor(userId, albumId, adjustor) {
+  const parsed = Number(adjustor);
+  if (!isFinite(parsed)) throw new Error('Invalid adjustor');
+
+  await pool.query(
+    `INSERT INTO album_ratings (user_id, album_id, adjustor, non_skips, rated_songs)
+     VALUES ($1, $2, $3, COALESCE((SELECT non_skips FROM album_ratings WHERE user_id=$1 AND album_id=$2),0), COALESCE((SELECT rated_songs FROM album_ratings WHERE user_id=$1 AND album_id=$2),0))
+     ON CONFLICT (user_id, album_id) DO UPDATE SET adjustor = EXCLUDED.adjustor`,
+    [userId, albumId, parsed]
+  );
+
+  // return private view so caller gets the user's adjustor included
+  return getAlbumDetailsPrivate(Number(albumId), userId);
 }
 
 /**
