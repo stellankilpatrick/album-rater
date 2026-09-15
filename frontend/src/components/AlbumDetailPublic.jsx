@@ -468,6 +468,7 @@ export default function AlbumDetailPublic({ user }) {
                 <option value="compilation" style={{ color: "black" }}>Compilation</option>
                 <option value="soundtrack" style={{ color: "black" }}>Soundtrack</option>
                 <option value="live album" style={{ color: "black" }}>Live Album</option>
+                <option value="single" style={{ color: "black" }}>Single</option>
               </select>
               ) : (
                 !isMobile ? (

@@ -19,6 +19,7 @@ import UserConnections from "./components/UserConnections";
 import Community from "./components/Community";
 import Home from "./components/Home"
 import Recommendations from "./components/Recommendations";
+import Help from "./components/Help";
 
 function App() {
   const [user, setUser] = useState(undefined); // undefined = loading, null = no user
@@ -81,6 +82,7 @@ function App() {
       )}
       <div style={{ padding: "10px 16px 0 10px" }}>
         <Routes>
+          <Route path="/help" element={<Help />} />
           {/* not logged in */}
           {user === null && (
             <Route path="/*" element={<AuthPage onLogin={handleLogin} />} />

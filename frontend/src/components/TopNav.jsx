@@ -154,7 +154,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
     <>
       <Link to={`/albums/users/${effectiveUsername}`} className={navClass(`/albums/users/${effectiveUsername}`)}>Album Rankings</Link>
       <Link to={`/artists/users/${effectiveUsername}`} className={navClass(`/artists/users/${effectiveUsername}`)}>Artist Rankings</Link>
-      <div
+        <div
         ref={dbRef}
         style={{ position: 'relative' }}
         onMouseEnter={() => {
@@ -179,7 +179,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
         onMouseEnter={() => setAddAlbumOpen(true)}
         onMouseLeave={() => setAddAlbumOpen(false)}
       >
-        {(<Link to="/albums/new" className={navClass("/albums/new")}>Add Album</Link>)}
+        {(<Link to="/albums/new" className={navClass("/albums/new")}>Add Project</Link>)}
       </div>
     </>
   );
@@ -455,6 +455,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
                 </div>
               )}
             </div>
+            <Link to="/help" className="nav-link" aria-label="Help" style={{ textDecoration: 'none', fontSize: '1.1rem', padding: '4px 8px' }}>?</Link>
             </div>
             <div style={{ marginLeft: "auto" }}>{profileMenu}</div>
           </>
@@ -474,14 +475,15 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           borderTop: "1px solid #333",
           zIndex: 99
         }}>
-          {[
+            {[
             { to: `/albums/users/${effectiveUsername}`, label: "Album Rankings" },
             { to: `/artists/users/${effectiveUsername}`, label: "Artist Rankings" },
             { to: "/albums", label: "Albums" },
             { to: "/artists", label: "Artists" },
             { to: "/community", label: "Activity" },
-            { to: "/albums/new", label: "Add Album" },
+            { to: "/albums/new", label: "Add Project" },
             { to: `/users/${effectiveUsername}`, label: "Profile" },
+            { to: "/help", label: "Help" },
           ].map(({ to, label }) => (
             <Link
               key={to}

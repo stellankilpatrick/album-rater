@@ -22,7 +22,7 @@ export default function AddAlbum({ user }) {
 
     return (
         <div className="add-album-page" style={{ textAlign: "center" }}>
-            <h1>Add a New Album</h1>
+            <h1>Add a New Project</h1>
 
             <AddAlbumForm onAdd={handleAdd} />
 

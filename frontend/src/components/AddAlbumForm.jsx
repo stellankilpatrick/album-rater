@@ -50,7 +50,7 @@ export default function AddAlbumForm({ onAdd }) {
                     type="text"
                     value={title}
                     onChange={e => setTitle(e.target.value)}
-                    placeholder="Album title"
+                    placeholder="Title"
                     style={{ padding: "12px 16px", fontSize: "16px", width: "95%" }}
                     required
                 />
@@ -91,7 +91,7 @@ export default function AddAlbumForm({ onAdd }) {
                     onChange={e => setType(e.target.value)}
                     style={{ padding: "12px 16px", fontSize: "16px", width: "101%", color: type ? "#000" : "#9a9a9a" }}
                 >
-                    <option value="" disabled>Select album type</option>
+                    <option value="" disabled>Select project type</option>
                     <option value="album">Album</option>
                     <option value="ep">EP</option>
                     <option value="compilation">Compilation</option>
@@ -115,7 +115,7 @@ export default function AddAlbumForm({ onAdd }) {
                     Official release
                 </label>
                 <button onClick={handleSubmit} style={{ padding: "12px 16px", cursor: "pointer", fontSize: "16px", fontWeight: "bold" }}>
-                    Add Album
+                    {type ? `Add ${type.charAt(0).toUpperCase() + type.slice(1)}` : 'Add Project'}
                 </button>
             </div>
         </form>
