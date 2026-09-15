@@ -708,7 +708,7 @@ export default function AlbumDetail({ user }) {
                         </div>
                         {editAdjustOpen && isOwner && (
                           <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
-                            <input type="number" step="0.01" value={adjustValue} onChange={e => setAdjustValue(e.target.value)} style={{ width: 90, padding: '4px 6px', borderRadius: 6 }} />
+                            <input type="number" step="0.1" value={adjustValue} onChange={e => setAdjustValue(e.target.value)} style={{ width: 90, padding: '4px 6px', borderRadius: 6 }} />
                             <button onClick={async () => {
                               try {
                                 const res = await api.patch(`/albums/${albumId}/adjustor`, { adjustor: Number(adjustValue) });

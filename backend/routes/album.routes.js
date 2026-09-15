@@ -280,30 +280,14 @@ router.patch("/:id/adjustor", requireAuth, async (req, res) => {
   try {
     const albumId = Number(req.params.id);
     const userId = req.user.id;
-    const parsed = Number(req.body.adjustor);
+    let parsed = Number(req.body.adjustor);
     if (!isFinite(parsed)) return res.status(400).json({ error: "Invalid adjustor" });
+
+    // Confine adjusted rating contribution to range [0, 10]
+    if (parsed < 0) parsed = 0;
+    if (parsed > 10) parsed = 10;
 
     const updated = await updateAlbumAdjustor(userId, albumId, parsed);
-    res.json(updated);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to update adjustor" });
-  }
-});
-
-// Forgiving route: handle malformed requests like /albums/:id/adjustor:1
-router.patch("/:id/adjustor:adjustor", requireAuth, async (req, res) => {
-  try {
-    const albumId = Number(req.params.id);
-    // try to parse adjustor from URL suffix first, fallback to body
-    const urlAdjust = Number(req.params.adjustor);
-    const bodyAdjust = Number(req.body.adjustor);
-    const parsed = isFinite(urlAdjust) ? urlAdjust : bodyAdjust;
-    if (!isFinite(parsed)) return res.status(400).json({ error: "Invalid adjustor" });
-
-    console.log(`[adjustor-route] user=${req.user?.id} album=${albumId} adjustor=${parsed} (from URL malformed path)`);
-
-    const updated = await updateAlbumAdjustor(req.user.id, albumId, parsed);
     res.json(updated);
   } catch (err) {
     console.error(err);
