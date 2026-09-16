@@ -548,6 +548,12 @@ export async function updateAlbumRatingForUser(userId, albumId, bumpActivity = t
           updated_at = CASE WHEN $6 THEN NOW() ELSE album_ratings.updated_at END`,
         [userId, albumId, totalRating, nonSkips, ratedSongs, bumpActivity]
       );
+      // Ensure adjusted_rating stays in sync after score10 (rating) changes
+      await client.query(
+        `UPDATE album_ratings SET adjusted_rating = COALESCE(score10, 0) + COALESCE(adjustor, 0)
+         WHERE user_id = $1 AND album_id = $2`,
+        [userId, albumId]
+      );
     }
 
     await client.query("COMMIT");
