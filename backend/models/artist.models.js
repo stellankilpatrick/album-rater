@@ -141,10 +141,13 @@ export async function getUserRatedAlbumsByArtist(userId, artistId) {
       ) AS artist,
       COUNT(s.id) AS "numSongs",
       COUNT(sr.rating) AS "ratedSongs",
-      COALESCE(SUM(sr.rating), 0) AS "totalValue"
+      COALESCE(SUM(sr.rating), 0) AS "totalValue",
+      alr.score10 AS "score10",
+      alr.adjusted_rating AS "adjustedRating"
     FROM albums a
     JOIN songs s ON s.album_id = a.id
     LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
+    LEFT JOIN album_ratings alr ON alr.album_id = a.id AND alr.user_id = $1
     WHERE EXISTS (
       SELECT 1 FROM album_artists aa WHERE aa.album_id = a.id AND aa.artist_id = $2
     )
