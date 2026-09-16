@@ -720,6 +720,14 @@ export default function AlbumDetail({ user }) {
                               }
                             }}>Save</button>
                             <button onClick={() => { setEditAdjustOpen(false); setAdjustValue(album.adjustor ?? 0); }}>Cancel</button>
+                            <button
+                              onClick={() => alert('Custom adjustor: add a numeric value to your rating (e.g. 0.5) to tweak how this album appears in your lists. Values are added to your score and confined to 0–10.')}
+                              title="What is custom adjustor?"
+                              aria-label="What is custom adjustor?"
+                              style={{ background: 'transparent', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: '0.95rem' }}
+                            >
+                              ?
+                            </button>
                           </div>
                         )}
                       </>
