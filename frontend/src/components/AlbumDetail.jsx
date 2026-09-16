@@ -689,13 +689,13 @@ export default function AlbumDetail({ user }) {
               <div style={{ display: "flex", flexDirection: isMobile ? "row" : "row", alignItems: isMobile ? "flex-start" : "flex-end", gap: "18px", flex: "0 0 auto" }}>
                 {/* Score column (score + overall rank) */}
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
-                  {album.score10 != null && (() => {
+                  {album.adjustedRating != null && (() => {
                     const mode = typeof getRatingMode === 'function' ? getRatingMode() : 'score';
                     return (
                       <>
                         <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
                           <div style={{ fontSize: isMobile ? "3.6rem" : "6rem", fontWeight: 600, lineHeight: 0.9 }}>
-                            {mode === 'stars' ? <StarRating value={score10ToStarValue(album.score10)} size={40} /> : renderScore(album.score10)}
+                            {mode === 'stars' ? <StarRating value={score10ToStarValue(album.adjustedRating)} size={40} /> : renderScore(album.adjustedRating)}
                           </div>
                           {mode !== 'stars' && (
                             <div style={{ fontSize: isMobile ? "0.9rem" : "1rem", opacity: 0.85, display: 'flex', alignItems: 'center', gap: 8 }}>

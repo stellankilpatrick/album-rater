@@ -485,7 +485,8 @@ router.get("/:id/users/:username", requireAuth, async (req, res) => {
 
     res.json({
       ...album,
-      score10: rows[0]?.score10 ?? null,
+      // send adjusted per-user rating to frontend as the `score10` field
+      score10: (album.adjustedRating != null) ? Number(album.adjustedRating) : (rows[0]?.score10 ?? null),
       pfp: pfpRows[0]?.pfp ?? null
     });
   } catch (err) {

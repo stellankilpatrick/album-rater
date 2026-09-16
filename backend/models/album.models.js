@@ -449,6 +449,7 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
       STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
       alr.id AS "ratingId",
       alr.rating AS "userRating", 
+      alr.adjusted_rating AS "adjustedRating",
       alr.rated_songs,
       alr.review AS review
     FROM albums a
@@ -456,7 +457,7 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
     JOIN artists ar ON ar.id = aa.artist_id
     LEFT JOIN album_ratings alr ON alr.album_id = a.id AND alr.user_id = $1
     WHERE a.id = $2
-    GROUP BY a.id, alr.rating, alr.rated_songs, alr.review, alr.id, alr.untracked, alr.adjustor`,
+    GROUP BY a.id, alr.rating, alr.rated_songs, alr.review, alr.id, alr.untracked, alr.adjustor, alr.adjusted_rating`,
     [userId, albumId]
   );
 
