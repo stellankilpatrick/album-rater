@@ -460,9 +460,9 @@ router.get("/:id/users/:username", requireAuth, async (req, res) => {
     const album = await getAlbumDetailsPrivate(albumId, userId);
     if (!album) return res.status(404).json({ error: "Album not found" });
 
-    // Get stored score10 from database
+    // Get stored adjusted_rating from album_ratings (persisted) for this user
     const { rows } = await pool.query(
-      `SELECT score10 FROM album_ratings WHERE user_id = $1 AND album_id = $2`,
+      `SELECT adjusted_rating, score10, adjustor FROM album_ratings WHERE user_id = $1 AND album_id = $2`,
       [userId, albumId]
     );
 
@@ -485,7 +485,11 @@ router.get("/:id/users/:username", requireAuth, async (req, res) => {
 
     res.json({
       ...album,
-      score10: rows[0]?.score10 ?? null,
+      // show persisted adjusted rating if available
+      score10: rows[0]?.adjusted_rating ?? rows[0]?.score10 ?? null,
+      avgScore: null,
+      userScore10: rows[0]?.score10 ?? null,
+      userAdjustor: rows[0]?.adjustor ?? 0,
       pfp: pfpRows[0]?.pfp ?? null
     });
   } catch (err) {

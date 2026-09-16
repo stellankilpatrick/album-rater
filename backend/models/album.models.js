@@ -445,6 +445,7 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
       a.type,
       alr.untracked,
       alr.adjustor AS "adjustor",
+      alr.adjusted_rating AS "adjustedRating",
       ARRAY_AGG(ar.id ORDER BY ar.name) AS "artistIds",
       STRING_AGG(ar.name, ' & ' ORDER BY ar.name) AS artist,
       alr.id AS "ratingId",
@@ -456,7 +457,7 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
     JOIN artists ar ON ar.id = aa.artist_id
     LEFT JOIN album_ratings alr ON alr.album_id = a.id AND alr.user_id = $1
     WHERE a.id = $2
-    GROUP BY a.id, alr.rating, alr.rated_songs, alr.review, alr.id, alr.untracked, alr.adjustor`,
+    GROUP BY a.id, alr.rating, alr.rated_songs, alr.review, alr.id, alr.untracked, alr.adjustor, alr.adjusted_rating`,
     [userId, albumId]
   );
 
@@ -481,6 +482,8 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
   );
 
   album.tracks = tracksRes.rows;
+  // For private view, prefer persisted adjusted rating if present
+  album.score10 = album.adjustedRating != null ? Number(album.adjustedRating) : (album.userRating != null ? Number(album.userRating) : null);
   return album;
 }
 
