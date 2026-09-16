@@ -915,7 +915,7 @@ export async function syncUserScore10s(userId) {
   const params = Array.from(scoreMap.entries()).flatMap(([albumId, score10]) => [userId, albumId, score10]);
 
   await pool.query(
-    `UPDATE album_ratings AS ar SET score10 = v.score10
+    `UPDATE album_ratings AS ar SET score10 = v.score10, adjusted_rating = COALESCE(v.score10, 0) + COALESCE(ar.adjustor, 0)
      FROM (VALUES ${values}) AS v(user_id, album_id, score10)
      WHERE ar.user_id = v.user_id::int AND ar.album_id = v.album_id::int`,
     params
