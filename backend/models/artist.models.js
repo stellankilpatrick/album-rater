@@ -151,7 +151,7 @@ export async function getUserRatedAlbumsByArtist(userId, artistId) {
     WHERE EXISTS (
       SELECT 1 FROM album_artists aa WHERE aa.album_id = a.id AND aa.artist_id = $2
     )
-    GROUP BY a.id
+    GROUP BY a.id, alr.score10, alr.adjusted_rating
     HAVING COUNT(sr.rating) > 0    
     ORDER BY (COALESCE(SUM(sr.rating), 0) * COALESCE(SUM(sr.rating), 0)) / NULLIF(COUNT(sr.rating), 0) DESC`,
     [userId, artistId]
