@@ -283,8 +283,7 @@ router.patch("/:id/adjustor", requireAuth, async (req, res) => {
     let parsed = Number(req.body.adjustor);
     if (!isFinite(parsed)) return res.status(400).json({ error: "Invalid adjustor" });
 
-    // Confine adjusted rating contribution to range [0, 10]
-    if (parsed < 0) parsed = 0;
+    // allow negative adjustors; clamp to reasonable bounds server-side if desired
     if (parsed > 10) parsed = 10;
 
     const updated = await updateAlbumAdjustor(userId, albumId, parsed);

@@ -498,7 +498,7 @@ export async function updateAlbumAdjustor(userId, albumId, adjustor) {
 
   // Ensure the persisted adjusted_rating reflects the new adjustor (score10 + adjustor)
   await pool.query(
-    `UPDATE album_ratings SET adjusted_rating = COALESCE(score10, 0) + COALESCE(adjustor, 0)
+    `UPDATE album_ratings SET adjusted_rating = GREATEST(0, LEAST(10, COALESCE(score10, 0) + COALESCE(adjustor, 0)))
      WHERE user_id = $1 AND album_id = $2`,
     [userId, albumId]
   );
