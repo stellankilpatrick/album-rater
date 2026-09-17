@@ -1306,7 +1306,7 @@ export default function AlbumDetail({ user }) {
               >
                 <div style={{ fontSize: "16px" }}>
                   <strong style={{ fontSize: "28px", fontWeight: 600 }}>{ordinal(a.rank)} </strong>
-                  <span style={{ color: "#999" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> albums</span>
+                  <span style={{ color: "#999" }}>of {a.total} <strong style={{ fontSize: "15px" }}>{a.name}</strong> projects</span>
                 </div>
               </Link>
             ))}
@@ -1319,7 +1319,7 @@ export default function AlbumDetail({ user }) {
               >
                 <div style={{ fontSize: "16px" }}>
                   <strong style={{ fontSize: "28px", fontWeight: 600 }}>{ordinal(ranks.year.rank)} </strong>
-                  <span style={{ color: "#999" }}>of {ranks.year.total} <strong style={{ fontSize: "15px" }}>{album.releaseDate?.slice(0, 4)}</strong> albums</span>
+                  <span style={{ color: "#999" }}>of {ranks.year.total} <strong style={{ fontSize: "15px" }}>{album.releaseDate?.slice(0, 4)}</strong> projects</span>
                 </div>
               </Link>
             )}
@@ -1332,7 +1332,7 @@ export default function AlbumDetail({ user }) {
               >
                 <div style={{ fontSize: "16px" }}>
                   <strong style={{ fontSize: "28px", fontWeight: 600 }}>{ordinal(ranks.decade.rank)} </strong>
-                  <span style={{ color: "#999" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> albums</span>
+                  <span style={{ color: "#999" }}>of {ranks.decade.total} <strong style={{ fontSize: "15px" }}>{Math.floor(album.releaseDate?.slice(0, 4) / 10) * 10}s</strong> projects</span>
                 </div>
               </Link>
             )}
@@ -1346,7 +1346,7 @@ export default function AlbumDetail({ user }) {
               >
                 <div style={{ fontSize: "16px" }}>
                   <strong style={{ fontSize: "28px", fontWeight: 600 }}>{ordinal(ranks[`genre_${g.name}`].rank)} </strong>
-                  <span style={{ color: "#999" }}>of {ranks[`genre_${g.name}`].total} <strong style={{ fontSize: "15px" }}>{g.name}</strong> albums</span>
+                  <span style={{ color: "#999" }}>of {ranks[`genre_${g.name}`].total} <strong style={{ fontSize: "15px" }}>{g.name}</strong> projects</span>
                 </div>
               </Link>
             ))}

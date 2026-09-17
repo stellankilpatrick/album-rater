@@ -280,7 +280,7 @@ export default function AlbumList({ user }) {
                                             {album.artist}
                                         </td>
                                         <td>{album.releaseDate?.slice(0, 4)}</td>
-                                        <td>{getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(album.score10)} size={14}/> : renderScore(album.score10)}</td>
+                                        <td>{getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(album.score10)} size={14} /> : renderScore(album.score10)}</td>
                                         <td>{album.rate}</td>
                                     </tr>
                                 ))}
@@ -298,13 +298,22 @@ export default function AlbumList({ user }) {
                                     style={{ cursor: "pointer", textAlign: "center" }}
                                     onClick={() => navigate(`/albums/${album.id}/users/${effectiveUsername}`)}
                                 >
-                                    <img
-                                        src={album.coverArt}
-                                        alt={album.title}
-                                        style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: "6px" }}
-                                    />
-                                    <div style={{ fontSize: isMobile ? "11px" : "13.5px", fontWeight: 500 }}>
-                                        {i + 1}. <i>{album.title}</i> · {getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(album.score10)} size={14}/> : renderScore(album.score10)}
+                                    <div style={{ position: 'relative' }}>
+                                        <img
+                                            src={album.coverArt}
+                                            alt={album.title}
+                                            style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: "6px" }}
+                                        />
+                                        <div style={{
+                                            position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.7)', color: 'white',
+                                            width: isMobile ? 30 : 34, height: isMobile ? 30 : 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            borderRadius: 6, fontWeight: 600, fontSize: isMobile ? '11px' : '14px'
+                                        }}>
+                                            {getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(album.score10)} size={12} /> : <span style={{ lineHeight: 1 }}>{renderScore(album.score10)}</span>}
+                                        </div>
+                                    </div>
+                                    <div style={{ fontSize: isMobile ? "11px" : "13.5px", fontWeight: 500, marginTop: 8 }}>
+                                        {i + 1}. <i>{album.title}</i>
                                     </div>
                                     <div style={{ fontSize: isMobile ? "10px" : "12.5px", color: "#888", marginBottom: "-8px" }}>
                                         {album.artist}
