@@ -33,6 +33,8 @@ export default function AlbumDetailPublic({ user }) {
 
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
+  const [coverBg, setCoverBg] = useState(null);
+
   const [myReview, setMyReview] = useState(null);
 
   const [songSort, setSongSort] = useState("num");
@@ -66,6 +68,43 @@ export default function AlbumDetailPublic({ user }) {
     };
     fetchAlbum();
   }, [albumId]);
+
+  // derive background color from cover art (public page)
+  useEffect(() => {
+    if (!album?.coverArt) return;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = album.coverArt;
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const w = 40;
+        const h = 40;
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const data = ctx.getImageData(0, 0, w, h).data;
+        let r = 0, g = 0, b = 0, count = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          const alpha = data[i+3];
+          if (alpha === 0) continue;
+          r += data[i]; g += data[i+1]; b += data[i+2]; count++;
+        }
+        if (count === 0) return;
+        r = Math.round(r / count); g = Math.round(g / count); b = Math.round(b / count);
+        const darken = (v) => Math.round(v * 0.28);
+        const rr = darken(r), gg = darken(g), bb = darken(b);
+        const color = `rgb(${rr}, ${gg}, ${bb})`;
+        setCoverBg(color);
+        document.body.style.backgroundColor = color;
+      } catch (e) {
+        console.error('Failed to derive cover bg', e);
+      }
+    };
+    img.onerror = () => {};
+    return () => { document.body.style.backgroundColor = '#0f1720'; };
+  }, [album?.coverArt]);
 
   useEffect(() => {
     if (album) {
