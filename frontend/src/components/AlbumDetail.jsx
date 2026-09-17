@@ -736,7 +736,7 @@ export default function AlbumDetail({ user }) {
                   {ranks.overall?.rank != null && (
                     <div style={{ fontSize: isMobile ? "0.95rem" : "17px", opacity: 0.85, marginTop: "6px", display: "flex", alignItems: "center", gap: "8px" }}>
                       <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
-                        <span style={{ fontWeight: "bold", fontSize: isMobile ? "1.1rem" : "20px" }}>{ordinal(ranks.overall.rank)}</span>{" "}of {ranks.overall.total} albums
+                        <span style={{ fontWeight: "bold", fontSize: isMobile ? "1.1rem" : "20px" }}>{ordinal(ranks.overall.rank)}</span>{" "}of {ranks.overall.total} projects
                       </div>
                       <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                         <button
