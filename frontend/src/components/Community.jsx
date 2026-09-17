@@ -73,9 +73,13 @@ export default function Community() {
                             <div style={{ width: isMobile ? "100%" : "720px" }}>
                             {feed.map(item => (
                                 <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className="community-item" style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
-                                    {item.pfp && (
+                                    {item.pfp ? (
                                         <Link to={`/users/${item.username}`}>
-                                            <img src={item.pfp} alt="" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                                            <img src={item.pfp} alt="" style={{ width: isMobile ? "18px" : "20px", height: isMobile ? "18px" : "20px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                                        </Link>
+                                    ) : (
+                                        <Link to={`/users/${item.username}`}>
+                                            <div style={{ width: isMobile ? "18px" : "20px", height: isMobile ? "18px" : "20px", borderRadius: "50%", backgroundColor: '#2b2b2b', flexShrink: 0 }} />
                                         </Link>
                                     )}
                                     <div>

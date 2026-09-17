@@ -298,7 +298,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
   );
 
   return (
-    <div style={{ backgroundColor: "#1a1a1a", position: "relative", zIndex: 100 }}>
+    <div style={{ backgroundColor: "#071018", position: "relative", zIndex: 100 }}>
       <div
         className="top-nav"
         style={{
