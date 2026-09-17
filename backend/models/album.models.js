@@ -788,7 +788,8 @@ export async function getAlbumOverallRank(albumId, userId) {
         a.id,
         ar.adjusted_rating AS score
       FROM albums a
-      LEFT JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $2
+      JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $2
+      WHERE ar.adjusted_rating IS NOT NULL
       GROUP BY a.id, ar.adjusted_rating
     ),
     ranked AS (
