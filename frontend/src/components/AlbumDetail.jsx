@@ -284,6 +284,30 @@ export default function AlbumDetail({ user }) {
     return <span style={{ fontSize: "13px" }}>{content}</span>;
   };
 
+  // Separate renderer for album review: allow larger images/GIFs and preserve text formatting
+  const renderReviewContent = (content) => {
+    const imageRegex = /(https?:\/\/\S+\.(?:jpg|jpeg|png|gif|webp|svg)(\?\S*)?)/i;
+    const match = content.match(imageRegex);
+    if (match) {
+      const url = match[1];
+      const text = content.replace(url, "").trim();
+      return (
+        <div>
+          {text && <div style={{ fontSize: "13px", marginBottom: "6px", whiteSpace: 'pre-wrap' }}>{text}</div>}
+          <img
+            src={url}
+            alt=""
+            style={{ maxWidth: "100%", maxHeight: "260px", borderRadius: "6px", objectFit: "contain" }}
+            onError={e => { e.target.style.display = "none"; }}
+            referrerPolicy="no-referrer"
+            crossOrigin="anonymous"
+          />
+        </div>
+      );
+    }
+    return <div style={{ whiteSpace: 'pre-wrap', fontSize: '13px' }}>{content}</div>;
+  };
+
   const [reviewLikes, setReviewLikes] = useState({ count: 0, likedByMe: false, ratingId: null });
 
   // after album loads
@@ -470,19 +494,7 @@ export default function AlbumDetail({ user }) {
               </button>
             )}
           </div>
-          {reviewFocused && (
-            <span
-              style={{
-                fontSize: "11px",
-                color:
-                  pendingReview.length >= 500
-                    ? "red"
-                    : "rgba(255,255,255,0.6)",
-              }}
-            >
-              {pendingReview.length}/500
-            </span>
-          )}
+            {/* character count removed per user request */}
         </>
       ) : (
         album?.review?.trim() && (
@@ -505,7 +517,7 @@ export default function AlbumDetail({ user }) {
               overflowY: "auto",
             }}
           >
-            {album?.review || (
+            {album?.review ? renderReviewContent(album.review) : (
               <span style={{ color: "#888", fontStyle: "italic" }}>
                 No review.
               </span>
@@ -701,33 +713,54 @@ export default function AlbumDetail({ user }) {
                             <div style={{ fontSize: isMobile ? "0.9rem" : "1rem", opacity: 0.85, display: 'flex', alignItems: 'center', gap: 8 }}>
                               <div>out of 10</div>
                               {isOwner && (
-                                <button onClick={() => setEditAdjustOpen(prev => !prev)} style={{ cursor: 'pointer', fontSize: '0.9rem', background: 'transparent', border: 'none', color: 'white' }} aria-label="Edit adjustor">✎</button>
+                                <button onClick={() => { setAdjustValue(album.adjustor ?? 0); setEditAdjustOpen(true); }} style={{ cursor: 'pointer', fontSize: '0.9rem', background: 'transparent', border: 'none', color: 'white' }} aria-label="Edit adjustor">✎</button>
                               )}
                             </div>
                           )}
                         </div>
                         {editAdjustOpen && isOwner && (
-                          <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
-                            <input type="number" step="0.1" value={adjustValue} onChange={e => setAdjustValue(e.target.value)} style={{ width: 90, padding: '4px 6px', borderRadius: 6 }} />
-                            <button onClick={async () => {
-                              try {
-                                const res = await api.patch(`/albums/${albumId}/adjustor`, { adjustor: Number(adjustValue) });
-                                setAlbum(res.data);
-                                setEditAdjustOpen(false);
-                              } catch (err) {
-                                console.error(err);
-                                alert('Failed to save adjustor');
-                              }
-                            }}>Save</button>
-                            <button onClick={() => { setEditAdjustOpen(false); setAdjustValue(album.adjustor ?? 0); }}>Cancel</button>
-                            <button
-                              onClick={() => alert('Custom adjustor: add a numeric value to your rating (e.g. 0.5) to tweak how this album appears in your lists. Values are added to your score and confined to 0–10.')}
-                              title="What is custom adjustor?"
-                              aria-label="What is custom adjustor?"
-                              style={{ background: 'transparent', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: '0.95rem' }}
+                          <div>
+                            <div
+                              role="dialog"
+                              aria-modal="true"
+                              style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200 }}
+                              onClick={() => { setEditAdjustOpen(false); setAdjustValue(album.adjustor ?? 0); }}
                             >
-                              ?
-                            </button>
+                              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} />
+                              <div
+                                onClick={e => e.stopPropagation()}
+                                style={{ background: '#0f1720', color: '#fff', padding: 20, borderRadius: 10, minWidth: 360, boxShadow: '0 8px 30px rgba(0,0,0,0.6)', zIndex: 1210 }}
+                              >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                                  <div style={{ fontWeight: 700, fontSize: '1rem' }}>Edit custom adjustor</div>
+                                  <button aria-label="Close adjustor modal" onClick={() => { setEditAdjustOpen(false); setAdjustValue(album.adjustor ?? 0); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#ddd' }}>✕</button>
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                                  <div style={{ fontSize: '3.4rem', fontWeight: 700, lineHeight: 1 }}>{Number(adjustValue).toFixed(1)}</div>
+                                  <div style={{ display: 'flex', gap: 8 }}>
+                                    <button aria-label="Decrease adjustor" onClick={() => setAdjustValue(prev => Math.round((Number(prev) - 0.1) * 10) / 10)} style={{ background: '#172033', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: 8, cursor: 'pointer' }}>▾</button>
+                                    <button aria-label="Increase adjustor" onClick={() => setAdjustValue(prev => Math.round((Number(prev) + 0.1) * 10) / 10)} style={{ background: '#172033', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: 8, cursor: 'pointer' }}>▴</button>
+                                  </div>
+                                </div>
+
+                                
+
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+                                  <button onClick={() => { setEditAdjustOpen(false); setAdjustValue(album.adjustor ?? 0); }} style={{ padding: '6px 10px', background: 'transparent', color: '#cbd5e1', border: '1px solid #26303a', borderRadius: 6, cursor: 'pointer' }}>Cancel</button>
+                                  <button onClick={async () => {
+                                    try {
+                                      const res = await api.patch(`/albums/${albumId}/adjustor`, { adjustor: Number(adjustValue) });
+                                      setAlbum(res.data);
+                                      setEditAdjustOpen(false);
+                                    } catch (err) {
+                                      console.error(err);
+                                      alert('Failed to save adjustor');
+                                    }
+                                  }} style={{ padding: '6px 12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Save</button>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </>

@@ -758,13 +758,11 @@ export async function getAlbumArtistRank(albumId, userId) {
       SELECT
         a.id,
         aa.artist_id,
-        POWER(SUM(sr.rating), 2.0) / POWER(NULLIF(COUNT(sr.song_id), 0),1.1) AS score
+        ar.adjusted_rating AS score
       FROM albums a
       JOIN album_artists aa ON aa.album_id = a.id
-      JOIN songs s ON s.album_id = a.id
-      JOIN song_ratings sr ON sr.song_id = s.id
-      WHERE sr.user_id = $2
-      GROUP BY a.id, aa.artist_id
+      LEFT JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $2
+      GROUP BY a.id, aa.artist_id, ar.adjusted_rating
     ),
     ranked AS (
       SELECT
@@ -774,9 +772,9 @@ export async function getAlbumArtistRank(albumId, userId) {
         COUNT(*) OVER (PARTITION BY artist_id) AS total
       FROM scores
     )
-    SELECT ar.name, ranked.rank, ranked.total
+    SELECT ar2.name, ranked.rank, ranked.total
     FROM ranked
-    JOIN artists ar ON ar.id = ranked.artist_id
+    JOIN artists ar2 ON ar2.id = ranked.artist_id
     WHERE ranked.id = $1;
   `, [albumId, userId]);
 
@@ -788,12 +786,10 @@ export async function getAlbumOverallRank(albumId, userId) {
     WITH scores AS (
       SELECT
         a.id,
-        POWER(SUM(sr.rating), 2.0) / POWER(NULLIF(COUNT(sr.song_id), 0),1.1) AS score
+        ar.adjusted_rating AS score
       FROM albums a
-      JOIN songs s ON s.album_id = a.id
-      JOIN song_ratings sr ON sr.song_id = s.id
-      WHERE sr.user_id = $2
-      GROUP BY a.id
+      LEFT JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $2
+      GROUP BY a.id, ar.adjusted_rating
     ),
     ranked AS (
       SELECT id, RANK() OVER (ORDER BY score DESC NULLS LAST) AS rank, COUNT(*) OVER () AS total
@@ -810,12 +806,10 @@ export async function getAdjacentAlbums(albumId, userId) {
     WITH scores AS (
       SELECT
         a.id,
-        POWER(SUM(sr.rating), 2.0) / POWER(NULLIF(COUNT(sr.song_id), 0),1.1) AS score
+        ar.adjusted_rating AS score
       FROM albums a
-      JOIN songs s ON s.album_id = a.id
-      JOIN song_ratings sr ON sr.song_id = s.id
-      WHERE sr.user_id = $2
-      GROUP BY a.id
+      LEFT JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $2
+      GROUP BY a.id, ar.adjusted_rating
     ),
     ordered AS (
       SELECT
