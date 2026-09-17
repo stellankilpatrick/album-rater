@@ -431,14 +431,15 @@ router.get("/users/:username", requireAuth, async (req, res) => {
 
     // Fetch score10 from database instead of recalculating
     const { rows: scores } = await pool.query(
-      `SELECT album_id, score10 FROM album_ratings WHERE user_id = $1`,
+      `SELECT album_id, score10, adjusted_rating FROM album_ratings WHERE user_id = $1`,
       [userId]
     );
 
-    const scoreMap = new Map(scores.map(s => [s.album_id, s.score10]));
+    const scoreMap = new Map(scores.map(s => [s.album_id, s.adjusted_rating != null ? s.adjusted_rating : s.score10]));
 
     const enrichedAlbums = albums.map(album => ({
       ...album,
+      // prefer persisted per-user adjusted_rating if present, otherwise fall back to stored score10
       score10: scoreMap.get(album.id) ?? 0
     }));
 
