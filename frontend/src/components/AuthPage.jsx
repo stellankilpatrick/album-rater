@@ -89,6 +89,11 @@ export default function AuthPage({ onLogin }) {
                             {showPassword ? "Hide" : "Show"}
                         </span>
                     </div>
+                    {!isRegister && (
+                        <div style={{ textAlign: 'right', marginTop: 6 }}>
+                            <button type="button" className="auth-forgot-link" onClick={() => navigate('/request-password-reset')} style={{ background: 'none', border: 'none', color: '#9fb8ff', cursor: 'pointer' }}>Forgot password? (does not work yet)</button>
+                        </div>
+                    )}
                     {isRegister && (
                         <div className="auth-password-wrap">
                             <input

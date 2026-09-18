@@ -20,6 +20,8 @@ import Community from "./components/Community";
 import Home from "./components/Home"
 import Recommendations from "./components/Recommendations";
 import Help from "./components/Help";
+import RequestPasswordReset from "./components/RequestPasswordReset";
+import ResetPassword from "./components/ResetPassword";
 
 function App() {
   const [user, setUser] = useState(undefined); // undefined = loading, null = no user
@@ -82,6 +84,9 @@ function App() {
       )}
       <div style={{ padding: "10px 16px 0 10px" }}>
         <Routes>
+          {/* public password-reset pages */}
+          <Route path="/request-password-reset" element={<RequestPasswordReset />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/help" element={<Help />} />
           {/* not logged in */}
           {user === null && (

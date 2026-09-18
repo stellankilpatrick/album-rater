@@ -114,6 +114,17 @@ async function init() {
       );
     `);
 
+    // Password reset tokens
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        token TEXT PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+        used BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+      );
+    `);
+
     // Indexes
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_song_ratings_song ON song_ratings(song_id);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_album_ratings_album ON album_ratings(album_id);`);

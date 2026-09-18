@@ -237,6 +237,17 @@ button {
     color: #ffffff;
 }
 
+/* Forgot password link */
+.auth-forgot-link {
+  font-size: 0.85rem;
+  color: #9fb8ff;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.auth-forgot-link:hover { color: #cfe3ff; }
+
 html {
   overflow-y: scroll;
   scrollbar-gutter: stable;
