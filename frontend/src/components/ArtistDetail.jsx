@@ -197,14 +197,23 @@ export default function ArtistDetail({ user }) {
                             onClick={() => navigate(`/albums/${album.id}/users/${effectiveUsername}`)}
                         >
                             {album.coverArt && (
-                                <img
-                                    src={album.coverArt}
-                                    alt={album.title}
-                                    style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: "6px", marginBottom: "4px" }}
-                                />
+                                <div style={{ position: 'relative' }}>
+                                    <img
+                                        src={album.coverArt}
+                                        alt={album.title}
+                                        style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: "6px", marginBottom: "4px" }}
+                                    />
+                                    <div style={{
+                                        position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.7)', color: 'white',
+                                        width: isMobile ? 30 : 34, height: isMobile ? 30 : 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        borderRadius: 6, fontWeight: 600, fontSize: isMobile ? '11px' : '16px'
+                                    }}>
+                                        {getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(album.adjustedRating ?? album.score10)} size={12} /> : <span style={{ lineHeight: 1 }}>{renderScore(album.adjustedRating ?? album.score10)}</span>}
+                                    </div>
+                                </div>
                             )}
                             <div style={{ fontSize: isMobile ? "11px" : "15px", fontWeight: 500 }}>
-                                {sortMode === "rating" && `${i + 1}. `}<i>{album.title}</i> · {getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(album.adjustedRating ?? album.score10)} size={14}/> : renderScore(album.adjustedRating ?? album.score10)}
+                                {sortMode === "rating" && `${i + 1}. `}<i>{album.title}</i>
                             </div>
                             <div style={{ fontSize: isMobile ? "10px" : "14px", color: "#888" }}>
                                 {album.releaseDate?.slice(0, 4)}
