@@ -119,7 +119,7 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
 
     // 2. CHECK if first album rating (BEFORE update)
     const { rows: existingAlbumRating } = await pool.query(
-      `SELECT 1 FROM album_ratings WHERE album_id = $1 AND user_id = $2`,
+        `SELECT 1 FROM album_ratings WHERE album_id = $1 AND user_id = $2 AND is_draft = FALSE`,
       [albumId, req.user.id]
     );
 
@@ -143,7 +143,8 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
     }
 
     // 4. UPDATE album rating
-    await updateAlbumRatingForUser(req.user.id, albumId, Boolean(req.body.bumpActivity));
+    const isDraft = Boolean(req.body.isDraft);
+    await updateAlbumRatingForUser(req.user.id, albumId, Boolean(req.body.bumpActivity), isDraft);
     await syncUserScore10s(req.user.id);
 
     // 5. NOTIFY only if first time

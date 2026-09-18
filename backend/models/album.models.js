@@ -101,7 +101,7 @@ export async function getAllAlbumsPublic() {
       JOIN artists ar ON ar.id = aa.artist_id
       GROUP BY aa.album_id
     ) artists ON artists.album_id = a.id
-    LEFT JOIN album_ratings alr ON alr.album_id = a.id AND alr.score10 IS NOT NULL
+    LEFT JOIN album_ratings alr ON alr.album_id = a.id AND alr.score10 IS NOT NULL AND alr.is_draft = FALSE
     GROUP BY a.id, artists.ids, artists.names
     ORDER BY a.title
   `);
@@ -144,7 +144,7 @@ export async function getAlbumById(id) {
   const albumRatingRes = await pool.query(
     `SELECT COUNT(*) AS "ratingCount", AVG(rating) AS "avgScore"
     FROM album_ratings
-    WHERE album_id = $1`,
+    WHERE album_id = $1 AND is_draft = FALSE`,
     [id]
   );
 
@@ -272,7 +272,7 @@ export async function getAlbumDetailsPublic(albumId) {
      COUNT(*) AS "ratingCount",
      ROUND(AVG(score10)::numeric, 2) AS "avgScore"
     FROM album_ratings
-    WHERE album_id = $1 AND score10 IS NOT NULL`,
+    WHERE album_id = $1 AND score10 IS NOT NULL AND is_draft = FALSE`,
     [albumId]
   );
 
@@ -510,7 +510,7 @@ export async function updateAlbumAdjustor(userId, albumId, adjustor) {
 /**
  * Calculate and upsert album rating for a specific user
  */
-export async function updateAlbumRatingForUser(userId, albumId, bumpActivity = true) {
+export async function updateAlbumRatingForUser(userId, albumId, bumpActivity = true, isDraft = false) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -538,15 +538,16 @@ export async function updateAlbumRatingForUser(userId, albumId, bumpActivity = t
       );
     } else {
       await client.query(
-        `INSERT INTO album_ratings (user_id, album_id, rating, non_skips, rated_songs, updated_at)
-        VALUES ($1, $2, $3, $4, $5, NOW())
+        `INSERT INTO album_ratings (user_id, album_id, rating, is_draft, non_skips, rated_songs, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
         ON CONFLICT (user_id, album_id)
         DO UPDATE SET 
           rating = EXCLUDED.rating,
+          is_draft = EXCLUDED.is_draft,
           non_skips = EXCLUDED.non_skips,
           rated_songs = EXCLUDED.rated_songs,
-          updated_at = CASE WHEN $6 THEN NOW() ELSE album_ratings.updated_at END`,
-        [userId, albumId, totalRating, nonSkips, ratedSongs, bumpActivity]
+          updated_at = CASE WHEN $7 THEN NOW() ELSE album_ratings.updated_at END`,
+        [userId, albumId, totalRating, isDraft ? 1 : 0, nonSkips, ratedSongs, bumpActivity]
       );
       // Ensure adjusted_rating stays in sync after score10 (rating) changes
       await client.query(
@@ -761,7 +762,7 @@ export async function getAlbumArtistRank(albumId, userId) {
         ar.adjusted_rating AS score
       FROM albums a
       JOIN album_artists aa ON aa.album_id = a.id
-      LEFT JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $2
+      LEFT JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $2 AND ar.is_draft = FALSE
       GROUP BY a.id, aa.artist_id, ar.adjusted_rating
     ),
     ranked AS (
@@ -788,7 +789,7 @@ export async function getAlbumOverallRank(albumId, userId) {
         a.id,
         ar.adjusted_rating AS score
       FROM albums a
-      JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $2
+      JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $2 AND ar.is_draft = FALSE
       WHERE ar.adjusted_rating IS NOT NULL
       GROUP BY a.id, ar.adjusted_rating
     ),
@@ -809,7 +810,7 @@ export async function getAdjacentAlbums(albumId, userId) {
         a.id,
         ar.adjusted_rating AS score
       FROM albums a
-      LEFT JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $2
+      LEFT JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $2 AND ar.is_draft = FALSE
       GROUP BY a.id, ar.adjusted_rating
     ),
     ordered AS (
@@ -879,7 +880,7 @@ export async function syncUserScore10s(userId) {
   // Get user's like percentage
   const { rows: likeRows } = await pool.query(
     `SELECT COUNT(*) FILTER (WHERE liked = 1) as likes, COUNT(*) FILTER (WHERE liked IS NOT NULL) as total
-     FROM album_ratings WHERE user_id = $1`,
+     FROM album_ratings WHERE user_id = $1 AND is_draft = FALSE`,
     [userId]
   );
 

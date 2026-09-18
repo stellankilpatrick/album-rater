@@ -238,7 +238,7 @@ export default function AlbumDetail({ user }) {
     setHasChanges(true);
   };
 
-  const handleSaveRating = async (bumpActivity = false) => {
+  const handleSaveRating = async (bumpActivity = false, isDraft = false) => {
     if (pendingLiked === null) {
       triggerOpinionFlash();
       setShowOpinionPopup(true);
@@ -257,28 +257,28 @@ export default function AlbumDetail({ user }) {
         const origRating = original?.localRating ?? null;
         const newRating = song.localRating ?? null;
         if (origRating !== newRating) {
-          console.debug('Patching song rating', song.id, { rating: newRating, bumpActivity: bump });
-          await api.patch(`/songs/${song.id}/rating`, { rating: newRating, bumpActivity: bump });
+          console.debug('Patching song rating', song.id, { rating: newRating, bumpActivity: bump, isDraft });
+          await api.patch(`/songs/${song.id}/rating`, { rating: newRating, bumpActivity: bump, isDraft });
         }
         const origComment = original?.comment ?? null;
         const newComment = song.comment ?? null;
         if (origComment !== newComment) {
-          console.debug('Patching song comment', song.id, { comment: newComment, bumpActivity: bump });
-          await api.patch(`/songs/${song.id}/comment`, { comment: newComment, bumpActivity: bump });
+          console.debug('Patching song comment', song.id, { comment: newComment, bumpActivity: bump, isDraft });
+          await api.patch(`/songs/${song.id}/comment`, { comment: newComment, bumpActivity: bump, isDraft });
         }
       }
 
       // Save review
       if ((pendingReview ?? null) !== (review ?? null)) {
-        const reviewBody = { review: (pendingReview || "").trim() || null, bumpActivity: bump };
+        const reviewBody = { review: (pendingReview || "").trim() || null, bumpActivity: bump, isDraft };
         console.debug('Patching album review', reviewBody);
         await api.patch(`/albums/${albumId}/review/users/${effectiveUsername}`, reviewBody);
       }
 
       // Save opinion
       if ((pendingLiked ?? null) !== (liked ?? null)) {
-        console.debug('Patching album opinion', { liked: pendingLiked, bumpActivity: bump });
-        await api.patch(`/albums/${albumId}/users/${effectiveUsername}/liked`, { liked: pendingLiked, bumpActivity: bump });
+        console.debug('Patching album opinion', { liked: pendingLiked, bumpActivity: bump, isDraft });
+        await api.patch(`/albums/${albumId}/users/${effectiveUsername}/liked`, { liked: pendingLiked, bumpActivity: bump, isDraft });
         setLiked(pendingLiked);
       }
 
@@ -1153,6 +1153,21 @@ export default function AlbumDetail({ user }) {
                   }}
                 >
                   Incognito Save
+                </button>
+                <button
+                  onClick={() => handleSaveRating(false, true)}
+                  style={{
+                    marginTop: "16px",
+                    backgroundColor: "#444",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "3px",
+                    padding: "8px 8px",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                >
+                  Save Draft
                 </button>
                 <div
                   title={"Incognito Save: silent save (won't post to community). Save & Post: posts activity on community tab."}

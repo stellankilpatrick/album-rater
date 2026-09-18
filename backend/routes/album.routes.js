@@ -76,7 +76,7 @@ router.get("/:id", async (req, res) => {
 // ---------------------
 router.post("/:id/rate", requireAuth, async (req, res) => {
   try {
-    const { ratings, bumpActivity = true } = req.body;
+    const { ratings, bumpActivity = true, isDraft = false } = req.body;
     if (!Array.isArray(ratings)) return res.status(400).json({ error: "Invalid ratings" });
 
     const client = await pool.connect();
@@ -95,8 +95,8 @@ router.post("/:id/rate", requireAuth, async (req, res) => {
         );
       }
 
-      // Keep album_ratings in sync
-      await updateAlbumRatingForUser(req.user.id, Number(req.params.id));
+      // Keep album_ratings in sync (support drafts)
+      await updateAlbumRatingForUser(req.user.id, Number(req.params.id), bumpActivity, isDraft);
 
       await client.query("COMMIT");
     } catch (err) {
@@ -347,7 +347,7 @@ router.post("/new", requireAuth, async (req, res) => {
         }
 
         // Keep album_ratings in sync
-        await updateAlbumRatingForUser(req.user.id, album.id);
+        await updateAlbumRatingForUser(req.user.id, album.id, true, false);
 
         await client.query("COMMIT");
       } catch (err) {
@@ -430,7 +430,7 @@ router.get("/users/:username", requireAuth, async (req, res) => {
 
     // Fetch score10 from database instead of recalculating
     const { rows: scores } = await pool.query(
-      `SELECT album_id, score10, adjusted_rating FROM album_ratings WHERE user_id = $1`,
+      `SELECT album_id, score10, adjusted_rating FROM album_ratings WHERE user_id = $1 AND is_draft = FALSE`,
       [userId]
     );
 
@@ -446,6 +446,28 @@ router.get("/users/:username", requireAuth, async (req, res) => {
   } catch (err) {
     console.error("Route error:", err);
     res.status(500).json({ error: "Failed to fetch albums" });
+  }
+});
+
+// ===============================
+// GET ALL DRAFT ALBUMS FOR USER
+// ===============================
+router.get("/drafts/users/:username", requireAuth, async (req, res) => {
+  try {
+    const userId = req.profileUser.id;
+    const { rows } = await pool.query(
+      `SELECT a.id, a.title, a.cover_art AS "coverArt",
+        (SELECT STRING_AGG(ar.name, ' & ' ORDER BY ar.name) FROM album_artists aa JOIN artists ar ON ar.id = aa.artist_id WHERE aa.album_id = a.id) AS artist
+       FROM album_ratings ar
+       JOIN albums a ON a.id = ar.album_id
+       WHERE ar.user_id = $1 AND ar.is_draft = TRUE
+       ORDER BY ar.updated_at DESC`,
+      [userId]
+    );
+    res.json(rows.map(r => ({ ...r, artist: r.artist || '' })));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch drafts" });
   }
 });
 
@@ -574,7 +596,7 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
       }
 
       // update album_ratings table (pass bumpActivity so silent saves don't bump timestamps)
-      await updateAlbumRatingForUser(req.user.id, Number(req.params.id), bumpActivity);
+      await updateAlbumRatingForUser(req.user.id, Number(req.params.id), bumpActivity, false);
 
       await client.query("COMMIT");
     } catch (err) {
@@ -665,7 +687,7 @@ router.get("/:albumId/following-reviews", requireAuth, async (req, res) => {
     const reviewsRes = await pool.query(
       `SELECT u.id, u.username, u.pfp, ar.rating, ar.score10
         FROM follows f
-        JOIN album_ratings ar ON ar.user_id = f.following_id
+        JOIN album_ratings ar ON ar.user_id = f.following_id AND ar.is_draft = FALSE
         JOIN users u ON u.id = ar.user_id
         WHERE f.follower_id = $1 AND ar.album_id = $2`,
       [req.user.id, req.params.albumId]

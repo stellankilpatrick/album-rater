@@ -332,7 +332,7 @@ export async function getArtistUserStats(userId, artistId) {
      JOIN album_artists aa ON aa.album_id = a.id
      LEFT JOIN songs s ON s.album_id = a.id
      LEFT JOIN song_ratings sr ON sr.song_id = s.id AND sr.user_id = $1
-     LEFT JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $1
+    LEFT JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $1 AND ar.is_draft = FALSE
      WHERE aa.artist_id = $2`,
     [userId, artistId]
   );

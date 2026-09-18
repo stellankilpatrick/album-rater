@@ -69,6 +69,7 @@ db.prepare(`
     user_id INTEGER NOT NULL,
     album_id INTEGER NOT NULL,
     rating REAL,
+    is_draft INTEGER NOT NULL DEFAULT 0,
     non_skips INTEGER NOT NULL,
     rated_songs INTEGER NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -97,11 +98,12 @@ db.prepare(`
   AFTER INSERT ON song_ratings
   FOR EACH ROW
   BEGIN
-    INSERT INTO album_ratings (user_id, album_id, rating, non_skips, rated_songs, updated_at)
+    INSERT INTO album_ratings (user_id, album_id, rating, is_draft, non_skips, rated_songs, updated_at)
     SELECT
       NEW.user_id,
       s.album_id,
       (SUM(sr.rating) * SUM(sr.rating)) * 1.0 / COUNT(*),
+      0,
       SUM(CASE WHEN sr.rating > 0 THEN 1 ELSE 0 END),
       COUNT(*),
       CURRENT_TIMESTAMP
@@ -125,11 +127,12 @@ db.prepare(`
   AFTER UPDATE ON song_ratings
   FOR EACH ROW
   BEGIN
-    INSERT INTO album_ratings (user_id, album_id, rating, non_skips, rated_songs, updated_at)
+    INSERT INTO album_ratings (user_id, album_id, rating, is_draft, non_skips, rated_songs, updated_at)
     SELECT
       NEW.user_id,
       s.album_id,
       (SUM(sr.rating) * SUM(sr.rating)) * 1.0 / COUNT(*),
+      0,
       SUM(CASE WHEN sr.rating > 0 THEN 1 ELSE 0 END),
       COUNT(*),
       CURRENT_TIMESTAMP
@@ -170,11 +173,12 @@ db.prepare(`
           )
       );
 
-    INSERT INTO album_ratings (user_id, album_id, rating, non_skips, rated_songs, updated_at)
+    INSERT INTO album_ratings (user_id, album_id, rating, is_draft, non_skips, rated_songs, updated_at)
     SELECT
       OLD.user_id,
       s.album_id,
       (SUM(sr.rating) * SUM(sr.rating)) * 1.0 / COUNT(*),
+      0,
       SUM(CASE WHEN sr.rating > 0 THEN 1 ELSE 0 END),
       COUNT(*),
       CURRENT_TIMESTAMP

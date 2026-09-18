@@ -70,6 +70,7 @@ async function init() {
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         album_id INTEGER NOT NULL REFERENCES albums(id) ON DELETE CASCADE,
         rating REAL,
+        is_draft BOOLEAN NOT NULL DEFAULT FALSE,
         non_skips INTEGER NOT NULL,
         rated_songs INTEGER NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),

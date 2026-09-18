@@ -277,7 +277,7 @@ export async function getUserSongStatsWithYears(userId) {
       COUNT(*) FILTER (WHERE liked = 1) AS good_count,
       COUNT(*) FILTER (WHERE liked IS NOT NULL) AS opinion_total
     FROM album_ratings
-    WHERE user_id = $1
+    WHERE user_id = $1 AND is_draft = FALSE
   `, [userId]);
 
   const good = Number(opinionRes.rows[0]?.good_count || 0);

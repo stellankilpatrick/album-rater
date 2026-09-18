@@ -18,7 +18,7 @@ async function getOwner(targetType, targetId) {
     const { rows } = await pool.query(
       `SELECT ar.user_id, ar.album_id AS "albumId", a.title FROM album_ratings ar
      JOIN albums a ON a.id = ar.album_id
-     WHERE ar.id = $1`,
+     WHERE ar.id = $1 AND ar.is_draft = FALSE`,
       [targetId]
     );
     return rows[0] ?? null;

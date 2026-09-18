@@ -14,6 +14,7 @@ import AddAlbum from "./components/AddAlbum";
 import ArtistsPublic from "./components/ArtistsPublic";
 import ArtistDetailPublic from "./components/ArtistDetailPublic";
 import ListenList from "./components/ListenList";
+import Drafts from './components/Drafts';
 import SearchResults from "./components/SearchResults";
 import UserConnections from "./components/UserConnections";
 import Community from "./components/Community";
@@ -107,6 +108,7 @@ function App() {
               <Route path="/artists/:artistId/users/:username" element={<ArtistDetail user={user} />} />
               <Route path="/albums/users/:username" element={<AlbumList user={user} />} />
               <Route path="/artists/users/:username" element={<ArtistList user={user} />} />
+              <Route path="/users/:username/drafts" element={<Drafts user={user} />} />
               <Route path="/users/:username/listen-list" element={<ListenList user={user} />} />
               <Route path="/users/:username" element={<UserPage user={user} />} />
               <Route path="/users/:username/connections" element={<UserConnections />} />

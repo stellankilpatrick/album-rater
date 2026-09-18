@@ -27,7 +27,7 @@ export async function getCommunityFeed(userId, limit = 500) {
       AND r.updated_at >= CURRENT_DATE - INTERVAL '1 month'
       AND NOT EXISTS (
         SELECT 1 FROM album_ratings ar
-        WHERE ar.user_id = r.user_id AND ar.album_id = al.id AND ar.untracked = true
+        WHERE ar.user_id = r.user_id AND ar.album_id = al.id AND (ar.untracked = true OR ar.is_draft = true)
       )
     GROUP BY r.user_id, al.id, u.username, u.pfp, al.title
     ORDER BY updated_at DESC
@@ -50,7 +50,7 @@ export async function getAnniversaryAlbums(userId) {
   FROM albums a
   JOIN album_artists aa ON aa.album_id = a.id
   JOIN artists artist ON artist.id = aa.artist_id
-  JOIN album_ratings ar ON ar.album_id = a.id
+  JOIN album_ratings ar ON ar.album_id = a.id AND ar.is_draft = FALSE
   WHERE a.release_date IS NOT NULL
     AND EXTRACT(WEEK FROM a.release_date::date)
         = EXTRACT(WEEK FROM CURRENT_DATE)
