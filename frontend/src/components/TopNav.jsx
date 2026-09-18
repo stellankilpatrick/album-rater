@@ -217,7 +217,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           <div className="nav-profile-email">{email}</div>
           <div className="nav-dropdown-sep" />
           {/* rating mode selector moved below */}
-          <Link to={`/users/${effectiveUsername}`} className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>My Account</Link>
+          <Link to={`/users/${effectiveUsername}`} className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>View my Account</Link>
           <Link to={`/users/${effectiveUsername}/listen-list`} className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>Listen List</Link>
           <Link to={`/users/${effectiveUsername}/drafts`} className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>Drafts</Link>
           <Link to="/community/recommendations" className="nav-dropdown-item" onClick={() => setProfileMenuOpen(false)}>Recommendations</Link>
