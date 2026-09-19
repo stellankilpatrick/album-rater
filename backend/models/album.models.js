@@ -709,14 +709,13 @@ export async function getAlbumGenreRank(albumId, genre, userId) {
     WITH scores AS (
       SELECT
         a.id,
-        POWER(SUM(sr.rating), 2.0) / POWER(NULLIF(COUNT(sr.song_id), 0),1.1) AS score
+        ar.adjusted_rating AS score
       FROM albums a
       JOIN album_genres ag ON ag.album_id = a.id
       JOIN genres g ON g.id = ag.genre_id
-      JOIN songs s ON s.album_id = a.id
-      JOIN song_ratings sr ON sr.song_id = s.id
-      WHERE LOWER(g.name) = LOWER($1) AND sr.user_id = $3
-      GROUP BY a.id
+      JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $3 AND ar.is_draft = FALSE
+      WHERE LOWER(g.name) = LOWER($1) AND ar.adjusted_rating IS NOT NULL
+      GROUP BY a.id, ar.adjusted_rating
     ),
     ranked AS (
       SELECT id, RANK() OVER (ORDER BY score DESC NULLS LAST) AS rank, COUNT(*) OVER () AS total
@@ -734,12 +733,11 @@ export async function getAlbumYearRank(albumId, userId) {
       SELECT
         a.id,
         EXTRACT(YEAR FROM a.release_date) AS year,
-        POWER(SUM(sr.rating), 2.0) / POWER(NULLIF(COUNT(sr.song_id), 0),1.1) AS score
+        ar.adjusted_rating AS score
       FROM albums a
-      JOIN songs s ON s.album_id = a.id
-      JOIN song_ratings sr ON sr.song_id = s.id
-      WHERE sr.user_id = $2
-      GROUP BY a.id
+      JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $2 AND ar.is_draft = FALSE
+      WHERE ar.adjusted_rating IS NOT NULL
+      GROUP BY a.id, year, ar.adjusted_rating
     ),
     ranked AS (
       SELECT
@@ -760,12 +758,11 @@ export async function getAlbumDecadeRank(albumId, userId) {
       SELECT
         a.id,
         FLOOR(EXTRACT(YEAR FROM a.release_date) / 10) * 10 AS decade,
-        POWER(SUM(sr.rating), 2.0) / POWER(NULLIF(COUNT(sr.song_id), 0),1.1) AS score
+        ar.adjusted_rating AS score
       FROM albums a
-      JOIN songs s ON s.album_id = a.id
-      JOIN song_ratings sr ON sr.song_id = s.id
-      WHERE sr.user_id = $2
-      GROUP BY a.id
+      JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $2 AND ar.is_draft = FALSE
+      WHERE ar.adjusted_rating IS NOT NULL
+      GROUP BY a.id, decade, ar.adjusted_rating
     ),
     ranked AS (
       SELECT
@@ -790,6 +787,7 @@ export async function getAlbumArtistRank(albumId, userId) {
       FROM albums a
       JOIN album_artists aa ON aa.album_id = a.id
       LEFT JOIN album_ratings ar ON ar.album_id = a.id AND ar.user_id = $2 AND ar.is_draft = FALSE
+      WHERE ar.adjusted_rating IS NOT NULL
       GROUP BY a.id, aa.artist_id, ar.adjusted_rating
     ),
     ranked AS (
