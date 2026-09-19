@@ -522,6 +522,13 @@ export async function updateAlbumRatingForUser(userId, albumId, bumpActivity = t
   try {
     await client.query("BEGIN");
 
+    // detect existing album_ratings row to see if this is a draft -> publish transition
+    const existingRes = await client.query(
+      `SELECT is_draft FROM album_ratings WHERE user_id = $1 AND album_id = $2 LIMIT 1`,
+      [userId, albumId]
+    );
+    const wasDraft = existingRes.rows.length === 1 && existingRes.rows[0].is_draft === true;
+
     const res = await client.query(
       `SELECT 
         COUNT(*) AS rated_songs,
