@@ -8,6 +8,13 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
   try {
     await client.query("BEGIN");
 
+    // detect existing album_ratings row to see if this is a draft -> publish transition
+    const existingRes = await client.query(
+      `SELECT is_draft FROM album_ratings WHERE user_id = $1 AND album_id = $2 LIMIT 1`,
+      [userId, albumId]
+    );
+    const wasDraft = existingRes.rows.length === 1 && existingRes.rows[0].is_draft === true;
+
     // Support multiple artists split by ' & '
     const artistNames = artist.split(' & ').map(a => a.trim());
     const artistIds = [];
@@ -555,6 +562,19 @@ export async function updateAlbumRatingForUser(userId, albumId, bumpActivity = t
          WHERE user_id = $1 AND album_id = $2`,
         [userId, albumId]
       );
+
+      // If publishing a draft (was draft and now isDraft === false), update song_ratings created_at
+      // so activity feed treats this as a new 'rated' event (created_at ~= updated_at)
+      const nowPublished = wasDraft && isDraft === false;
+      if (nowPublished) {
+        await client.query(
+          `UPDATE song_ratings sr
+           SET created_at = NOW()
+           FROM songs s
+           WHERE sr.song_id = s.id AND s.album_id = $2 AND sr.user_id = $1`,
+          [userId, albumId]
+        );
+      }
     }
 
     await client.query("COMMIT");

@@ -89,8 +89,8 @@ export async function getMyActivityFeed(userId, limit = 500) {
     WHERE r.user_id = $1
       AND r.updated_at >= CURRENT_DATE - INTERVAL '1 month'
       AND NOT EXISTS (
-        SELECT 1 FROM album_ratings ar
-        WHERE ar.user_id = r.user_id AND ar.album_id = al.id AND ar.untracked = true
+          SELECT 1 FROM album_ratings ar
+          WHERE ar.user_id = r.user_id AND ar.album_id = al.id AND (ar.untracked = true OR ar.is_draft = true)
       )
     GROUP BY r.user_id, al.id, u.username, u.pfp, al.title
     ORDER BY updated_at DESC
