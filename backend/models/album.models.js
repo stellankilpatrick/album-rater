@@ -8,13 +8,6 @@ export async function createAlbum({ title, artist, releaseDate, songs = [], cove
   try {
     await client.query("BEGIN");
 
-    // detect existing album_ratings row to see if this is a draft -> publish transition
-    const existingRes = await client.query(
-      `SELECT is_draft FROM album_ratings WHERE user_id = $1 AND album_id = $2 LIMIT 1`,
-      [userId, albumId]
-    );
-    const wasDraft = existingRes.rows.length === 1 && existingRes.rows[0].is_draft === true;
-
     // Support multiple artists split by ' & '
     const artistNames = artist.split(' & ').map(a => a.trim());
     const artistIds = [];
