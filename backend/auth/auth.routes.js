@@ -107,7 +107,7 @@ router.post("/request-password-reset", async (req, res) => {
         },
       });
 
-      const resetUrl = `${process.env.APP_URL || "http://localhost:3000"}/reset-password?token=${encodeURIComponent(token)}`;
+      const resetUrl = `${process.env.APP_URL || "http://localhost:3001"}/reset-password?token=${encodeURIComponent(token)}`;
       const mailOptions = {
         from: process.env.EMAIL_FROM || 'no-reply@localhost',
         to: user.email,

@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "https://album-rater-w3gl.onrender.com", // backend URL
+    // Set in frontend/.env.development (npm start) and .env.production (npm run build)
+    baseURL: process.env.REACT_APP_API_URL || "http://localhost:3000",
 });
 
 api.interceptors.request.use((config) => {
