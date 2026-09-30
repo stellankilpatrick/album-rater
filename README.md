@@ -57,45 +57,60 @@ albumRater/
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 18+
-- A PostgreSQL database (local or hosted)
-
-Local development runs both servers, each in its own terminal:
+Local development uses your own Postgres database, so nothing you do locally touches production data.
 
 | Server | URL |
 |---|---|
 | Backend | http://localhost:3000 |
 | Frontend | http://localhost:3001 |
 
-### Backend
+### One-time setup
+
+1. **Install Node.js 18+ and PostgreSQL.**
+   - macOS: `brew install postgresql@18 && brew services start postgresql@18`
+   - Windows: install PostgreSQL from https://www.postgresql.org/download/windows/ and note the password you set for the `postgres` user.
+
+2. **Create a local database** named `album_rater_dev`.
+   - macOS: `createdb album_rater_dev`
+   - Windows: `createdb -U postgres album_rater_dev` (or create it in pgAdmin)
+
+3. **Install dependencies:**
+   ```bash
+   cd backend && npm install
+   cd ../frontend && npm install
+   ```
+
+4. **Create `backend/.env.local`** (gitignored) by copying `backend/.env.example`, then set:
+   ```
+   # macOS
+   DATABASE_URL=postgres://localhost:5432/album_rater_dev
+   # Windows (use the password from step 1)
+   DATABASE_URL=postgres://postgres:YOUR_PASSWORD@localhost:5432/album_rater_dev
+
+   JWT_SECRET=any-long-random-string
+   APP_URL=http://localhost:3001
+   ```
+   The SMTP settings can stay as placeholders; password-reset emails just won't send locally.
+   **Never** put the production (Neon) database URL here.
+
+5. **Create the tables:**
+   ```bash
+   cd backend && npm run initdb
+   ```
+   This is safe to re-run, and it refuses to run against a non-local database.
+
+### Every time you work on the app
+
+Run both servers, each in its own terminal:
 
 ```bash
-cd backend
-npm install
+cd backend && npm start     # http://localhost:3000
+cd frontend && npm start    # http://localhost:3001, opens in your browser
 ```
 
-Create `backend/.env.local` based on `.env.example` (it's gitignored and loaded whenever `NODE_ENV` isn't `production`). Run commands from inside `backend/` so it's found.
+Your local database starts empty, so sign up for a new account locally; production accounts don't exist here.
 
-- `DATABASE_URL`: use a local or dev database, **not** the production one, or local testing will modify real data.
-- `FRONTEND_URLS`: leave unset to allow all origins locally, or include `http://localhost:3001`.
-- `APP_URL=http://localhost:3001` so password-reset links point at the local frontend.
-
-Then initialize the database schema and start the server:
-
-```bash
-npm run initdb
-npm start
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm start
-```
+### How the frontend finds the backend
 
 The backend URL comes from `REACT_APP_API_URL`, which is baked into the bundle when the dev server starts or the app is built:
 
@@ -116,6 +131,20 @@ Never put secrets in `REACT_APP_*` variables; they end up in the public JS bundl
 
 - **Frontend (Vercel):** builds `frontend/` with `npm run build`, which reads `.env.production`. A `REACT_APP_API_URL` set in the Vercel dashboard overrides it.
 - **Backend (Render):** runs `npm start` in `backend/`, with secrets (`DATABASE_URL`, `JWT_SECRET`, SMTP) and `FRONTEND_URLS` set in the Render dashboard, never in the repo.
+- **Database (Neon):** production Postgres. Schema changes there are made by hand; if you add a table or column, add it to `backend/initPostgres.js` too so local databases stay in sync.
+
+## Making changes
+
+`main` is protected: changes go in through a pull request with one approval, and merging to `main` deploys.
+
+1. `git switch main && git pull`
+2. `git switch -c my-change`
+3. Make and test the change locally (both servers running, see above).
+4. `git add -A && git commit -m "..."` then `git push -u origin my-change`
+5. Open a pull request into `main` on GitHub; the other contributor reviews and approves it.
+6. Merge. Vercel and Render redeploy automatically.
+
+If the change needs a new database column or table, apply it to the Neon database before (or right as) the code is merged, and add it to `initPostgres.js`.
 
 ## API Overview
 
