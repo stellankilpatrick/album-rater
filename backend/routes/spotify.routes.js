@@ -8,7 +8,7 @@ import {
   SpotifyNotConfiguredError,
   SpotifyApiError,
 } from "../spotify/spotify.client.js";
-import { findExistingAlbumId, importSpotifyAlbum, loadArtistIndex, toAlbumData } from "../models/spotify.models.js";
+import { findExistingAlbumId, importSpotifyAlbum, loadArtistIndex, matchKey, titleKey, toAlbumData } from "../models/spotify.models.js";
 
 const router = express.Router();
 
@@ -24,6 +24,20 @@ function handleSpotifyError(err, res, fallbackMessage) {
   }
   console.error(err);
   return res.status(500).json({ error: fallbackMessage });
+}
+
+// Spotify often lists the same album several times (explicit/clean, deluxe, regional).
+// Keep one per title and artist, in the first one's position, preferring the plain title.
+function dedupeEditions(albums) {
+  const byKey = new Map();
+  for (const album of albums) {
+    const key = `${titleKey(album.title)}|${matchKey(album.artist)}`;
+    const kept = byKey.get(key);
+    if (!kept) byKey.set(key, album);
+    else if (album.title.length < kept.title.length) byKey.set(key, { ...album, existingAlbumId: album.existingAlbumId ?? kept.existingAlbumId });
+    else if (!kept.existingAlbumId && album.existingAlbumId) kept.existingAlbumId = album.existingAlbumId;
+  }
+  return [...byKey.values()];
 }
 
 // ---------------------
@@ -55,7 +69,7 @@ router.get("/search", requireAuth, async (req, res) => {
     }));
 
     // Spotify's reported total is unreliable, so offer more whenever a full page came back
-    res.json({ albums, hasMore: items.length === SEARCH_PAGE_SIZE });
+    res.json({ albums: dedupeEditions(albums), hasMore: items.length === SEARCH_PAGE_SIZE });
   } catch (err) {
     handleSpotifyError(err, res, "Spotify search failed");
   }

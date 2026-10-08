@@ -62,13 +62,28 @@ async function spotifyGet(pathOrUrl) {
 // Spotify caps search `limit` at 10 for development-mode apps
 export const SEARCH_PAGE_SIZE = 10;
 
+// The search bar queries as people type, so identical searches are answered
+// from memory for a while instead of spending Spotify's rate limit
+const SEARCH_CACHE_TTL_MS = 10 * 60 * 1000;
+const SEARCH_CACHE_MAX_ENTRIES = 500;
+const searchCache = new Map();
+
 /**
  * Search albums, one page of up to SEARCH_PAGE_SIZE results.
  */
 export async function searchAlbums(query, offset = 0) {
+  const cacheKey = `${query.toLowerCase()}|${offset}`;
+  const cached = searchCache.get(cacheKey);
+  if (cached && Date.now() < cached.expiresAt) return cached.items;
+
   const params = new URLSearchParams({ q: query, type: "album", limit: String(SEARCH_PAGE_SIZE), offset: String(offset) });
   const data = await spotifyGet(`/search?${params}`);
-  return data.albums.items.filter(Boolean);
+  const items = data.albums.items.filter(Boolean);
+
+  // Map keeps insertion order, so the first key is the oldest entry
+  if (searchCache.size >= SEARCH_CACHE_MAX_ENTRIES) searchCache.delete(searchCache.keys().next().value);
+  searchCache.set(cacheKey, { items, expiresAt: Date.now() + SEARCH_CACHE_TTL_MS });
+  return items;
 }
 
 /**
