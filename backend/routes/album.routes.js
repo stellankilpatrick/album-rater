@@ -12,6 +12,7 @@ import {
   getAlbumOverallRank, getAdjacentAlbums, updateAlbumReview, syncUserScore10s, updateAlbumType, updateAlbumOfficial
 } from "../models/album.models.js";
 import { addSongsToAlbum } from "../models/song.models.js";
+import { findOrImportTypedAlbum } from "../models/spotify.models.js";
 import { createNotification } from "../routes/notification.routes.js"
 
 
@@ -327,6 +328,10 @@ router.post("/new", requireAuth, async (req, res) => {
   try {
     const { title, artist, releaseDate, songs = [], coverArt, rating, type, official } = req.body;
     if (!title || !artist) return res.status(400).json({ error: "Title and artist required" });
+
+    // Already on the site or on Spotify: send the user to that album instead of creating a duplicate
+    const matchingAlbumId = await findOrImportTypedAlbum(title, artist);
+    if (matchingAlbumId) return res.json({ id: matchingAlbumId, existing: true });
 
     // Create album (make sure createAlbum is async and uses Postgres)
     const album = await createAlbum({ title, artist, releaseDate, songs, cover_art: coverArt, type: type || "album", official: official || false });

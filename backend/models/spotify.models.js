@@ -1,4 +1,5 @@
 import pool from "../db/database.js";
+import { searchAlbums, getAlbumWithTracks } from "../spotify/spotify.client.js";
 
 // Importing from Spotify only ever INSERTs new albums, album_artists links, songs
 // and (when no match exists) artists. Existing rows are read for matching but
@@ -113,8 +114,10 @@ export async function loadArtistIndex(db) {
  * punctuation and edition labels).
  */
 export async function findExistingAlbumId(db, data, artistIndex) {
-  const bySpotifyId = await db.query(`SELECT id FROM albums WHERE spotify_id = $1 LIMIT 1`, [data.spotifyId]);
-  if (bySpotifyId.rows.length > 0) return bySpotifyId.rows[0].id;
+  if (data.spotifyId) {
+    const bySpotifyId = await db.query(`SELECT id FROM albums WHERE spotify_id = $1 LIMIT 1`, [data.spotifyId]);
+    if (bySpotifyId.rows.length > 0) return bySpotifyId.rows[0].id;
+  }
 
   const artistIds = data.artistNames.map(n => artistIndex.get(matchKey(n))).filter(Boolean);
   if (artistIds.length === 0) return null;
@@ -204,5 +207,45 @@ export async function importSpotifyAlbum(spotifyAlbum) {
     throw err;
   } finally {
     client.release();
+  }
+}
+
+/**
+ * For the add-album form: find the album someone typed in, on the site or on
+ * Spotify (importing it), so they're sent to it instead of creating a duplicate.
+ * `artist` uses the form's " & " separator. Returns the album id, or null.
+ * Spotify problems (not configured, rate limited, down) count as no match.
+ */
+export async function findOrImportTypedAlbum(title, artist) {
+  const artistNames = artist.split(" & ").map(a => a.trim()).filter(Boolean);
+  // Also try the whole text as one name, so "Mumford & Sons" isn't only read as "Mumford" and "Sons"
+  if (artistNames.length > 1) artistNames.push(artist.trim());
+  const typed = { title, artistNames };
+
+  const onSite = await findExistingAlbumId(pool, typed, await loadArtistIndex(pool));
+  if (onSite) return onSite;
+
+  let results;
+  try {
+    results = await searchAlbums(`album:${title} artist:${artistNames[0]}`);
+  } catch (err) {
+    console.error("Spotify lookup for typed album skipped:", err.message);
+    return null;
+  }
+
+  const wantedTitle = titleKey(title);
+  const wantedArtists = new Set(artistNames.map(matchKey));
+  const match = results.find(item =>
+    titleKey(item.name) === wantedTitle &&
+    item.artists.some(a => wantedArtists.has(matchKey(normalizeArtistName(a.name))))
+  );
+  if (!match) return null;
+
+  try {
+    const { albumId } = await importSpotifyAlbum(await getAlbumWithTracks(match.id));
+    return albumId;
+  } catch (err) {
+    console.error("Spotify import for typed album failed:", err.message);
+    return null;
   }
 }
