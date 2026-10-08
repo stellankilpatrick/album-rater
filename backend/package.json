@@ -2,7 +2,8 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "initdb": "node initPostgres.js"
+    "initdb": "node initPostgres.js",
+    "migrate:spotify": "node migrations/add-spotify-id.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
