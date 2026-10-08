@@ -4,6 +4,7 @@ import AddAlbumForm from "../components/AddAlbumForm";
 
 export default function AddAlbum({ user }) {
     const [addedAlbum, setAddedAlbum] = useState(null);
+    const [showSpotifyNotice, setShowSpotifyNotice] = useState(true);
     const navigate = useNavigate();
     const { username } = useParams();
 
@@ -22,6 +23,24 @@ export default function AddAlbum({ user }) {
 
     return (
         <div className="add-album-page" style={{ textAlign: "center" }}>
+            {showSpotifyNotice && (
+                <div className="spotify-notice" role="status">
+                    <p>
+                        <strong>Albums from Spotify are now on the site.</strong> Search for any album in
+                        the search bar to go straight to its page. Use this form only for projects that
+                        aren't on Spotify.
+                    </p>
+                    <button
+                        type="button"
+                        className="spotify-notice-close"
+                        onClick={() => setShowSpotifyNotice(false)}
+                        aria-label="Dismiss"
+                    >
+                        ×
+                    </button>
+                </div>
+            )}
+
             <h1>Add a New Project</h1>
 
             <AddAlbumForm onAdd={handleAdd} />
