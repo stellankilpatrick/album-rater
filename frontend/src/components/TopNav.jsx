@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import api from "../api/api";
+import { searchSpotifyAlbums, openSpotifyAlbum } from "../api/spotify";
 import DefaultAvatar from "./DefaultAvatar";
 
 function TopNav({ effectiveUsername, email, onLogout }) {
@@ -10,6 +11,9 @@ function TopNav({ effectiveUsername, email, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [dropdownResults, setDropdownResults] = useState(null);
+  const [spotifyResults, setSpotifyResults] = useState([]);
+  const [openingSpotifyId, setOpeningSpotifyId] = useState(null);
+  const [spotifyError, setSpotifyError] = useState(false);
   const dropdownRef = useRef(null);
   const dbRef = useRef(null);
   const dbCloseTimeout = useRef(null);
@@ -41,6 +45,33 @@ function TopNav({ effectiveUsername, email, onLogout }) {
     }, 300);
     return () => clearTimeout(timeout);
   }, [query]);
+
+  // Spotify albums, searched a little later than the site so typing doesn't use up its rate limit
+  useEffect(() => {
+    setSpotifyError(false);
+    if (query.trim().length < 3) { setSpotifyResults([]); return; }
+    let cancelled = false;
+    const timeout = setTimeout(() => {
+      searchSpotifyAlbums(query.trim()).then(albums => { if (!cancelled) setSpotifyResults(albums); });
+    }, 500);
+    return () => { cancelled = true; clearTimeout(timeout); };
+  }, [query]);
+
+  const handleOpenSpotifyAlbum = async (spotifyAlbum) => {
+    setOpeningSpotifyId(spotifyAlbum.spotifyId);
+    setSpotifyError(false);
+    try {
+      const albumId = await openSpotifyAlbum(spotifyAlbum);
+      setQuery("");
+      setDropdownResults(null);
+      navigate(`/albums/${albumId}`);
+    } catch (err) {
+      console.error("Failed to open Spotify album:", err);
+      setSpotifyError(true);
+    } finally {
+      setOpeningSpotifyId(null);
+    }
+  };
 
   useEffect(() => {
     const handler = (e) => {
@@ -246,6 +277,10 @@ function TopNav({ effectiveUsername, email, onLogout }) {
     </div>
   );
 
+  // Spotify albums not already listed among the site's own album results
+  const siteAlbumIds = new Set((dropdownResults?.albums || []).map(a => a.id));
+  const spotifyAlbums = spotifyResults.filter(a => !siteAlbumIds.has(a.existingAlbumId));
+
   const SearchBox = (
     <div ref={dropdownRef} style={{ position: "relative" }}>
       <form onSubmit={handleSearch}>
@@ -273,7 +308,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
           padding: "8px 0"
         }}>
           {["albums", "artists", "users"].map(type => (
-            dropdownResults[type]?.length > 0 && (
+            (dropdownResults[type]?.length > 0 || (type === "albums" && spotifyAlbums.length > 0)) && (
               <div key={type}>
                 <div style={{ color: "#888", fontSize: "11px", padding: "4px 12px", textTransform: "uppercase" }}>{type}</div>
                 {dropdownResults[type].map(item => (
@@ -287,11 +322,32 @@ function TopNav({ effectiveUsername, email, onLogout }) {
                     {type === "albums" ? <><i>{item.title}</i> — {item.artist}</> : type === "artists" ? item.name : item.username}
                   </Link>
                 ))}
+                {type === "albums" && spotifyAlbums.map(a => (
+                  <button
+                    key={a.spotifyId}
+                    type="button"
+                    onClick={() => handleOpenSpotifyAlbum(a)}
+                    disabled={openingSpotifyId !== null}
+                    className="nav-dropdown-item nav-dropdown-item-btn"
+                    style={{ padding: "6px 12px", fontSize: "inherit", cursor: openingSpotifyId ? "wait" : "pointer" }}
+                  >
+                    <i>{a.title}</i> — {a.artist}
+                    <span style={{ color: "#888", fontSize: "12px" }}>
+                      {openingSpotifyId === a.spotifyId ? " · opening…" : a.releaseDate ? ` · ${a.releaseDate.slice(0, 4)}` : ""}
+                    </span>
+                  </button>
+                ))}
               </div>
             )
           ))}
-          {["albums", "artists", "users"].every(t => !dropdownResults[t]?.length) && (
+          {spotifyError && (
+            <div style={{ color: "#f87171", fontSize: "12px", padding: "4px 12px" }}>Couldn't open that album, try again.</div>
+          )}
+          {["albums", "artists", "users"].every(t => !dropdownResults[t]?.length) && spotifyAlbums.length === 0 && (
             <div style={{ color: "#999", padding: "8px 12px" }}>No results</div>
+          )}
+          {spotifyAlbums.length > 0 && (
+            <div style={{ color: "#666", fontSize: "11px", padding: "6px 12px 2px" }}>Album info from Spotify</div>
           )}
         </div>
       )}
