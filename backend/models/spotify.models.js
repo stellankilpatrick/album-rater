@@ -24,13 +24,20 @@ export function mapAlbumType(spotifyAlbum) {
 }
 
 /**
- * Spotify dates can be "1999", "1999-06" or "1999-06-15"; the DATE column needs a full date.
+ * Spotify dates can be "1999", "1999-06" or "1999-06-15"; the DATE column needs a full date,
+ * so missing parts become 01. Some albums have placeholder dates like "0000" or "1999-00-00":
+ * an unknown year gives null (Postgres has no year 0), an unknown month or day becomes 01.
  */
-export function toReleaseDate(releaseDate, precision) {
-  if (!releaseDate) return null;
-  if (precision === "year") return `${releaseDate}-01-01`;
-  if (precision === "month") return `${releaseDate}-01`;
-  return releaseDate;
+export function toReleaseDate(releaseDate) {
+  const match = /^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$/.exec(releaseDate ?? "");
+  if (!match) return null;
+  const [, year, month, day] = match;
+  if (Number(year) < 1) return null;
+
+  const validMonth = Number(month) >= 1 && Number(month) <= 12 ? month : "01";
+  const daysInMonth = new Date(Date.UTC(Number(year), Number(validMonth), 0)).getUTCDate();
+  const validDay = Number(day) >= 1 && Number(day) <= daysInMonth ? day : "01";
+  return `${year}-${validMonth}-${validDay}`;
 }
 
 /**
@@ -50,7 +57,7 @@ export function toAlbumData(spotifyAlbum) {
     spotifyId: spotifyAlbum.id,
     title: spotifyAlbum.name,
     artistNames: [...new Set(spotifyAlbum.artists.map(a => normalizeArtistName(a.name)))],
-    releaseDate: toReleaseDate(spotifyAlbum.release_date, spotifyAlbum.release_date_precision),
+    releaseDate: toReleaseDate(spotifyAlbum.release_date),
     coverArt: spotifyAlbum.images?.[0]?.url ?? null,
     type,
     // Matches the add-album form, which defaults albums and EPs to official
