@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/api";
 import StarRating from "./StarRating";
@@ -35,11 +35,39 @@ function ArtistLinks({ item }) {
     ));
 }
 
+// Left edge and width of the nav bar's centered items (Album Rankings through the
+// notification bell), relative to `container`; null when there's no such group (mobile).
+// `rendered` re-measures once the container exists (the feed renders after loading).
+function useNavCenterSpan(containerRef, rendered) {
+    const [span, setSpan] = useState(null);
+
+    useLayoutEffect(() => {
+        const group = document.querySelector(".nav-center-group");
+        const measure = () => {
+            const container = containerRef.current;
+            if (!group?.firstElementChild || !container) return setSpan(null);
+            const left = group.firstElementChild.getBoundingClientRect().left;
+            const right = group.lastElementChild.getBoundingClientRect().right;
+            setSpan({ marginLeft: left - container.getBoundingClientRect().left, width: right - left });
+        };
+        measure();
+        const observer = new ResizeObserver(measure);
+        if (group) observer.observe(group);
+        if (containerRef.current) observer.observe(containerRef.current);
+        window.addEventListener("resize", measure);
+        return () => { observer.disconnect(); window.removeEventListener("resize", measure); };
+    }, [containerRef, rendered]);
+
+    return span;
+}
+
 export default function Community({ user }) {
     const [feed, setFeed] = useState([]);
-    const [likePending, setLikePending] = useState(null);
-    
+    const timelineContainerRef = useRef(null);
     const [loading, setLoading] = useState(true);
+    const navSpan = useNavCenterSpan(timelineContainerRef, !loading && feed.length > 0);
+    const [likePending, setLikePending] = useState(null);
+
     const [showMyActivity, setShowMyActivity] = useState(false);
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -109,8 +137,8 @@ export default function Community({ user }) {
                     {feed.length === 0 ? (
                         <p>No activity yet. Follow more people.</p>
                     ) : (
-                        <div className="activity-timeline">
-                            <div>
+                        <div className="activity-timeline" ref={timelineContainerRef}>
+                            <div style={navSpan ?? undefined}>
                             {feed.map(item => isNewRating(item) ? (
                                 <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className="timeline-card">
                                     <Link to={`/albums/${item.album_id}`} className="timeline-cover">
