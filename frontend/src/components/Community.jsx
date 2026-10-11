@@ -35,8 +35,9 @@ function ArtistLinks({ item }) {
     ));
 }
 
-export default function Community() {
+export default function Community({ user }) {
     const [feed, setFeed] = useState([]);
+    const [likePending, setLikePending] = useState(null);
     
     const [loading, setLoading] = useState(true);
     const [showMyActivity, setShowMyActivity] = useState(false);
@@ -61,6 +62,25 @@ export default function Community() {
         };
         fetchData();
     }, [showMyActivity]);
+
+    // Like or unlike someone's review (reviews are album_ratings rows); you can't like your own
+    const toggleReviewLike = async (item) => {
+        if (item.user_id === user?.id || likePending) return;
+        setLikePending(item.rating_id);
+        try {
+            const like = { targetType: "album_review", targetId: item.rating_id };
+            const res = item.liked_by_me
+                ? await api.delete("/likes", { data: like })
+                : await api.post("/likes", like);
+            setFeed(prev => prev.map(f => f.rating_id === item.rating_id
+                ? { ...f, like_count: res.data.count, liked_by_me: !item.liked_by_me }
+                : f));
+        } catch (err) {
+            console.error("Failed to update like:", err);
+        } finally {
+            setLikePending(null);
+        }
+    };
 
     if (loading) return <p>Loading…</p>;
 
@@ -114,6 +134,21 @@ export default function Community() {
                                             </div>
                                             <div className="timeline-meta">
                                                 <span className="timeline-date">{daysAgo(item.created_at)}</span>
+                                                {item.rating_id && (() => {
+                                                    const isOwn = item.user_id === user?.id;
+                                                    return (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => toggleReviewLike(item)}
+                                                            className={`timeline-like${item.liked_by_me ? " liked" : ""}${isOwn ? " own" : ""}`}
+                                                            aria-disabled={isOwn}
+                                                            aria-pressed={item.liked_by_me}
+                                                            title={isOwn ? "You can't like your own review" : item.liked_by_me ? "Unlike" : "Like"}
+                                                        >
+                                                            ❤︎ {item.like_count ?? 0}
+                                                        </button>
+                                                    );
+                                                })()}
                                             </div>
                                         </div>
                                         {item.score != null && (
