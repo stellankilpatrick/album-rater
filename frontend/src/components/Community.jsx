@@ -179,16 +179,18 @@ export default function Community({ user }) {
                                                 })()}
                                             </div>
                                         </div>
-                                        {item.score != null && (
-                                            <div className="timeline-score">
-                                                {getRatingMode() === "stars"
-                                                    ? <StarRating value={score10ToStarValue(item.score)} size={16} />
-                                                    : renderScore(item.score)}
-                                            </div>
-                                        )}
-                                        {reviewText(item.review) && (
-                                            <p className="timeline-review">{reviewText(item.review)}</p>
-                                        )}
+                                        <Link to={`/albums/${item.album_id}/users/${item.username}`} className="timeline-review-link">
+                                            {item.score != null && (
+                                                <div className="timeline-score">
+                                                    {getRatingMode() === "stars"
+                                                        ? <StarRating value={score10ToStarValue(item.score)} size={16} />
+                                                        : renderScore(item.score)}
+                                                </div>
+                                            )}
+                                            {reviewText(item.review) && (
+                                                <p className="timeline-review">{reviewText(item.review)}</p>
+                                            )}
+                                        </Link>
                                     </div>
                                 </div>
                             ) : (

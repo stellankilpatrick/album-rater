@@ -898,6 +898,14 @@ html {
   white-space: nowrap;
 }
 
+/* Score and review text link to the user's review */
+.timeline-review-link {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+
 .timeline-score {
   font-size: 20px;
   font-weight: 700;
