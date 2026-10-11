@@ -139,8 +139,8 @@ export default function Community({ user }) {
                     ) : (
                         <div className="activity-timeline" ref={timelineContainerRef}>
                             <div style={navSpan ?? undefined}>
-                            {feed.map(item => isNewRating(item) ? (
-                                <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className="timeline-card">
+                            {feed.map((item, i) => isNewRating(item) ? (
+                                <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className={`timeline-card${feed[i + 1]?.user_id === item.user_id ? " joined" : ""}`}>
                                     <Link to={`/albums/${item.album_id}`} className="timeline-cover">
                                         {item.coverArt
                                             ? <img src={item.coverArt} alt={item.album_title} />
@@ -192,7 +192,7 @@ export default function Community({ user }) {
                                     </div>
                                 </div>
                             ) : (
-                                <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className="timeline-update">
+                                <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className={`timeline-update${feed[i + 1]?.user_id === item.user_id ? " joined" : ""}`}>
                                     <Link to={`/albums/${item.album_id}`} className="timeline-update-cover">
                                         {item.coverArt
                                             ? <img src={item.coverArt} alt={item.album_title} />

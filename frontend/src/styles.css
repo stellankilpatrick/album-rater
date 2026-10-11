@@ -786,12 +786,23 @@ html {
   margin-bottom: 14px;
 }
 
-/* Line joining one entry to the next */
+/* Between entries: a thin horizontal line, or, when the next entry is from
+   the same user ("joined"), the vertical line connecting the covers */
 .timeline-card:not(:last-child)::after,
 .timeline-update:not(:last-child)::after {
   content: "";
   position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 7px);
+  height: 1px;
+  background: #22303c;
+}
+
+.timeline-card.joined:not(:last-child)::after,
+.timeline-update.joined:not(:last-child)::after {
   left: calc(var(--rail-x) - 1px);
+  right: auto;
   top: 100%;
   width: 2px;
   height: 14px;
