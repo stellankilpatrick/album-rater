@@ -1,6 +1,39 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/api";
+import StarRating from "./StarRating";
+import { getRatingMode, score10ToStarValue, renderScore } from "../utils/rating";
+
+// Same rule as before: an entry whose first and last song ratings are within a
+// minute of each other is a new rating; anything later is an update
+const isNewRating = (item) => Math.abs(new Date(item.updated_at) - new Date(item.created_at)) < 60000;
+
+function daysAgo(date) {
+    const days = Math.floor((Date.now() - new Date(date).getTime()) / 86400000);
+    if (days <= 0) return "Today";
+    return days === 1 ? "1 day ago" : `${days} days ago`;
+}
+
+// Review text without image links (the album page shows those as images)
+const reviewText = (review) =>
+    review?.replace(/https?:\/\/\S+\.(?:jpg|jpeg|png|gif|webp|svg)(\?\S*)?/gi, "").trim();
+
+function Avatar({ pfp, size }) {
+    return pfp
+        ? <img src={pfp} alt="" style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+        : <div style={{ width: size, height: size, borderRadius: "50%", backgroundColor: "#2b2b2b", flexShrink: 0 }} />;
+}
+
+// Each artist links to their page; falls back to the joined name string
+function ArtistLinks({ item }) {
+    if (!item.artists?.length) return item.artist_name;
+    return item.artists.map((a, i) => (
+        <span key={a.id}>
+            {i > 0 && " & "}
+            <Link to={`/artists/${a.id}`} className="timeline-artist">{a.name}</Link>
+        </span>
+    ));
+}
 
 export default function Community() {
     const [feed, setFeed] = useState([]);
@@ -28,19 +61,6 @@ export default function Community() {
         };
         fetchData();
     }, [showMyActivity]);
-
-    function timeAgo(date) {
-        const timestamp = new Date(date).getTime();
-        const seconds = Math.floor((Date.now() - timestamp) / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const hours = Math.floor(minutes / 60);
-        const days = Math.floor(hours / 24);
-
-        if (days > 0) return `${days}d ago`;
-        if (hours > 0) return `${hours}h ago`;
-        if (minutes > 0) return `${minutes}m ago`;
-        return "just now";
-    }
 
     if (loading) return <p>Loading…</p>;
 
@@ -71,31 +91,62 @@ export default function Community() {
                     ) : (
                         <div className="activity-timeline">
                             <div>
-                            {feed.map(item => (
-                                <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className="community-item" style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
-                                    {item.pfp ? (
-                                        <Link to={`/users/${item.username}`}>
-                                            <img src={item.pfp} alt="" style={{ width: isMobile ? "18px" : "20px", height: isMobile ? "18px" : "20px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                            {feed.map(item => isNewRating(item) ? (
+                                <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className="timeline-card">
+                                    <Link to={`/albums/${item.album_id}`} className="timeline-cover">
+                                        {item.coverArt
+                                            ? <img src={item.coverArt} alt={item.album_title} />
+                                            : <div className="timeline-cover-placeholder" />}
+                                    </Link>
+                                    <div className="timeline-body">
+                                        <div className="timeline-header">
+                                            <div className="timeline-title">
+                                                <Link to={`/users/${item.username}`} className="timeline-user">
+                                                    <Avatar pfp={item.pfp} size={22} />
+                                                    {item.username}
+                                                </Link>
+                                                {" rated "}
+                                                <Link to={`/albums/${item.album_id}/users/${item.username}`} className="timeline-album">
+                                                    {item.album_title}
+                                                </Link>
+                                                {" by "}
+                                                <ArtistLinks item={item} />
+                                            </div>
+                                            <div className="timeline-meta">
+                                                <span className="timeline-date">{daysAgo(item.created_at)}</span>
+                                            </div>
+                                        </div>
+                                        {item.score != null && (
+                                            <div className="timeline-score">
+                                                {getRatingMode() === "stars"
+                                                    ? <StarRating value={score10ToStarValue(item.score)} size={16} />
+                                                    : renderScore(item.score)}
+                                            </div>
+                                        )}
+                                        {reviewText(item.review) && (
+                                            <p className="timeline-review">{reviewText(item.review)}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className="timeline-update">
+                                    <Link to={`/albums/${item.album_id}`} className="timeline-update-cover">
+                                        {item.coverArt
+                                            ? <img src={item.coverArt} alt={item.album_title} />
+                                            : <div className="timeline-cover-placeholder" />}
+                                    </Link>
+                                    <div className="timeline-update-text">
+                                        <Link to={`/users/${item.username}`} className="timeline-user">
+                                            <Avatar pfp={item.pfp} size={18} />
+                                            {item.username}
                                         </Link>
-                                    ) : (
-                                        <Link to={`/users/${item.username}`}>
-                                            <div style={{ width: isMobile ? "18px" : "20px", height: isMobile ? "18px" : "20px", borderRadius: "50%", backgroundColor: '#2b2b2b', flexShrink: 0 }} />
-                                        </Link>
-                                    )}
-                                    <div>
-                                        <Link to={`/users/${item.username}`}>
-                                            <strong style={{ fontWeight: 600 }}>{item.username}</strong>
-                                        </Link>
-                                        {" "}
-                                        {Math.abs(new Date(item.updated_at) - new Date(item.created_at)) < 60000 ? "rated" : "updated"}
-                                        {" "}
+                                        {" updated "}
                                         <Link to={`/albums/${item.album_id}/users/${item.username}`}>
                                             <strong style={{ fontWeight: 600 }}>{item.album_title}</strong>
                                         </Link>
                                         {" by "}
-                                        {item.artist_name}
-                                        {" "}
-                                        <span className="time" style={{ fontSize: "12px", color: "#999" }}>{timeAgo(item.updated_at)}</span>
+                                        <ArtistLinks item={item} />
+                                        <span className="timeline-date"> · {daysAgo(item.updated_at)}</span>
                                     </div>
                                 </div>
                             ))}

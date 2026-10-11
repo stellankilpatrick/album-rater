@@ -769,3 +769,167 @@ html {
 .activity-timeline {
   width: 100%;
 }
+
+/* Each new rating is about 1/6 of the screen tall; the cover fills the card's height */
+.activity-timeline {
+  --card-h: max(132px, calc(100vh / 6));
+  --card-pad: 12px;
+  --cover: calc(var(--card-h) - 2 * var(--card-pad));
+  /* x position of the line connecting the covers */
+  --rail-x: calc(var(--card-pad) + var(--cover) / 2);
+}
+
+.timeline-card,
+.timeline-update {
+  position: relative;
+  box-sizing: border-box;
+  margin-bottom: 14px;
+}
+
+/* Line joining one entry to the next */
+.timeline-card:not(:last-child)::after,
+.timeline-update:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--rail-x) - 1px);
+  top: 100%;
+  width: 2px;
+  height: 14px;
+  background: #2a3642;
+}
+
+.timeline-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  height: var(--card-h);
+  padding: var(--card-pad);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.15s ease;
+}
+
+.timeline-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.timeline-cover {
+  flex: 0 0 auto;
+  width: var(--cover);
+  height: var(--cover);
+}
+
+.timeline-cover img,
+.timeline-update-cover img,
+.timeline-cover-placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #1c2630;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.timeline-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.timeline-title {
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #aab4bd;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.timeline-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e6e6e6;
+}
+
+.timeline-album {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.timeline-artist {
+  color: #d3d3d3;
+}
+
+.timeline-meta {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.timeline-date {
+  font-size: 12px;
+  color: #8a96a1;
+  white-space: nowrap;
+}
+
+.timeline-score {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+/* Long reviews end in "..." */
+.timeline-review {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #b8c0c7;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+/* Updates: a compact row whose thumbnail sits on the same line as the covers */
+.timeline-update {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 0 2px calc(var(--rail-x) - 18px);
+  font-size: 13px;
+}
+
+.timeline-update-cover {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+}
+
+.timeline-update-text {
+  min-width: 0;
+  color: #aab4bd;
+}
