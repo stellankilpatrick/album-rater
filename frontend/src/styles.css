@@ -815,14 +815,8 @@ html {
   gap: 18px;
   height: var(--card-h);
   padding: var(--card-pad);
-  border-radius: 12px;
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: background 0.15s ease;
-}
-
-.timeline-card:hover {
-  background: rgba(255, 255, 255, 0.06);
 }
 
 .timeline-cover {
@@ -838,7 +832,6 @@ html {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 8px;
   background: #1c2630;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
