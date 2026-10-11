@@ -65,18 +65,10 @@ export default function Community({ user }) {
     const [feed, setFeed] = useState([]);
     const timelineContainerRef = useRef(null);
     const [loading, setLoading] = useState(true);
-    const navSpan = useNavCenterSpan(timelineContainerRef, !loading && feed.length > 0);
+    const navSpan = useNavCenterSpan(timelineContainerRef, !loading);
     const [likePending, setLikePending] = useState(null);
 
     const [showMyActivity, setShowMyActivity] = useState(false);
-
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 768);
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -113,32 +105,35 @@ export default function Community({ user }) {
     if (loading) return <p>Loading…</p>;
 
     return (
-            <div className="community activity-page">
-                <h1 style={{ textAlign: "center" }}>Activity</h1>
-            <div style={{
-                display: "flex",
-                flexDirection: isMobile ? "column" : "row",
-                gap: "32px",
-                alignItems: "flex-start"
-            }}>
-                {/* Left: activity feed */}
-                <div style={{ flex: isMobile ? undefined : "1 1 0", minWidth: 0 }}>
-                    <div style={{ marginBottom: "8px", textAlign: "center" }}>
-                        <h2 style={{ marginTop: 0, marginBottom: 0 }}>{showMyActivity ? "Your" : "Friend"} Recent Activity</h2>
-                    </div>
-                    <div style={{ textAlign: "center", marginBottom: "12px" }}>
+        <div className="community activity-page">
+            <h1 style={{ textAlign: "center" }}>Activity</h1>
+            <div className="activity-timeline" ref={timelineContainerRef}>
+                <div style={navSpan ?? undefined}>
+                    <div className="activity-tabs" role="tablist">
                         <button
-                            onClick={() => setShowMyActivity(!showMyActivity)}
-                            style={{ padding: "6px 12px", cursor: "pointer" }}
+                            type="button"
+                            role="tab"
+                            aria-selected={showMyActivity}
+                            className={`activity-tab${showMyActivity ? " active" : ""}`}
+                            onClick={() => setShowMyActivity(true)}
                         >
-                            {showMyActivity ? "Show Friends" : "Show My Activity"}
+                            Me
+                        </button>
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected={!showMyActivity}
+                            className={`activity-tab${showMyActivity ? "" : " active"}`}
+                            onClick={() => setShowMyActivity(false)}
+                        >
+                            Friends
                         </button>
                     </div>
-                    {feed.length === 0 ? (
-                        <p>No activity yet. Follow more people.</p>
-                    ) : (
-                        <div className="activity-timeline" ref={timelineContainerRef}>
-                            <div style={navSpan ?? undefined}>
+                    {feed.length === 0 && (
+                        <p className="activity-empty">
+                            {showMyActivity ? "You haven't rated anything in the last month." : "No activity yet. Follow more people."}
+                        </p>
+                    )}
                             {feed.map((item, i) => isNewRating(item) ? (
                                 <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className={`timeline-card${feed[i + 1]?.user_id === item.user_id ? " joined" : ""}`}>
                                     <Link to={`/albums/${item.album_id}`} className="timeline-cover">
@@ -218,14 +213,8 @@ export default function Community({ user }) {
                                     </div>
                                 </div>
                             ))}
-                            </div>
-                        </div>
-                    )}
                 </div>
-
-                {/* no right column (anniversary removed) */}
             </div>
-            
         </div>
     );
 }
