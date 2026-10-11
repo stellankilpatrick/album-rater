@@ -757,3 +757,15 @@ html {
   from { opacity: 0; transform: translateY(-10px) scale(0.97); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* ── Activity timeline (Community page) ── */
+/* Full content width, matching the nav bar; the page scrolls, not the list.
+   The app container pads 10px left / 16px right, so 6px more lines both edges
+   up with the nav bar's 16px padding. */
+.activity-page {
+  padding-left: 6px;
+}
+
+.activity-timeline {
+  width: 100%;
+}

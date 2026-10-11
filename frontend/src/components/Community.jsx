@@ -45,7 +45,7 @@ export default function Community() {
     if (loading) return <p>Loading…</p>;
 
     return (
-            <div className="community page-pad">
+            <div className="community activity-page">
                 <h1 style={{ textAlign: "center" }}>Activity</h1>
             <div style={{
                 display: "flex",
@@ -69,8 +69,8 @@ export default function Community() {
                     {feed.length === 0 ? (
                         <p>No activity yet. Follow more people.</p>
                     ) : (
-                        <div style={{ minHeight: isMobile ? "60vh" : "75vh", overflowY: "visible", paddingRight: "8px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                            <div style={{ width: isMobile ? "100%" : "720px" }}>
+                        <div className="activity-timeline">
+                            <div>
                             {feed.map(item => (
                                 <div key={`${item.username}-${item.album_id}-${item.updated_at}`} className="community-item" style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
                                     {item.pfp ? (
