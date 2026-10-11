@@ -179,18 +179,21 @@ export default function Community({ user }) {
                                                 })()}
                                             </div>
                                         </div>
-                                        <Link to={`/albums/${item.album_id}/users/${item.username}`} className="timeline-review-link">
-                                            {item.score != null && (
-                                                <div className="timeline-score">
+                                        {/* Only the number and the words link to the review, not the space around them */}
+                                        {item.score != null && (
+                                            <div className="timeline-score">
+                                                <Link to={`/albums/${item.album_id}/users/${item.username}`}>
                                                     {getRatingMode() === "stars"
                                                         ? <StarRating value={score10ToStarValue(item.score)} size={16} />
                                                         : renderScore(item.score)}
-                                                </div>
-                                            )}
-                                            {reviewText(item.review) && (
-                                                <p className="timeline-review">{reviewText(item.review)}</p>
-                                            )}
-                                        </Link>
+                                                </Link>
+                                            </div>
+                                        )}
+                                        {reviewText(item.review) && (
+                                            <p className="timeline-review">
+                                                <Link to={`/albums/${item.album_id}/users/${item.username}`}>{reviewText(item.review)}</Link>
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             ) : (
