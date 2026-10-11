@@ -61,6 +61,18 @@ function useNavCenterSpan(containerRef, rendered) {
     return span;
 }
 
+// Entries per page; each card is about a sixth of the screen, so a page is a few screens
+const PAGE_SIZE = 25;
+
+// One page of the friends or my-activity feed, after `before` (an entry's cursor).
+// Asks for one extra entry to learn whether there's more without another request.
+async function fetchFeedPage(mine, before) {
+    const res = await api.get(mine ? "/community/my-activity" : "/community", {
+        params: { limit: PAGE_SIZE + 1, ...(before ? { before } : {}) }
+    });
+    return { items: res.data.slice(0, PAGE_SIZE), hasMore: res.data.length > PAGE_SIZE };
+}
+
 export default function Community({ user }) {
     const [feed, setFeed] = useState([]);
     const timelineContainerRef = useRef(null);
@@ -69,19 +81,38 @@ export default function Community({ user }) {
     const [likePending, setLikePending] = useState(null);
 
     const [showMyActivity, setShowMyActivity] = useState(false);
+    const [hasMore, setHasMore] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
+    // Bumped on every tab switch so a slow response for the other tab is ignored
+    const feedRequest = useRef(0);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const endpoint = showMyActivity ? "/community/my-activity" : "/community";
-                const feedRes = await api.get(endpoint);
-                setFeed(feedRes.data);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
+        const request = ++feedRequest.current;
+        fetchFeedPage(showMyActivity)
+            .then(page => {
+                if (request !== feedRequest.current) return;
+                setFeed(page.items);
+                setHasMore(page.hasMore);
+            })
+            .catch(err => console.error("Failed to load activity:", err))
+            .finally(() => { if (request === feedRequest.current) setLoading(false); });
     }, [showMyActivity]);
+
+    const loadMore = async () => {
+        if (loadingMore || feed.length === 0) return;
+        const request = feedRequest.current;
+        setLoadingMore(true);
+        try {
+            const page = await fetchFeedPage(showMyActivity, feed[feed.length - 1].cursor);
+            if (request !== feedRequest.current) return;
+            setFeed(prev => [...prev, ...page.items]);
+            setHasMore(page.hasMore);
+        } catch (err) {
+            console.error("Failed to load more activity:", err);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
 
     // Like or unlike someone's review (reviews are album_ratings rows); you can't like your own
     const toggleReviewLike = async (item) => {
@@ -131,7 +162,7 @@ export default function Community({ user }) {
                     </div>
                     {feed.length === 0 && (
                         <p className="activity-empty">
-                            {showMyActivity ? "You haven't rated anything in the last month." : "No activity yet. Follow more people."}
+                            {showMyActivity ? "You haven't rated anything yet." : "No activity yet. Follow more people."}
                         </p>
                     )}
                             {feed.map((item, i) => isNewRating(item) ? (
@@ -213,6 +244,11 @@ export default function Community({ user }) {
                                     </div>
                                 </div>
                             ))}
+                    {hasMore && (
+                        <button type="button" className="activity-load-more" onClick={loadMore} disabled={loadingMore}>
+                            {loadingMore ? "Loading…" : "Load more"}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

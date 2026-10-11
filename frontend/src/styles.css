@@ -997,3 +997,27 @@ html {
   color: #8a96a1;
   font-size: 14px;
 }
+
+/* Load more: a plain text button under the last entry */
+.activity-load-more {
+  display: block;
+  margin: 22px auto 40px;
+  padding: 8px 18px;
+  background: none;
+  border: 1px solid #2a3642;
+  color: #9aa6b1;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.activity-load-more:hover:not(:disabled) {
+  color: #fff;
+  border-color: #3a4a58;
+}
+
+.activity-load-more:disabled {
+  cursor: wait;
+}
