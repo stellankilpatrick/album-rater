@@ -6,11 +6,19 @@ import { createNotification } from "../routes/notification.routes.js"
 
 const router = express.Router();
 
+// ?limit=&before= for paging (see community.models.js); without them the
+// latest 500 entries are returned, as before
+function feedPage(query) {
+  const limit = Math.min(Math.max(parseInt(query.limit, 10) || 500, 1), 500);
+  return { limit, before: query.before || null };
+}
+
 router.get("/", requireAuth, async (req, res) => {
   try {
-    const feed = await getCommunityFeed(req.user.id);
+    const feed = await getCommunityFeed(req.user.id, feedPage(req.query));
     res.json(feed);
   } catch (err) {
+    if (err.message === "Invalid cursor" || ["22007", "22008"].includes(err.code)) return res.status(400).json({ error: "Invalid cursor" });
     console.error(err);
     res.status(500).json({ error: "Failed to fetch feed" });
   }
@@ -29,9 +37,10 @@ router.get("/albums", requireAuth, async (req, res) => {
 
 router.get("/my-activity", requireAuth, async (req, res) => {
   try {
-    const feed = await getMyActivityFeed(req.user.id);
+    const feed = await getMyActivityFeed(req.user.id, feedPage(req.query));
     res.json(feed);
   } catch (err) {
+    if (err.message === "Invalid cursor" || ["22007", "22008"].includes(err.code)) return res.status(400).json({ error: "Invalid cursor" });
     res.status(500).json({ error: err.message });
   }
 });
