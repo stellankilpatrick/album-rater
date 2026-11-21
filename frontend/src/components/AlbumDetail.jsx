@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import api from "../api/api";
 import StarRating from "./StarRating";
 import { getRatingMode, score10ToStarValue, renderScore } from "../utils/rating";
@@ -757,8 +758,7 @@ export default function AlbumDetail({ user }) {
                             </div>
                           )}
                         </div>
-                        {editAdjustOpen && isOwner && (
-                          <div>
+                        {editAdjustOpen && isOwner && createPortal(
                             <div
                               role="dialog"
                               aria-modal="true"
@@ -799,9 +799,9 @@ export default function AlbumDetail({ user }) {
                                   }} style={{ padding: '6px 12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Save</button>
                                 </div>
                               </div>
-                            </div>
-                          </div>
-                        )}
+                            </div>,
+                            document.body
+                          )}
                       </>
                     );
                   })()}
