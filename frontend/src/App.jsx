@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigationType } from "react-router-dom";
 import TopNav from "./components/TopNav"
 import AlbumList from "./components/AlbumList";
 import AlbumDetail from "./components/AlbumDetail";
@@ -23,6 +23,123 @@ import Recommendations from "./components/Recommendations";
 import Help from "./components/Help";
 import RequestPasswordReset from "./components/RequestPasswordReset";
 import ResetPassword from "./components/ResetPassword";
+
+const SCROLL_POSITION_PREFIX = "album-rater-scroll:";
+const SCROLL_PATH_PREFIX = "album-rater-scroll-path:";
+const SCROLL_ENTRY_STATE_KEY = "__albumRaterScrollKey";
+
+function readStoredScrollPosition(key) {
+  const storedPosition = sessionStorage.getItem(key);
+  if (storedPosition === null) return null;
+
+  const position = Number(storedPosition);
+  return Number.isFinite(position) ? position : null;
+}
+
+function restorePendingScroll(pendingPosition) {
+  const position = pendingPosition.current;
+  if (position === null) return;
+
+  const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  if (position <= maxScroll) {
+    window.scrollTo(0, position);
+    pendingPosition.current = null;
+  }
+}
+
+function getScrollEntryKey(locationKey) {
+  if (locationKey !== "default") return locationKey;
+
+  const state = window.history.state;
+  if (typeof state?.[SCROLL_ENTRY_STATE_KEY] === "string") {
+    return state[SCROLL_ENTRY_STATE_KEY];
+  }
+
+  const key = crypto.randomUUID();
+  window.history.replaceState({ ...(state ?? {}), [SCROLL_ENTRY_STATE_KEY]: key }, "");
+  return key;
+}
+
+function ScrollRestoration() {
+  const location = useLocation();
+  const navigationType = useNavigationType();
+  const positions = useRef(new Map());
+  const positionsByPath = useRef(new Map());
+  const pendingPosition = useRef(null);
+  const currentKey = useRef(null);
+  const currentPath = useRef(`${location.pathname}${location.search}${location.hash}`);
+
+  useEffect(() => {
+    const previousRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    return () => {
+      window.history.scrollRestoration = previousRestoration;
+    };
+  }, []);
+
+  useEffect(() => {
+    const savePosition = () => {
+      const position = window.scrollY;
+      const key = currentKey.current;
+      if (key === null) return;
+      positions.current.set(key, position);
+      sessionStorage.setItem(`${SCROLL_POSITION_PREFIX}${key}`, String(position));
+      const path = currentPath.current;
+      positionsByPath.current.set(path, position);
+      sessionStorage.setItem(`${SCROLL_PATH_PREFIX}${path}`, String(position));
+    };
+
+    const saveBeforeNavigation = (event) => {
+      if (!(event.target instanceof Element)) return;
+      const link = event.target.closest("a[href]");
+      if (!link || link.target === "_blank") return;
+
+      const destination = new URL(link.href, window.location.href);
+      if (destination.origin === window.location.origin) savePosition();
+    };
+
+    window.addEventListener("scroll", savePosition, { passive: true });
+    window.addEventListener("pagehide", savePosition);
+    document.addEventListener("click", saveBeforeNavigation, true);
+
+    return () => {
+      window.removeEventListener("scroll", savePosition);
+      window.removeEventListener("pagehide", savePosition);
+      document.removeEventListener("click", saveBeforeNavigation, true);
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    const nextKey = getScrollEntryKey(location.key);
+    currentKey.current = nextKey;
+    const nextPath = `${location.pathname}${location.search}${location.hash}`;
+    currentPath.current = nextPath;
+
+    const entryPosition = positions.current.get(nextKey)
+      ?? readStoredScrollPosition(`${SCROLL_POSITION_PREFIX}${nextKey}`);
+    const pathPosition = positionsByPath.current.get(nextPath)
+      ?? readStoredScrollPosition(`${SCROLL_PATH_PREFIX}${nextPath}`);
+    const nextPosition = navigationType === "POP"
+      ? pathPosition ?? entryPosition ?? 0
+      : 0;
+    pendingPosition.current = Number.isFinite(nextPosition) ? nextPosition : 0;
+    restorePendingScroll(pendingPosition);
+  }, [location.key, location.pathname, location.search, location.hash, navigationType]);
+
+  useEffect(() => {
+    const observer = new ResizeObserver(() => restorePendingScroll(pendingPosition));
+    const mutations = new MutationObserver(() => restorePendingScroll(pendingPosition));
+    observer.observe(document.documentElement);
+    observer.observe(document.body);
+    mutations.observe(document.body, { childList: true, subtree: true, characterData: true });
+    return () => {
+      observer.disconnect();
+      mutations.disconnect();
+    };
+  }, []);
+
+  return null;
+}
 
 function App() {
   const [user, setUser] = useState(undefined); // undefined = loading, null = no user
@@ -76,6 +193,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ScrollRestoration />
       {user && (
         <TopNav
           effectiveUsername={user.username}
