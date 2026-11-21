@@ -962,7 +962,11 @@ export default function AlbumDetail({ user }) {
                         <div style={{ display: "flex", gap: "8px", alignItems: "center", minWidth: 0, flex: 1 }}>
                           {!isMobile && <div style={{ width: "24px", flexShrink: 0, color: "#999", fontSize: "13px" }}>{song.num}</div>}
                           <div style={{ minWidth: 0, flex: 1, display: "flex", alignItems: "center", gap: "8px", flexWrap: "nowrap", overflow: "hidden" }}>
-                            <div style={{ fontSize: "13px", lineHeight: "1.1", color: "#fff", display: "inline-block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
+                            <div style={{ fontSize: "13px", lineHeight: "1.1", color: "#fff", display: "inline-block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {song.musicVideoUrl
+                                ? <a href={song.musicVideoUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>{song.title}</a>
+                                : song.title}
+                            </div>
                             {song.featured ? <div style={{ fontSize: "12px", color: "#aaa", display: "inline-block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "120px" }}>ft. {song.featured}</div> : null}
                           </div>
                         </div>
@@ -1043,7 +1047,9 @@ export default function AlbumDetail({ user }) {
                       <tr key={song.id}>
                         <td style={{ paddingRight: "12px", width: "30px", opacity: 0.85 }}>{song.num}</td>
                         <td style={{ paddingRight: "12px", maxWidth: isMobile ? "250px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {song.title}{" "}
+                          {song.musicVideoUrl
+                            ? <a href={song.musicVideoUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>{song.title}</a>
+                            : song.title}{" "}
                           {song.featured ? <span style={{ fontSize: "0.75em", color: "#aaa", display: "inline-block", maxWidth: "120px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", verticalAlign: "middle" }}> (ft. {song.featured})</span> : ""}
                         </td>
                         <td style={{ paddingRight: "24px" }}>
