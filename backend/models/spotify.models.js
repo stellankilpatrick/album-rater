@@ -40,6 +40,10 @@ export function toReleaseDate(releaseDate) {
   return `${year}-${validMonth}-${validDay}`;
 }
 
+function removeFeaturedArtistSuffix(title) {
+  return title.replace(/\s*(?:[-–—]\s*)?[\[(]?\s*(?:feat(?:uring)?|ft|with)\.?\s+.+?[\])]?$/i, "").trim();
+}
+
 /**
  * Turn a Spotify album into the fields this app stores.
  * Expects the album's full tracklist in spotifyAlbum.tracks (an array).
@@ -64,7 +68,8 @@ export function toAlbumData(spotifyAlbum) {
     official: ["album", "ep"].includes(type),
     songs: sortedTracks.map((track, i) => {
       const featured = track.artists.filter(a => !albumArtistIds.has(a.id)).map(a => a.name);
-      return { num: i + 1, title: track.name, featured: featured.length ? featured.join(", ") : null };
+      const title = featured.length ? removeFeaturedArtistSuffix(track.name) : track.name;
+      return { num: i + 1, title, featured: featured.length ? featured.join(", ") : null };
     }),
   };
 }
