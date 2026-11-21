@@ -15,9 +15,6 @@ function TopNav({ effectiveUsername, email, onLogout }) {
   const [openingSpotifyId, setOpeningSpotifyId] = useState(null);
   const [spotifyError, setSpotifyError] = useState(false);
   const dropdownRef = useRef(null);
-  const dbRef = useRef(null);
-  const dbCloseTimeout = useRef(null);
-  const [dbOpen, setDbOpen] = useState(false);
   const [pfp, setPfp] = useState(null);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
@@ -185,26 +182,6 @@ function TopNav({ effectiveUsername, email, onLogout }) {
     <>
       <Link to={`/albums/users/${effectiveUsername}`} className={navClass(`/albums/users/${effectiveUsername}`)}>Album Rankings</Link>
       <Link to={`/artists/users/${effectiveUsername}`} className={navClass(`/artists/users/${effectiveUsername}`)}>Artist Rankings</Link>
-        <div
-        ref={dbRef}
-        style={{ position: 'relative' }}
-        onMouseEnter={() => {
-          if (dbCloseTimeout.current) { clearTimeout(dbCloseTimeout.current); dbCloseTimeout.current = null; }
-          setDbOpen(true);
-        }}
-        onMouseLeave={() => {
-          if (dbCloseTimeout.current) clearTimeout(dbCloseTimeout.current);
-          dbCloseTimeout.current = setTimeout(() => setDbOpen(false), 180);
-        }}
-      >
-        <button className="nav-link" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>Database ▾</button>
-        {dbOpen && (
-          <div style={{ position: 'absolute', top: '100%', left: 0, backgroundColor: '#111', border: '1px solid #333', borderRadius: 6, padding: '6px 0', zIndex: 150, minWidth: 140 }}>
-            <Link to="/albums" className="nav-dropdown-item" style={{ display: 'block' }} onClick={() => setDbOpen(false)}>{'Albums'}</Link>
-            <Link to="/artists" className="nav-dropdown-item" style={{ display: 'block' }} onClick={() => setDbOpen(false)}>{'Artists'}</Link>
-          </div>
-        )}
-      </div>
       <Link to="/community" className={navClass("/community")}>Activity</Link>
       <div style={{ position: "relative" }}
         onMouseEnter={() => setAddAlbumOpen(true)}
@@ -535,8 +512,6 @@ function TopNav({ effectiveUsername, email, onLogout }) {
             {[
             { to: `/albums/users/${effectiveUsername}`, label: "Album Rankings" },
             { to: `/artists/users/${effectiveUsername}`, label: "Artist Rankings" },
-            { to: "/albums", label: "Albums" },
-            { to: "/artists", label: "Artists" },
             { to: "/community", label: "Activity" },
             { to: "/albums/new", label: "Add Project" },
             { to: `/users/${effectiveUsername}`, label: "Profile" },

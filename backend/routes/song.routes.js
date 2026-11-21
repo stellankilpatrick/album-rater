@@ -96,6 +96,38 @@ router.patch("/:id/featured", requireAuth, async (req, res) => {
   }
 });
 
+router.patch("/:id/music-video", requireAuth, async (req, res) => {
+  const { musicVideoUrl } = req.body;
+  if (musicVideoUrl != null && typeof musicVideoUrl !== "string") {
+    return res.status(400).json({ error: "Music video URL must be a string" });
+  }
+
+  const trimmedUrl = musicVideoUrl?.trim() || null;
+  if (trimmedUrl) {
+    try {
+      const url = new URL(trimmedUrl);
+      if (!["http:", "https:"].includes(url.protocol)) throw new Error("Unsupported protocol");
+    } catch {
+      return res.status(400).json({ error: "Music video URL must be a valid http or https URL" });
+    }
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE songs
+       SET music_video_url = $1
+       WHERE id = $2
+       RETURNING id, title, track_number AS num, featured, music_video_url AS "musicVideoUrl"`,
+      [trimmedUrl, req.params.id]
+    );
+    if (result.rowCount === 0) return res.status(404).json({ error: "Song not found" });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update music video URL" });
+  }
+});
+
 // ---------------------
 // RATE SONG
 // ---------------------

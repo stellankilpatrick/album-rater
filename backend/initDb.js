@@ -45,6 +45,7 @@ db.prepare(`
     album_id INTEGER NOT NULL,
     track_number INTEGER NOT NULL CHECK (track_number > 0),
     title TEXT NOT NULL,
+    music_video_url TEXT,
     FOREIGN KEY(album_id) REFERENCES albums(id) ON DELETE CASCADE
   )
 `).run();

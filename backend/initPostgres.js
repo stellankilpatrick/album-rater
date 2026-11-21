@@ -48,7 +48,8 @@ async function init() {
         id SERIAL PRIMARY KEY,
         album_id INTEGER NOT NULL REFERENCES albums(id) ON DELETE CASCADE,
         track_number INTEGER NOT NULL CHECK (track_number > 0),
-        title TEXT NOT NULL
+        title TEXT NOT NULL,
+        music_video_url TEXT
       );
     `);
 

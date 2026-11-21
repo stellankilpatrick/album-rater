@@ -197,7 +197,11 @@ export default function AlbumDetailPublic({ user }) {
       const res = await api.patch(`/songs/${song.id}/num`, { num: nextNum });
       const updatedSongs = Array.isArray(res.data?.songs) ? res.data.songs : null;
       if (updatedSongs) {
-        setSongs(updatedSongs.map(s => ({ ...s, num: s.num ?? s.track_number ?? 1 })));
+        setSongs(prev => updatedSongs.map(s => ({
+          ...s,
+          num: s.num ?? s.track_number ?? 1,
+          musicVideoUrl: prev.find(song => song.id === s.id)?.musicVideoUrl
+        })));
       } else {
         setSongs(prev => prev.map(s => s.id === song.id ? { ...s, num: res.data?.song?.num ?? nextNum } : s));
       }
@@ -298,6 +302,10 @@ export default function AlbumDetailPublic({ user }) {
 
         if ((song.featured ?? "") !== (originalSong.featured ?? "")) {
           await api.patch(`/songs/${song.id}/featured`, { featured: song.featured ?? null });
+        }
+
+        if ((song.musicVideoUrl ?? "") !== (originalSong.musicVideoUrl ?? "")) {
+          await api.patch(`/songs/${song.id}/music-video`, { musicVideoUrl: song.musicVideoUrl?.trim() || null });
         }
 
         const draftValue = draftTrackNums[song.id];
@@ -763,6 +771,7 @@ export default function AlbumDetailPublic({ user }) {
                 <tr>
                   <th style={{ width: isEditing ? "40px" : "30px", padding: isEditing ? "10px 8px" : undefined, textAlign: "left" }}>#</th>
                   <th style={{ textAlign: "left", maxWidth: isMobile ? "200px" : undefined, padding: isEditing ? "10px 8px" : undefined }}>Title</th>
+                  {isEditing && <th style={{ width: isMobile ? "220px" : "260px", padding: "10px 8px", textAlign: "left" }}>Music video URL</th>}
                   {!isEditing && (
                     <th
                       onClick={() =>
@@ -845,9 +854,27 @@ export default function AlbumDetailPublic({ user }) {
                           />
                         </div>
                       ) : (
-                        <span>{song.title}{song.featured ? <span style={{ fontSize: "0.8em", color: "#aaa" }}> (ft. {song.featured})</span> : ""}</span>
+                        <span>
+                          {song.musicVideoUrl
+                            ? <a href={song.musicVideoUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>{song.title}</a>
+                            : song.title}
+                          {song.featured ? <span style={{ fontSize: "0.8em", color: "#aaa" }}> (ft. {song.featured})</span> : ""}
+                        </span>
                       )}
                     </td>
+
+                    {isEditing && (
+                      <td style={{ padding: "3px 8px", verticalAlign: "top" }}>
+                        <input
+                          type="url"
+                          value={song.musicVideoUrl ?? ""}
+                          placeholder="https://..."
+                          aria-label={`Music video URL for ${song.title}`}
+                          onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, musicVideoUrl: e.target.value } : s))}
+                          style={{ width: "100%", padding: "3px 6px", borderRadius: "6px", border: "1px solid #ccc", boxSizing: "border-box" }}
+                        />
+                      </td>
+                    )}
 
                     {!isEditing && <td>{song.totalRatings > 0 ? `${song.notSkippedPercent}%` : "—"}</td>}
 

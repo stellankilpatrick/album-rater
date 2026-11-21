@@ -41,7 +41,8 @@ export async function addSongsToAlbum(albumId, songs) {
   const album = albumResult[0];
 
   const { rows: songsRows } = await pool.query(
-    `SELECT id, title, track_number AS num, featured
+    `SELECT id, title, track_number AS num, featured,
+            music_video_url AS "musicVideoUrl"
      FROM songs 
      WHERE album_id = $1 
      ORDER BY track_number`,
