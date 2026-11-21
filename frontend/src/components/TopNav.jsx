@@ -489,7 +489,6 @@ function TopNav({ effectiveUsername, email, onLogout }) {
                 </div>
               )}
             </div>
-            <Link to="/help" className="nav-link" aria-label="Help" style={{ textDecoration: 'none', fontSize: '1.1rem', padding: '4px 8px' }}>?</Link>
             </div>
             <div style={{ marginLeft: "auto" }}>{profileMenu}</div>
           </>
