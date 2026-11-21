@@ -187,7 +187,7 @@ function TopNav({ effectiveUsername, email, onLogout }) {
         onMouseEnter={() => setAddAlbumOpen(true)}
         onMouseLeave={() => setAddAlbumOpen(false)}
       >
-        {(<Link to="/albums/new" className={navClass("/albums/new")}>Add Project</Link>)}
+        {(<Link to="/albums/new" className={navClass("/albums/new")} aria-label="Add Project" title="Add Project">+</Link>)}
       </div>
     </>
   );
