@@ -10,7 +10,8 @@ const router = express.Router();
 // latest 500 entries are returned, as before
 function feedPage(query) {
   const limit = Math.min(Math.max(parseInt(query.limit, 10) || 500, 1), 500);
-  return { limit, before: query.before || null };
+  const before = query.before || null;
+  return { limit, before, includeRecent: query.limit !== undefined && !before };
 }
 
 router.get("/", requireAuth, async (req, res) => {

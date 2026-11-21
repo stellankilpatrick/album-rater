@@ -28,9 +28,14 @@ function parseCursor(before) {
   return [time, Number(userId), Number(albumId)];
 }
 
-export async function getCommunityFeed(userId, { limit = 500, before = null } = {}) {
-  const res = await pool.query(
-    `SELECT
+function activityFeedQuery(mine) {
+  const joins = mine
+    ? `JOIN users u ON u.id = r.user_id`
+    : `JOIN follows f ON f.following_id = r.user_id
+       JOIN users u ON u.id = r.user_id`;
+  const viewerFilter = mine ? "r.user_id = $1" : "f.follower_id = $1";
+
+  return `SELECT
       CONCAT(r.user_id, '-', al.id) AS activity_id,
       r.user_id,
       u.username,
@@ -49,25 +54,49 @@ export async function getCommunityFeed(userId, { limit = 500, before = null } = 
       CONCAT(MAX(r.updated_at)::text, '|', r.user_id, '|', al.id) AS cursor,
       ${REVIEW_COLUMNS}
     FROM song_ratings r
-    JOIN follows f ON f.following_id = r.user_id
-    JOIN users u ON u.id = r.user_id
+    ${joins}
     JOIN songs s ON s.id = r.song_id
     JOIN albums al ON al.id = s.album_id
     LEFT JOIN album_ratings alr ON alr.user_id = r.user_id AND alr.album_id = al.id
-    WHERE f.follower_id = $1
+    WHERE ${viewerFilter}
       AND NOT EXISTS (
         SELECT 1 FROM album_ratings ar
         WHERE ar.user_id = r.user_id AND ar.album_id = al.id AND (ar.untracked = true OR ar.is_draft = true)
       )
-    GROUP BY r.user_id, al.id, u.username, u.pfp, al.title, alr.user_id, alr.album_id
-    HAVING $3::timestamptz IS NULL
-      OR (MAX(r.updated_at), r.user_id, al.id) < ($3::timestamptz, $4::int, $5::int)
-    ORDER BY updated_at DESC, r.user_id DESC, al.id DESC
-    LIMIT $2`,
-    [userId, limit, ...parseCursor(before)]
+    GROUP BY r.user_id, al.id, u.username, u.pfp, al.title, alr.user_id, alr.album_id`;
+}
+
+async function getActivityFeedPage(userId, { limit = 500, before = null, includeRecent = false } = {}, mine) {
+  const query = activityFeedQuery(mine);
+  let pageSize = limit;
+
+  if (includeRecent && !before) {
+    const { rows } = await pool.query(
+      `SELECT COUNT(*)::int AS count
+       FROM (${query}) AS activities
+       WHERE updated_at >= NOW() - INTERVAL '7 days'`,
+      [userId]
+    );
+    pageSize = Math.max(pageSize, rows[0].count);
+  }
+
+  const res = await pool.query(
+    `SELECT * FROM (${query}) AS activities
+     WHERE $2::timestamptz IS NULL
+       OR (updated_at, user_id, album_id) < ($2::timestamptz, $3::int, $4::int)
+     ORDER BY updated_at DESC, user_id DESC, album_id DESC
+     LIMIT $5`,
+    [userId, ...parseCursor(before), pageSize + 1]
   );
 
-  return res.rows;
+  return {
+    items: res.rows.slice(0, pageSize),
+    hasMore: res.rows.length > pageSize,
+  };
+}
+
+export async function getCommunityFeed(userId, options) {
+  return getActivityFeedPage(userId, options, false);
 }
 
 export async function getAnniversaryAlbums(userId) {
@@ -96,43 +125,6 @@ export async function getAnniversaryAlbums(userId) {
   return res.rows.map(a => ({ ...a, artistId: a.artistIds[0] }));
 }
 
-export async function getMyActivityFeed(userId, { limit = 500, before = null } = {}) {
-  const res = await pool.query(
-    `SELECT
-      CONCAT(r.user_id, '-', al.id) AS activity_id,
-      r.user_id,
-      u.username,
-      u.pfp,
-      al.id AS album_id,
-      al.title AS album_title,
-      MAX(al.cover_art) AS "coverArt",
-      (
-        SELECT STRING_AGG(ar.name, ' & ' ORDER BY ar.name)
-        FROM album_artists aa
-        JOIN artists ar ON ar.id = aa.artist_id
-        WHERE aa.album_id = al.id
-      ) AS artist_name,
-      MAX(r.updated_at) AS updated_at,
-      MIN(r.created_at) AS created_at,
-      CONCAT(MAX(r.updated_at)::text, '|', r.user_id, '|', al.id) AS cursor,
-      ${REVIEW_COLUMNS}
-    FROM song_ratings r
-    JOIN users u ON u.id = r.user_id
-    JOIN songs s ON s.id = r.song_id
-    JOIN albums al ON al.id = s.album_id
-    LEFT JOIN album_ratings alr ON alr.user_id = r.user_id AND alr.album_id = al.id
-    WHERE r.user_id = $1
-      AND NOT EXISTS (
-          SELECT 1 FROM album_ratings ar
-          WHERE ar.user_id = r.user_id AND ar.album_id = al.id AND (ar.untracked = true OR ar.is_draft = true)
-      )
-    GROUP BY r.user_id, al.id, u.username, u.pfp, al.title, alr.user_id, alr.album_id
-    HAVING $3::timestamptz IS NULL
-      OR (MAX(r.updated_at), r.user_id, al.id) < ($3::timestamptz, $4::int, $5::int)
-    ORDER BY updated_at DESC, r.user_id DESC, al.id DESC
-    LIMIT $2`,
-    [userId, limit, ...parseCursor(before)]
-  );
-
-  return res.rows;
+export async function getMyActivityFeed(userId, options) {
+  return getActivityFeedPage(userId, options, true);
 }

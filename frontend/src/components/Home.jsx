@@ -13,7 +13,7 @@ export default function Home({ user }) {
       api.get("/community"),
       api.get("/community/albums")
     ]).then(([feedRes, annRes]) => {
-      const feed = feedRes.data || [];
+      const feed = feedRes.data?.items || [];
       setRecent(feed.slice(0, 6));
       setAnniversary(annRes.data || []);
     }).catch(() => {});

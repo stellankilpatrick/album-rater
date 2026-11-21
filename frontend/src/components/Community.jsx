@@ -61,16 +61,15 @@ function useNavCenterSpan(containerRef, rendered) {
     return span;
 }
 
-// Entries per page; each card is about a sixth of the screen, so a page is a few screens
+// Entries per page after the seven-day window; first page includes all recent activity.
 const PAGE_SIZE = 25;
 
 // One page of the friends or my-activity feed, after `before` (an entry's cursor).
-// Asks for one extra entry to learn whether there's more without another request.
 async function fetchFeedPage(mine, before) {
     const res = await api.get(mine ? "/community/my-activity" : "/community", {
-        params: { limit: PAGE_SIZE + 1, ...(before ? { before } : {}) }
+        params: { limit: PAGE_SIZE, ...(before ? { before } : {}) }
     });
-    return { items: res.data.slice(0, PAGE_SIZE), hasMore: res.data.length > PAGE_SIZE };
+    return res.data;
 }
 
 export default function Community({ user }) {
