@@ -8,6 +8,7 @@ router.get("/", async (req, res) => {
     const q = req.query.q?.trim();
     if (!q) return res.json({ albums: [], artists: [], users: [] });
 
+    const terms = q.split(/\s+/).map(term => `%${term}%`);
     const like = `%${q}%`;
 
     const albumsPromise = pool.query(`
@@ -15,10 +16,21 @@ router.get("/", async (req, res) => {
       FROM albums a
       JOIN album_artists aa ON aa.album_id = a.id
       JOIN artists ar ON ar.id = aa.artist_id
-      WHERE a.title ILIKE $1
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM unnest($1::text[]) AS search_term(pattern)
+        WHERE a.title NOT ILIKE search_term.pattern
+          AND NOT EXISTS (
+            SELECT 1
+            FROM album_artists term_aa
+            JOIN artists term_ar ON term_ar.id = term_aa.artist_id
+            WHERE term_aa.album_id = a.id
+              AND term_ar.name ILIKE search_term.pattern
+          )
+      )
       GROUP BY a.id
       LIMIT 10
-    `, [like]);
+    `, [terms]);
 
     const artistsPromise = pool.query(`
       SELECT id, name

@@ -294,9 +294,13 @@ function TopNav({ effectiveUsername, email, onLogout }) {
                     to={type === "albums" ? `/albums/${item.id}` : type === "artists" ? `/artists/${item.id}` : `/users/${item.username}`}
                     onClick={() => { setQuery(""); setDropdownResults(null); }}
                     className="nav-dropdown-item"
-                    style={{ padding: "6px 12px" }}
+                    style={type === "albums"
+                      ? { padding: "6px 12px", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }
+                      : { padding: "6px 12px" }}
                   >
-                    {type === "albums" ? <><i>{item.title}</i> — {item.artist}</> : type === "artists" ? item.name : item.username}
+                    {type === "albums"
+                      ? <><span style={{ fontWeight: 600 }}>{item.title}</span><span style={{ color: "#999", fontSize: "0.9em" }}>{item.artist}</span></>
+                      : type === "artists" ? item.name : item.username}
                   </Link>
                 ))}
                 {type === "albums" && spotifyAlbums.map(a => (
@@ -306,11 +310,12 @@ function TopNav({ effectiveUsername, email, onLogout }) {
                     onClick={() => handleOpenSpotifyAlbum(a)}
                     disabled={openingSpotifyId !== null}
                     className="nav-dropdown-item nav-dropdown-item-btn"
-                    style={{ padding: "6px 12px", fontSize: "inherit", cursor: openingSpotifyId ? "wait" : "pointer" }}
+                    style={{ padding: "6px 12px", fontSize: "inherit", cursor: openingSpotifyId ? "wait" : "pointer", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }}
                   >
-                    <i>{a.title}</i> — {a.artist}
+                    <span style={{ fontWeight: 600 }}>{a.title}</span>
+                    <span style={{ color: "#999", fontSize: "0.9em" }}>{a.artist}</span>
                     <span style={{ color: "#888", fontSize: "12px" }}>
-                      {openingSpotifyId === a.spotifyId ? " · opening…" : a.releaseDate ? ` · ${a.releaseDate.slice(0, 4)}` : ""}
+                      {openingSpotifyId === a.spotifyId ? "Opening…" : a.releaseDate ? a.releaseDate.slice(0, 4) : ""}
                     </span>
                   </button>
                 ))}

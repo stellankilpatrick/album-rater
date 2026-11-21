@@ -60,24 +60,26 @@ export default function SearchResults() {
             {results.albums.length === 0 && spotifyAlbums.length === 0
                 ? <div style={{ color: "#999" }}>No albums</div>
                 : results.albums.map((a) => (
-                    <div key={a.id}>
-                        <Link to={`/albums/${a.id}`}>
-                            <i>{a.title}</i> — {a.artist}
+                    <div key={a.id} style={{ marginBottom: "12px" }}>
+                        <Link to={`/albums/${a.id}`} style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }}>
+                            <span style={{ fontWeight: 600 }}>{a.title}</span>
+                            <span style={{ color: "#999", fontSize: "0.9em" }}>{a.artist}</span>
                         </Link>
                     </div>
                 ))}
             {spotifyAlbums.map((a) => (
-                <div key={a.spotifyId}>
+                <div key={a.spotifyId} style={{ marginBottom: "12px" }}>
                     <button
                         type="button"
                         onClick={() => handleOpenSpotifyAlbum(a)}
                         disabled={openingSpotifyId !== null}
-                        style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "inherit", textDecoration: "underline", cursor: openingSpotifyId ? "wait" : "pointer", textAlign: "left" }}
+                        style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "inherit", textDecoration: "underline", cursor: openingSpotifyId ? "wait" : "pointer", textAlign: "left", display: "inline-flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }}
                     >
-                        <i>{a.title}</i> — {a.artist}
+                        <span style={{ fontWeight: 600 }}>{a.title}</span>
+                        <span style={{ color: "#999", fontSize: "0.9em" }}>{a.artist}</span>
                     </button>
                     <span style={{ color: "#888", fontSize: "13px" }}>
-                        {openingSpotifyId === a.spotifyId ? " · opening…" : a.releaseDate ? ` · ${a.releaseDate.slice(0, 4)}` : ""}
+                        {openingSpotifyId === a.spotifyId ? "Opening…" : a.releaseDate ? a.releaseDate.slice(0, 4) : ""}
                     </span>
                 </div>
             ))}
