@@ -503,6 +503,7 @@ router.get("/:id/users/:username", requireAuth, async (req, res) => {
       num: t.num,
       title: t.title,
       featured: t.featured,
+      musicVideoUrl: t.musicVideoUrl,
       localRating: t.rating,
       comment: t.comment,
       review: t.review
