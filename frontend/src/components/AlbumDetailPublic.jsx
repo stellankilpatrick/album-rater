@@ -167,7 +167,7 @@ export default function AlbumDetailPublic({ user }) {
     if (!song.title.trim()) return;
     try {
       const res = await api.patch(`/songs/${song.id}/title`, { title: song.title });
-      setSongs(prev => prev.map(s => s.id === song.id ? res.data : s));
+      setSongs(prev => prev.map(s => s.id === song.id ? { ...s, ...res.data, featured: s.featured } : s));
       setEditingSongId(null);
     } catch (err) { console.error(err); }
   };

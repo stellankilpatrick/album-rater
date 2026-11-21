@@ -68,7 +68,7 @@ router.patch("/:id/title", requireAuth, async (req, res) => {
 
   try {
     const result = await pool.query(
-      `UPDATE songs SET title = $1 WHERE id = $2 RETURNING id, title, track_number AS num`,
+      `UPDATE songs SET title = $1 WHERE id = $2 RETURNING id, title, track_number AS num, featured`,
       [title, songId]
     );
 
