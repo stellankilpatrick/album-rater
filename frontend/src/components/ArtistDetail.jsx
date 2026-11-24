@@ -92,7 +92,7 @@ export default function ArtistDetail({ user }) {
 
     const sortedAlbums = albums.slice().sort((a, b) =>
         sortMode === "rating"
-            ? b.rating - a.rating
+            ? Number(b.adjustedRating ?? b.score10 ?? 0) - Number(a.adjustedRating ?? a.score10 ?? 0)
             : new Date(a.releaseDate) - new Date(b.releaseDate)
     );
 
