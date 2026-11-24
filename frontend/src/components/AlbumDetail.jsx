@@ -19,6 +19,7 @@ export default function AlbumDetail({ user }) {
   const [hasChanges, setHasChanges] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const skipUnsavedWarningRef = useRef(false);
+  const pendingSaveIntentRef = useRef(null);
   const canEdit = isOwner && isEditing;
 
   const [ranks, setRanks] = useState({});
@@ -181,6 +182,7 @@ export default function AlbumDetail({ user }) {
     setPendingSongs([]);
     setHasChanges(false);
     setIsEditing(false);
+    pendingSaveIntentRef.current = null;
     setReview("");
     setPendingReview("");
     setLiked(null);
@@ -312,6 +314,7 @@ export default function AlbumDetail({ user }) {
   const handleCancelEdit = () => {
     if (isSaving) return;
     if (hasChanges && !window.confirm("Discard your unsaved changes?")) return;
+    pendingSaveIntentRef.current = null;
     setPendingSongs(songs);
     setPendingReview(review);
     setPendingLiked(liked);
@@ -324,7 +327,7 @@ export default function AlbumDetail({ user }) {
     setAdjustValue(album.adjustor ?? 0);
   };
 
-  const handleSaveRating = async (bumpActivity = false, isDraft = false) => {
+  const handleSaveRating = async (bumpActivity = false, isDraft = false, selectedOpinion = pendingLiked) => {
     if (!canEdit || isSaving) return;
 
     const tagSelectionChanged =
@@ -337,9 +340,10 @@ export default function AlbumDetail({ user }) {
           (original?.comment ?? null) !== (song.comment ?? null);
       }) ||
       (pendingReview ?? null) !== (review ?? null) ||
-      pendingLiked !== liked;
+      selectedOpinion !== liked;
     const isTagOnlySave = tagSelectionChanged && !otherChangesExist;
-    if (pendingLiked === null && !isTagOnlySave) {
+    if (selectedOpinion === null && !isTagOnlySave) {
+      pendingSaveIntentRef.current = isDraft ? null : { bumpActivity, isDraft };
       triggerOpinionFlash();
       setShowOpinionPopup(true);
       return;
@@ -387,10 +391,10 @@ export default function AlbumDetail({ user }) {
       }
 
       // Save opinion
-      if ((pendingLiked ?? null) !== (liked ?? null)) {
-        console.debug('Patching album opinion', { liked: pendingLiked, bumpActivity: bump, isDraft });
-        await api.patch(`/albums/${albumId}/users/${effectiveUsername}/liked`, { liked: pendingLiked, bumpActivity: bump, isDraft });
-        setLiked(pendingLiked);
+      if ((selectedOpinion ?? null) !== (liked ?? null)) {
+        console.debug('Patching album opinion', { liked: selectedOpinion, bumpActivity: bump, isDraft });
+        await api.patch(`/albums/${albumId}/users/${effectiveUsername}/liked`, { liked: selectedOpinion, bumpActivity: bump, isDraft });
+        setLiked(selectedOpinion);
       }
 
       setHasChanges(false);
@@ -400,6 +404,17 @@ export default function AlbumDetail({ user }) {
       console.error("Failed to save ratings:", err);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleOpinionSelection = (opinion) => {
+    setPendingLiked(opinion);
+    setHasChanges(true);
+    setShowOpinionPopup(false);
+    const saveIntent = pendingSaveIntentRef.current;
+    pendingSaveIntentRef.current = null;
+    if (saveIntent) {
+      void handleSaveRating(saveIntent.bumpActivity, saveIntent.isDraft, opinion);
     }
   };
 
@@ -466,6 +481,17 @@ export default function AlbumDetail({ user }) {
     api.get(`/likes/status?targetType=album_review&targetId=${album.ratingId}`)
       .then(res => setReviewLikes({ ...res.data, ratingId: album.ratingId }));
   }, [album]);
+
+  const handleReviewLike = async () => {
+    if (isOwner || !reviewLikes.ratingId) return;
+    if (reviewLikes.likedByMe) {
+      const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
+      setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
+    } else {
+      const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
+      setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
+    }
+  };
 
   // if try to close out tab while editing
   useEffect(() => {
@@ -613,37 +639,6 @@ export default function AlbumDetail({ user }) {
                 transition: "border 0.15s ease",
               }}
             />
-            {/* owner adjustor editor removed from review panel; edit pencil moved next to header score */}
-            {album?.ratingId && (
-              <button
-                onClick={async () => {
-                  if (isOwner) return;
-                  if (reviewLikes.likedByMe) {
-                    const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
-                    setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
-                  } else {
-                    const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
-                    setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
-                  }
-                }}
-                style={{
-                  position: "absolute",
-                  right: "8px",
-                  bottom: "8px",
-                  background: "none",
-                  border: "none",
-                  cursor: isOwner ? "default" : "pointer",
-                  color: reviewLikes.likedByMe ? "#e0245e" : (isOwner ? "rgba(255,255,255,0.5)" : "white"),
-                  fontSize: "18px",
-                  padding: 0,
-                  opacity: isOwner ? 0.9 : 1
-                }}
-                aria-disabled={isOwner}
-                title={isOwner ? "You can't like your own review" : undefined}
-              >
-                ❤︎ {reviewLikes.count}
-              </button>
-            )}
           </div>
             {/* character count removed per user request */}
         </>
@@ -672,36 +667,6 @@ export default function AlbumDetail({ user }) {
               <span style={{ color: "#888", fontStyle: "italic" }}>
                 No review.
               </span>
-            )}
-            {album?.ratingId && (
-              <button
-                onClick={async () => {
-                  if (isOwner) return;
-                  if (reviewLikes.likedByMe) {
-                    const res = await api.delete("/likes", { data: { targetType: "album_review", targetId: reviewLikes.ratingId } });
-                    setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: false }));
-                  } else {
-                    const res = await api.post("/likes", { targetType: "album_review", targetId: reviewLikes.ratingId });
-                    setReviewLikes(prev => ({ ...prev, count: res.data.count, likedByMe: true }));
-                  }
-                }}
-                style={{
-                  position: "absolute",
-                  right: "8px",
-                  bottom: "8px",
-                  background: "none",
-                  border: "none",
-                  cursor: isOwner ? "default" : "pointer",
-                  color: reviewLikes.likedByMe ? "#e0245e" : (isOwner ? "rgba(255,255,255,0.5)" : "white"),
-                  fontSize: "18px",
-                  padding: 0,
-                  opacity: isOwner ? 0.9 : 1
-                }}
-                aria-disabled={isOwner}
-                title={isOwner ? "You can't like your own review" : undefined}
-              >
-                ❤︎ {reviewLikes.count}
-              </button>
             )}
           </div>
         )
@@ -1002,6 +967,25 @@ export default function AlbumDetail({ user }) {
                   {canEdit ? "Cancel" : "Edit"}
                 </button>
               )}
+              {album?.ratingId && (
+                <button
+                  type="button"
+                  onClick={handleReviewLike}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: isOwner ? "default" : "pointer",
+                    color: reviewLikes.likedByMe ? "#e0245e" : (isOwner ? "rgba(255,255,255,0.5)" : "white"),
+                    fontSize: "18px",
+                    padding: 0,
+                    opacity: isOwner ? 0.9 : 1
+                  }}
+                  aria-disabled={isOwner}
+                  title={isOwner ? "You can't like your own review" : undefined}
+                >
+                  ❤︎ {reviewLikes.count}
+                </button>
+              )}
               <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1, justifyContent: "center" }}>
                 {album?.ratingId && (
                   <div style={{ marginBottom: 0, display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1168,7 +1152,7 @@ export default function AlbumDetail({ user }) {
 
                     return (
                       <tr key={song.id}>
-                        <td style={{ paddingRight: "4px", width: "30px", opacity: 0.85 }}>{song.num}</td>
+                        <td style={{ paddingRight: canEdit ? "4px" : "0px", width: "30px", opacity: 0.85 }}>{song.num}</td>
                         <td style={{ paddingRight: "12px", maxWidth: isMobile ? "250px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                           <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", minWidth: 0 }}>
                             <span style={{ display: "inline-flex", alignItems: "center", gap: "1px", flexShrink: 0 }}>
@@ -1661,11 +1645,7 @@ export default function AlbumDetail({ user }) {
               }}
             >
               <button
-                onClick={() => {
-                  setPendingLiked(1);
-                  setHasChanges(true);
-                  setShowOpinionPopup(false);
-                }}
+                onClick={() => handleOpinionSelection(1)}
                 style={{
                   background: "#1db954",
                   color: "white",
@@ -1680,11 +1660,7 @@ export default function AlbumDetail({ user }) {
               </button>
 
               <button
-                onClick={() => {
-                  setPendingLiked(0);
-                  setHasChanges(true);
-                  setShowOpinionPopup(false);
-                }}
+                onClick={() => handleOpinionSelection(0)}
                 style={{
                   background: "#facc15",
                   color: "black",
@@ -1699,11 +1675,7 @@ export default function AlbumDetail({ user }) {
               </button>
 
               <button
-                onClick={() => {
-                  setPendingLiked(-1);
-                  setHasChanges(true);
-                  setShowOpinionPopup(false);
-                }}
+                onClick={() => handleOpinionSelection(-1)}
                 style={{
                   background: "#e74c3c",
                   color: "white",
@@ -1719,7 +1691,10 @@ export default function AlbumDetail({ user }) {
             </div>
 
             <button
-              onClick={() => setShowOpinionPopup(false)}
+              onClick={() => {
+                pendingSaveIntentRef.current = null;
+                setShowOpinionPopup(false);
+              }}
               style={{
                 background: "transparent",
                 color: "#aaa",
