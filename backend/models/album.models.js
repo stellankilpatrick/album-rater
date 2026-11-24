@@ -474,12 +474,14 @@ export async function getAlbumDetailsPrivate(albumId, userId) {
       s.music_video_url AS "musicVideoUrl",
       ROUND(AVG(sr.rating)::numeric,2) AS "avgScore",
       ur.rating AS rating,
-      ur.comment AS comment
+      ur.comment AS comment,
+      ur.is_best AS "isBest",
+      ur.is_worst AS "isWorst"
     FROM songs s
     LEFT JOIN song_ratings sr ON sr.song_id = s.id
     LEFT JOIN song_ratings ur ON ur.song_id = s.id AND ur.user_id = $1
     WHERE s.album_id = $2
-    GROUP BY s.id, ur.rating, ur.comment
+    GROUP BY s.id, ur.rating, ur.comment, ur.is_best, ur.is_worst
     ORDER BY s.track_number ASC`,
     [userId, albumId]
   );
@@ -527,7 +529,7 @@ export async function updateAlbumRatingForUser(userId, albumId, bumpActivity = t
 
     const res = await client.query(
       `SELECT 
-        COUNT(*) AS rated_songs,
+        COUNT(sr.rating) AS rated_songs,
         SUM(CASE WHEN rating > 0 THEN 1 ELSE 0 END) AS non_skips,
         COALESCE(SUM(rating), 0) AS total_rating
       FROM song_ratings sr

@@ -59,6 +59,9 @@ async function init() {
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         song_id INTEGER NOT NULL REFERENCES songs(id) ON DELETE CASCADE,
         rating INTEGER CHECK (rating BETWEEN 0 AND 2),
+        is_best BOOLEAN NOT NULL DEFAULT FALSE,
+        is_worst BOOLEAN NOT NULL DEFAULT FALSE,
+        CHECK (NOT (is_best AND is_worst)),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
         PRIMARY KEY (user_id, song_id)

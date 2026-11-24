@@ -56,6 +56,9 @@ db.prepare(`
     user_id INTEGER NOT NULL,
     song_id INTEGER NOT NULL,
     rating INTEGER CHECK (rating BETWEEN 0 AND 2),
+    is_best INTEGER NOT NULL DEFAULT 0,
+    is_worst INTEGER NOT NULL DEFAULT 0,
+    CHECK (NOT (is_best AND is_worst)),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, song_id),
@@ -81,9 +84,44 @@ db.prepare(`
   )
 `).run();
 
+const songRatingColumns = new Set(
+  db.prepare("PRAGMA table_info(song_ratings)").all().map(column => column.name)
+);
+if (!songRatingColumns.has("is_best")) {
+  db.exec("ALTER TABLE song_ratings ADD COLUMN is_best INTEGER NOT NULL DEFAULT 0");
+}
+if (!songRatingColumns.has("is_worst")) {
+  db.exec("ALTER TABLE song_ratings ADD COLUMN is_worst INTEGER NOT NULL DEFAULT 0");
+}
+
+db.exec(`
+  CREATE TRIGGER IF NOT EXISTS trg_song_ratings_no_both_insert
+  BEFORE INSERT ON song_ratings
+  FOR EACH ROW
+  WHEN NEW.is_best = 1 AND NEW.is_worst = 1
+  BEGIN
+    SELECT RAISE(ABORT, 'A song cannot be both best and worst');
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS trg_song_ratings_no_both_update
+  BEFORE UPDATE ON song_ratings
+  FOR EACH ROW
+  WHEN NEW.is_best = 1 AND NEW.is_worst = 1
+  BEGIN
+    SELECT RAISE(ABORT, 'A song cannot be both best and worst');
+  END;
+`);
+
+db.exec(`
+  DROP TRIGGER IF EXISTS trg_song_ratings_updated_at;
+  DROP TRIGGER IF EXISTS trg_recalc_album_rating_insert;
+  DROP TRIGGER IF EXISTS trg_recalc_album_rating_update;
+  DROP TRIGGER IF EXISTS trg_recalc_album_rating_delete;
+`);
+
 db.prepare(`
   CREATE TRIGGER IF NOT EXISTS trg_song_ratings_updated_at
-  AFTER UPDATE ON song_ratings
+  AFTER UPDATE OF rating ON song_ratings
   FOR EACH ROW
   BEGIN
     UPDATE song_ratings
@@ -98,21 +136,23 @@ db.prepare(`
   CREATE TRIGGER IF NOT EXISTS trg_recalc_album_rating_insert
   AFTER INSERT ON song_ratings
   FOR EACH ROW
+  WHEN NEW.rating IS NOT NULL
   BEGIN
     INSERT INTO album_ratings (user_id, album_id, rating, is_draft, non_skips, rated_songs, updated_at)
     SELECT
       NEW.user_id,
       s.album_id,
-      (SUM(sr.rating) * SUM(sr.rating)) * 1.0 / COUNT(*),
+      (SUM(sr.rating) * SUM(sr.rating)) * 1.0 / COUNT(sr.rating),
       0,
       SUM(CASE WHEN sr.rating > 0 THEN 1 ELSE 0 END),
-      COUNT(*),
+      COUNT(sr.rating),
       CURRENT_TIMESTAMP
     FROM song_ratings sr
     JOIN songs s ON s.id = sr.song_id
     WHERE sr.user_id = NEW.user_id
       AND s.album_id = (SELECT album_id FROM songs WHERE id = NEW.song_id)
     GROUP BY s.album_id
+    HAVING COUNT(sr.rating) > 0
     ON CONFLICT(user_id, album_id)
     DO UPDATE SET
       rating = excluded.rating,
@@ -125,17 +165,18 @@ db.prepare(`
 // update trigger
 db.prepare(`
   CREATE TRIGGER IF NOT EXISTS trg_recalc_album_rating_update
-  AFTER UPDATE ON song_ratings
+  AFTER UPDATE OF rating ON song_ratings
   FOR EACH ROW
+  WHEN NEW.rating IS NOT NULL
   BEGIN
     INSERT INTO album_ratings (user_id, album_id, rating, is_draft, non_skips, rated_songs, updated_at)
     SELECT
       NEW.user_id,
       s.album_id,
-      (SUM(sr.rating) * SUM(sr.rating)) * 1.0 / COUNT(*),
+      (SUM(sr.rating) * SUM(sr.rating)) * 1.0 / COUNT(sr.rating),
       0,
       SUM(CASE WHEN sr.rating > 0 THEN 1 ELSE 0 END),
-      COUNT(*),
+      COUNT(sr.rating),
       CURRENT_TIMESTAMP
     FROM song_ratings sr
     JOIN songs s ON s.id = sr.song_id
@@ -144,6 +185,7 @@ db.prepare(`
         SELECT album_id FROM songs WHERE id = NEW.song_id
       )
     GROUP BY s.album_id
+    HAVING COUNT(sr.rating) > 0
     ON CONFLICT(user_id, album_id)
     DO UPDATE SET
       rating = excluded.rating,
@@ -158,6 +200,7 @@ db.prepare(`
   CREATE TRIGGER IF NOT EXISTS trg_recalc_album_rating_delete
   AFTER DELETE ON song_ratings
   FOR EACH ROW
+  WHEN OLD.rating IS NOT NULL
   BEGIN
     DELETE FROM album_ratings
     WHERE user_id = OLD.user_id
@@ -169,6 +212,7 @@ db.prepare(`
         FROM song_ratings sr
         JOIN songs s ON s.id = sr.song_id
         WHERE sr.user_id = OLD.user_id
+          AND sr.rating IS NOT NULL
           AND s.album_id = (
             SELECT album_id FROM songs WHERE id = OLD.song_id
           )
@@ -178,10 +222,10 @@ db.prepare(`
     SELECT
       OLD.user_id,
       s.album_id,
-      (SUM(sr.rating) * SUM(sr.rating)) * 1.0 / COUNT(*),
+      (SUM(sr.rating) * SUM(sr.rating)) * 1.0 / COUNT(sr.rating),
       0,
       SUM(CASE WHEN sr.rating > 0 THEN 1 ELSE 0 END),
-      COUNT(*),
+      COUNT(sr.rating),
       CURRENT_TIMESTAMP
     FROM song_ratings sr
     JOIN songs s ON s.id = sr.song_id
@@ -190,6 +234,7 @@ db.prepare(`
         SELECT album_id FROM songs WHERE id = OLD.song_id
       )
     GROUP BY s.album_id
+    HAVING COUNT(sr.rating) > 0
     ON CONFLICT(user_id, album_id)
     DO UPDATE SET
       rating = excluded.rating,

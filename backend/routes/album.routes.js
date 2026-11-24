@@ -506,6 +506,8 @@ router.get("/:id/users/:username", requireAuth, async (req, res) => {
       musicVideoUrl: t.musicVideoUrl,
       localRating: t.rating,
       comment: t.comment,
+      isBest: t.isBest,
+      isWorst: t.isWorst,
       review: t.review
     }));
 
@@ -570,6 +572,93 @@ router.patch("/:albumId/users/:username/liked", requireAuth, async (req, res) =>
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to update like status" });
+  }
+});
+
+router.patch("/:id/users/:username/song-tags", requireAuth, async (req, res) => {
+  if (req.user.id !== req.profileUser.id) {
+    return res.status(403).json({ error: "You can only edit your own song tags" });
+  }
+
+  const albumId = Number(req.params.id);
+  const parseSongId = value => {
+    if (value == null) return null;
+    const songId = Number(value);
+    return Number.isInteger(songId) && songId > 0 ? songId : NaN;
+  };
+  const bestSongId = parseSongId(req.body.bestSongId);
+  const worstSongId = parseSongId(req.body.worstSongId);
+
+  if (!Number.isInteger(albumId) || albumId <= 0 ||
+      Number.isNaN(bestSongId) || Number.isNaN(worstSongId)) {
+    return res.status(400).json({ error: "Album and song IDs must be positive integers" });
+  }
+  if (bestSongId !== null && bestSongId === worstSongId) {
+    return res.status(400).json({ error: "A song cannot be both best and worst" });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const { rows: albumRows } = await client.query(
+      `SELECT id FROM albums WHERE id = $1 FOR UPDATE`,
+      [albumId]
+    );
+    if (!albumRows[0]) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Album not found" });
+    }
+
+    const selectedSongIds = [bestSongId, worstSongId].filter(id => id !== null);
+    if (selectedSongIds.length > 0) {
+      const { rows: songsInAlbum } = await client.query(
+        `SELECT id FROM songs WHERE album_id = $1 AND id = ANY($2::int[])`,
+        [albumId, selectedSongIds]
+      );
+      if (songsInAlbum.length !== selectedSongIds.length) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ error: "Tagged songs must belong to this album" });
+      }
+    }
+
+    await client.query(
+      `UPDATE song_ratings sr
+       SET is_best = FALSE, is_worst = FALSE
+       FROM songs s
+       WHERE sr.song_id = s.id
+         AND sr.user_id = $1
+         AND s.album_id = $2`,
+      [req.user.id, albumId]
+    );
+
+    if (bestSongId !== null) {
+      await client.query(
+        `INSERT INTO song_ratings (user_id, song_id, is_best)
+         VALUES ($1, $2, TRUE)
+         ON CONFLICT (user_id, song_id)
+         DO UPDATE SET is_best = TRUE, is_worst = FALSE`,
+        [req.user.id, bestSongId]
+      );
+    }
+    if (worstSongId !== null) {
+      await client.query(
+        `INSERT INTO song_ratings (user_id, song_id, is_worst)
+         VALUES ($1, $2, TRUE)
+         ON CONFLICT (user_id, song_id)
+         DO UPDATE SET is_best = FALSE, is_worst = TRUE`,
+        [req.user.id, worstSongId]
+      );
+    }
+
+    await client.query("COMMIT");
+    res.json({ bestSongId, worstSongId });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error(err);
+    res.status(500).json({ error: "Failed to save song tags" });
+  } finally {
+    client.release();
   }
 });
 

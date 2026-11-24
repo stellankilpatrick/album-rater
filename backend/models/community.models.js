@@ -59,6 +59,7 @@ function activityFeedQuery(mine) {
     JOIN albums al ON al.id = s.album_id
     LEFT JOIN album_ratings alr ON alr.user_id = r.user_id AND alr.album_id = al.id
     WHERE ${viewerFilter}
+      AND (r.rating IS NOT NULL OR r.comment IS NOT NULL)
       AND NOT EXISTS (
         SELECT 1 FROM album_ratings ar
         WHERE ar.user_id = r.user_id AND ar.album_id = al.id AND (ar.untracked = true OR ar.is_draft = true)

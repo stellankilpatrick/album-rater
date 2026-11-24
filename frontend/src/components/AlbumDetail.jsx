@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import api from "../api/api";
 import StarRating from "./StarRating";
@@ -17,6 +17,9 @@ export default function AlbumDetail({ user }) {
   const [songs, setSongs] = useState([]);
   const [pendingSongs, setPendingSongs] = useState([]);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const skipUnsavedWarningRef = useRef(false);
+  const canEdit = isOwner && isEditing;
 
   const [ranks, setRanks] = useState({});
   const [genres, setGenres] = useState([]);
@@ -177,13 +180,22 @@ export default function AlbumDetail({ user }) {
     setSongs([]);
     setPendingSongs([]);
     setHasChanges(false);
-  }, [albumId]);
+    setIsEditing(false);
+    setReview("");
+    setPendingReview("");
+    setLiked(null);
+    setPendingLiked(null);
+    setFocusedSongId(null);
+    setReviewFocused(false);
+    setShowOpinionPopup(false);
+    setEditAdjustOpen(false);
+    setAdjustValue(0);
+  }, [albumId, effectiveUsername]);
 
   useEffect(() => {
-    if (album?.review) {
-      setReview(album.review);
-      setPendingReview(album.review);
-    }
+    const savedReview = album?.review ?? "";
+    setReview(savedReview);
+    setPendingReview(savedReview);
   }, [album]);
 
   const handleOpinionChange = (value) => {
@@ -234,13 +246,100 @@ export default function AlbumDetail({ user }) {
     setHasChanges(true);
   };
 
+  const handleSongTagChange = (songId, tag) => {
+    const tagKey = tag === "best" ? "isBest" : "isWorst";
+    const otherTagKey = tag === "best" ? "isWorst" : "isBest";
+    setPendingSongs(prev => {
+      const selectedSong = prev.find(song => song.id === songId);
+      const selectedId = selectedSong?.[tagKey] ? null : songId;
+      return prev.map(song => ({
+        ...song,
+        [tagKey]: selectedId !== null && song.id === selectedId,
+        ...(selectedId !== null && song.id === selectedId ? { [otherTagKey]: false } : {})
+      }));
+    });
+    setHasChanges(true);
+  };
+
+  const renderSongTagControl = (song, tag) => {
+    const isBest = tag === "best";
+    const isActive = Boolean(isBest ? song.isBest : song.isWorst);
+    const marker = isBest ? "★" : "✕";
+    const label = isBest ? "best song" : "worst song";
+    if (!canEdit && !isActive) return null;
+
+    if (!canEdit) {
+      return (
+        <span
+          key={tag}
+          aria-label={`Tagged as ${label}`}
+          title={`Tagged as ${label}`}
+          style={{ color: isBest ? "#f5c542" : "#f06b6b", fontSize: "13px", lineHeight: 1 }}
+        >
+          {marker}
+        </span>
+      );
+    }
+
+    return (
+      <button
+        key={tag}
+        type="button"
+        onClick={() => handleSongTagChange(song.id, tag)}
+        aria-label={isActive ? `Remove ${label} tag` : `Mark as ${label}`}
+        aria-pressed={isActive}
+        title={isActive ? `Remove ${label} tag` : `Mark as ${label}`}
+        style={{
+          background: "transparent",
+          border: "none",
+          color: isActive ? (isBest ? "#f5c542" : "#f06b6b") : "rgba(255,255,255,0.3)",
+          cursor: "pointer",
+          fontSize: "13px",
+          lineHeight: 1,
+          padding: "2px"
+        }}
+      >
+        {marker}
+      </button>
+    );
+  };
+
   const handleReviewChange = (val) => {
     setPendingReview(val);
     setHasChanges(true);
   };
 
+  const handleCancelEdit = () => {
+    if (isSaving) return;
+    if (hasChanges && !window.confirm("Discard your unsaved changes?")) return;
+    setPendingSongs(songs);
+    setPendingReview(review);
+    setPendingLiked(liked);
+    setHasChanges(false);
+    setIsEditing(false);
+    setFocusedSongId(null);
+    setReviewFocused(false);
+    setShowOpinionPopup(false);
+    setEditAdjustOpen(false);
+    setAdjustValue(album.adjustor ?? 0);
+  };
+
   const handleSaveRating = async (bumpActivity = false, isDraft = false) => {
-    if (pendingLiked === null) {
+    if (!canEdit || isSaving) return;
+
+    const tagSelectionChanged =
+      songs.find(song => song.isBest)?.id !== pendingSongs.find(song => song.isBest)?.id ||
+      songs.find(song => song.isWorst)?.id !== pendingSongs.find(song => song.isWorst)?.id;
+    const otherChangesExist =
+      pendingSongs.some(song => {
+        const original = songs.find(item => item.id === song.id);
+        return (original?.localRating ?? null) !== (song.localRating ?? null) ||
+          (original?.comment ?? null) !== (song.comment ?? null);
+      }) ||
+      (pendingReview ?? null) !== (review ?? null) ||
+      pendingLiked !== liked;
+    const isTagOnlySave = tagSelectionChanged && !otherChangesExist;
+    if (pendingLiked === null && !isTagOnlySave) {
       triggerOpinionFlash();
       setShowOpinionPopup(true);
       return;
@@ -269,6 +368,17 @@ export default function AlbumDetail({ user }) {
         }
       }
 
+      const originalBestSongId = songs.find(song => song.isBest)?.id ?? null;
+      const originalWorstSongId = songs.find(song => song.isWorst)?.id ?? null;
+      const bestSongId = pendingSongs.find(song => song.isBest)?.id ?? null;
+      const worstSongId = pendingSongs.find(song => song.isWorst)?.id ?? null;
+      if (originalBestSongId !== bestSongId || originalWorstSongId !== worstSongId) {
+        await api.patch(`/albums/${albumId}/users/${effectiveUsername}/song-tags`, {
+          bestSongId,
+          worstSongId
+        });
+      }
+
       // Save review
       if ((pendingReview ?? null) !== (review ?? null)) {
         const reviewBody = { review: (pendingReview || "").trim() || null, bumpActivity: bump, isDraft };
@@ -283,9 +393,9 @@ export default function AlbumDetail({ user }) {
         setLiked(pendingLiked);
       }
 
-      setSongs(pendingSongs);
-      setReview(pendingReview);
       setHasChanges(false);
+      skipUnsavedWarningRef.current = true;
+      window.location.reload();
     } catch (err) {
       console.error("Failed to save ratings:", err);
     } finally {
@@ -360,7 +470,7 @@ export default function AlbumDetail({ user }) {
   // if try to close out tab while editing
   useEffect(() => {
     const handleBeforeUnload = (e) => {
-      if (hasChanges) {
+      if (hasChanges && !skipUnsavedWarningRef.current) {
         e.preventDefault();
         e.returnValue = '';
         return '';
@@ -448,6 +558,7 @@ export default function AlbumDetail({ user }) {
 
   const goodSongs = pendingSongs.filter(s => s.localRating > 0).length;
   const ratedSongs = pendingSongs.filter(s => s.localRating !== null && s.localRating !== undefined).length;
+  const displayedLiked = canEdit ? pendingLiked : liked;
 
   const ratingOptionStyles = {
     "": { label: "Interlude", color: "#d3d3d3", background: "rgba(255,255,255,0.08)", mutedColor: "#b8b8b8", mutedBackground: "rgba(255,255,255,0.06)" },
@@ -472,7 +583,7 @@ export default function AlbumDetail({ user }) {
         zIndex: 3,
       }}
     >
-      {isOwner ? (
+      {canEdit ? (
         <>
           <div style={{ position: "relative", width: "100%" }}>
             <textarea
@@ -483,7 +594,7 @@ export default function AlbumDetail({ user }) {
               placeholder="Write a review..."
               maxLength={500}
               style={{
-                background: isOwner
+                background: canEdit
                   ? (isMobile ? "rgba(0,0,0,0.1)" : "rgba(0,0,0,0.2)")
                   : "transparent",
                 border: reviewFocused
@@ -541,7 +652,7 @@ export default function AlbumDetail({ user }) {
           <div
             style={{
               position: "relative",
-              background: isOwner
+              background: canEdit
                 ? (isMobile ? "rgba(0,0,0,0.1)" : "rgba(0,0,0,0.2)")
                 : (isMobile ? "rgba(0,0,0,0.14)" : "rgba(0,0,0,0.26)"),
               border: "1px solid transparent",
@@ -752,13 +863,13 @@ export default function AlbumDetail({ user }) {
                           {mode !== 'stars' && (
                             <div style={{ fontSize: isMobile ? "0.9rem" : "1rem", opacity: 0.85, display: 'flex', alignItems: 'center', gap: 8 }}>
                               <div>out of 10</div>
-                              {isOwner && (
+                              {canEdit && (
                                 <button onClick={() => { setAdjustValue(album.adjustor ?? 0); setEditAdjustOpen(true); }} style={{ cursor: 'pointer', fontSize: '0.9rem', background: 'transparent', border: 'none', color: 'white' }} aria-label="Edit adjustor">✎</button>
                               )}
                             </div>
                           )}
                         </div>
-                        {editAdjustOpen && isOwner && createPortal(
+                        {editAdjustOpen && canEdit && createPortal(
                             <div
                               role="dialog"
                               aria-modal="true"
@@ -872,54 +983,73 @@ export default function AlbumDetail({ user }) {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+              {isOwner && (
+                <button
+                  type="button"
+                  onClick={() => canEdit ? handleCancelEdit() : setIsEditing(true)}
+                  disabled={isSaving}
+                  style={{
+                    flexShrink: 0,
+                    padding: "5px 10px",
+                    border: "1px solid rgba(255,255,255,0.3)",
+                    borderRadius: "5px",
+                    background: "rgba(255,255,255,0.08)",
+                    color: "white",
+                    cursor: isSaving ? "default" : "pointer",
+                    fontSize: "12px"
+                  }}
+                >
+                  {canEdit ? "Cancel" : "Edit"}
+                </button>
+              )}
               <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1, justifyContent: "center" }}>
                 {album?.ratingId && (
                   <div style={{ marginBottom: 0, display: "flex", alignItems: "center", gap: "8px" }}>
                     {/* Opinion buttons (GOOD / MID / BAD) */}
                     <div style={{ display: "flex", alignItems: "center", gap: "6px", marginLeft: "8px" }}>
                       <button
-                        onClick={() => { if (isOwner) handleOpinionChange(1); }}
-                        disabled={!isOwner}
+                        onClick={() => { if (canEdit) handleOpinionChange(1); }}
+                        disabled={!canEdit}
                         style={{
                           padding: "6px 10px",
                           borderRadius: "6px",
                           border: "none",
-                          cursor: isOwner ? "pointer" : "default",
+                          cursor: canEdit ? "pointer" : "default",
                           fontWeight: "bold",
-                          background: pendingLiked === 1 ? "#1db954" : "transparent",
-                          color: pendingLiked === 1 ? "white" : "rgba(255,255,255,0.6)",
+                          background: displayedLiked === 1 ? "#1db954" : "transparent",
+                          color: displayedLiked === 1 ? "white" : "rgba(255,255,255,0.6)",
                           opacity: 1
                         }}
                       >
                         GOOD
                       </button>
                       <button
-                        onClick={() => { if (isOwner) handleOpinionChange(0); }}
-                        disabled={!isOwner}
+                        onClick={() => { if (canEdit) handleOpinionChange(0); }}
+                        disabled={!canEdit}
                         style={{
                           padding: "6px 10px",
                           borderRadius: "6px",
                           border: "none",
-                          cursor: isOwner ? "pointer" : "default",
+                          cursor: canEdit ? "pointer" : "default",
                           fontWeight: "bold",
-                          background: pendingLiked === 0 ? "#facc15" : "transparent",
-                          color: pendingLiked === 0 ? "black" : "rgba(255,255,255,0.6)",
+                          background: displayedLiked === 0 ? "#facc15" : "transparent",
+                          color: displayedLiked === 0 ? "black" : "rgba(255,255,255,0.6)",
                           opacity: 1
                         }}
                       >
                         MID
                       </button>
                       <button
-                        onClick={() => { if (isOwner) handleOpinionChange(-1); }}
-                        disabled={!isOwner}
+                        onClick={() => { if (canEdit) handleOpinionChange(-1); }}
+                        disabled={!canEdit}
                         style={{
                           padding: "6px 10px",
                           borderRadius: "6px",
                           border: "none",
-                          cursor: isOwner ? "pointer" : "default",
+                          cursor: canEdit ? "pointer" : "default",
                           fontWeight: "bold",
-                          background: pendingLiked === -1 ? "#e74c3c" : "transparent",
-                          color: pendingLiked === -1 ? "white" : "rgba(255,255,255,0.6)",
+                          background: displayedLiked === -1 ? "#e74c3c" : "transparent",
+                          color: displayedLiked === -1 ? "white" : "rgba(255,255,255,0.6)",
                           opacity: 1
                         }}
                       >
@@ -954,7 +1084,7 @@ export default function AlbumDetail({ user }) {
                       style={{
                         background: "transparent",
                         borderRadius: "6px",
-                        padding: "6px 8px",
+                        padding: canEdit ? "6px 8px" : "5.5px 8px",
                         width: "95%"
                       }}
                     >
@@ -962,6 +1092,10 @@ export default function AlbumDetail({ user }) {
                         <div style={{ display: "flex", gap: "8px", alignItems: "center", minWidth: 0, flex: 1 }}>
                           {!isMobile && <div style={{ width: "24px", flexShrink: 0, color: "#999", fontSize: "13px" }}>{song.num}</div>}
                           <div style={{ minWidth: 0, flex: 1, display: "flex", alignItems: "center", gap: "8px", flexWrap: "nowrap", overflow: "hidden" }}>
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: "1px", flexShrink: 0 }}>
+                              {renderSongTagControl(song, "best")}
+                              {renderSongTagControl(song, "worst")}
+                            </span>
                             <div style={{ fontSize: "13px", lineHeight: "1.1", color: "#fff", display: "inline-block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                               {song.musicVideoUrl
                                 ? <a href={song.musicVideoUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>{song.title}</a>
@@ -971,47 +1105,36 @@ export default function AlbumDetail({ user }) {
                           </div>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0, justifyContent: "flex-end" }}>
-                          {isOwner ? (
-                            <select
-                              value={song.localRating ?? ""}
-                              onChange={e => {
-                                const value = e.target.value === "" ? null : Number(e.target.value);
-                                handleRatingChange(song.id, value);
-                              }}
-                              style={{
-                                color: song.localRating == null ? "#c8c8c8" : selectedStyle.color,
-                                background: song.localRating == null ? "#4b4b4b" : selectedStyle.background,
-                                border: "none",
-                                borderRadius: "4px",
-                                padding: "2px 6px",
-                                fontSize: "12px",
-                                margin: 0
-                              }}
-                            >
-                              <option value="" style={{ color: "#c8c8c8", backgroundColor: "#4b4b4b" }}>Interlude</option>
-                              <option value={0} style={{ color: ratingOptionStyles[0].color, backgroundColor: ratingOptionStyles[0].background }}>- Skip</option>
-                              <option value={1} style={{ color: ratingOptionStyles[1].color, backgroundColor: ratingOptionStyles[1].background }}>+ Play</option>
-                              <option value={2} style={{ color: ratingOptionStyles[2].color, backgroundColor: ratingOptionStyles[2].background }}>++ Special</option>
-                            </select>
-                          ) : (
-                            <span style={{
+                          <select
+                            value={song.localRating ?? ""}
+                            disabled={!canEdit}
+                            onChange={e => {
+                              const value = e.target.value === "" ? null : Number(e.target.value);
+                              handleRatingChange(song.id, value);
+                            }}
+                            style={{
                               color: song.localRating == null ? "#c8c8c8" : selectedStyle.color,
                               background: song.localRating == null ? "#4b4b4b" : selectedStyle.background,
+                              border: "none",
                               borderRadius: "4px",
-                              padding: "2px 4px",
+                              padding: canEdit ? "2px 6px" : "4px 22px 4px 6px",
                               fontSize: "12px",
-                              display: "inline-block",
-                              width: "85px",
-                              textAlign: "left",
-                              margin: 0
-                            }}>
-                              {song.localRating == null ? "Interlude" : selectedStyle.label}
-                            </span>
-                          )}
+                              margin: 0,
+                              opacity: 1,
+                              appearance: canEdit ? "auto" : "none",
+                              WebkitAppearance: canEdit ? "menulist" : "none",
+                              cursor: canEdit ? "pointer" : "default"
+                            }}
+                          >
+                            <option value="" style={{ color: "#c8c8c8", backgroundColor: "#4b4b4b" }}>Interlude</option>
+                            <option value={0} style={{ color: ratingOptionStyles[0].color, backgroundColor: ratingOptionStyles[0].background }}>- Skip</option>
+                            <option value={1} style={{ color: ratingOptionStyles[1].color, backgroundColor: ratingOptionStyles[1].background }}>+ Play</option>
+                            <option value={2} style={{ color: ratingOptionStyles[2].color, backgroundColor: ratingOptionStyles[2].background }}>++ Special</option>
+                          </select>
                         </div>
                       </div>
                       <div style={{ marginTop: 0, fontSize: "12px", display: "flex", alignItems: "center", gap: "6px", width: "100%" }}>
-                        {isOwner ? (
+                        {canEdit ? (
                           <input
                             type="text"
                             value={song.comment ?? ""}
@@ -1038,65 +1161,61 @@ export default function AlbumDetail({ user }) {
                 })}
               </div>
             ) : (
-              <table style={{ borderCollapse: "collapse", width: "auto" }}>
+              <table style={{ borderCollapse: "collapse", width: "auto", lineHeight: canEdit ? "normal" : 1.25 }}>
                 <tbody>
                   {pendingSongs.map(song => {
                     const selectedStyle = getRatingOptionStyle(song.localRating);
 
                     return (
                       <tr key={song.id}>
-                        <td style={{ paddingRight: "12px", width: "30px", opacity: 0.85 }}>{song.num}</td>
+                        <td style={{ paddingRight: "4px", width: "30px", opacity: 0.85 }}>{song.num}</td>
                         <td style={{ paddingRight: "12px", maxWidth: isMobile ? "250px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {song.musicVideoUrl
-                            ? <a href={song.musicVideoUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>{song.title}</a>
-                            : song.title}{" "}
-                          {song.featured ? <span style={{ fontSize: "0.75em", color: "#aaa", display: "inline-block", maxWidth: "120px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", verticalAlign: "middle" }}> (ft. {song.featured})</span> : ""}
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", minWidth: 0 }}>
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: "1px", flexShrink: 0 }}>
+                              {renderSongTagControl(song, "best")}
+                              {renderSongTagControl(song, "worst")}
+                            </span>
+                            <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {song.musicVideoUrl
+                                ? <a href={song.musicVideoUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>{song.title}</a>
+                                : song.title}{" "}
+                              {song.featured ? <span style={{ fontSize: "0.75em", color: "#aaa", display: "inline-block", maxWidth: "120px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", verticalAlign: "middle" }}> (ft. {song.featured})</span> : ""}
+                            </span>
+                          </span>
                         </td>
                         <td style={{ paddingRight: "24px" }}>
-                          {isOwner ? (
-                            <select
-                              value={song.localRating ?? ""}
-                              onChange={e => {
-                                const value = e.target.value === "" ? null : Number(e.target.value);
-                                handleRatingChange(song.id, value);
-                              }}
-                              style={{
-                                color: song.localRating == null ? "#c8c8c8" : selectedStyle.color,
-                                background: song.localRating == null ? "#4b4b4b" : selectedStyle.background,
-                                border: "none",
-                                borderRadius: "4px",
-                                padding: "2px 6px",
-                                fontWeight: 400,
-                                cursor: "pointer",
-                                fontSize: "12px"
-                              }}
-                            >
-                              <option value="" style={{ color: "#c8c8c8", backgroundColor: "#4b4b4b" }}>Interlude</option>
-                              <option value={0} style={{ color: ratingOptionStyles[0].color, backgroundColor: ratingOptionStyles[0].background }}>- Skip</option>
-                              <option value={1} style={{ color: ratingOptionStyles[1].color, backgroundColor: ratingOptionStyles[1].background }}>+ Play</option>
-                              <option value={2} style={{ color: ratingOptionStyles[2].color, backgroundColor: ratingOptionStyles[2].background }}>++ Special</option>
-                            </select>
-                          ) : (
-                            <span style={{
+                          <select
+                            value={song.localRating ?? ""}
+                            disabled={!canEdit}
+                            onChange={e => {
+                              const value = e.target.value === "" ? null : Number(e.target.value);
+                              handleRatingChange(song.id, value);
+                            }}
+                            style={{
                               color: song.localRating == null ? "#c8c8c8" : selectedStyle.color,
                               background: song.localRating == null ? "#4b4b4b" : selectedStyle.background,
+                              border: "none",
                               borderRadius: "4px",
-                              width: "85px",
-                              padding: "2px 4px",
-                              textAlign: "left",
+                              padding: canEdit ? "2px 6px" : "4px 22px 4px 6px",
+                              fontWeight: 400,
+                              cursor: canEdit ? "pointer" : "default",
                               fontSize: "12px",
-                              display: "inline-block",
-                              margin: 0
-                            }}>
-                              {song.localRating == null ? "Interlude" : selectedStyle.label}
-                            </span>
-                          )}
+                              opacity: 1,
+                              appearance: canEdit ? "auto" : "none",
+                              WebkitAppearance: canEdit ? "menulist" : "none"
+                            }}
+                          >
+                            <option value="" style={{ color: "#c8c8c8", backgroundColor: "#4b4b4b" }}>Interlude</option>
+                            <option value={0} style={{ color: ratingOptionStyles[0].color, backgroundColor: ratingOptionStyles[0].background }}>- Skip</option>
+                            <option value={1} style={{ color: ratingOptionStyles[1].color, backgroundColor: ratingOptionStyles[1].background }}>+ Play</option>
+                            <option value={2} style={{ color: ratingOptionStyles[2].color, backgroundColor: ratingOptionStyles[2].background }}>++ Special</option>
+                          </select>
                         </td>
                         <td style={{
                           whiteSpace: "nowrap",
                           minWidth: isMobile ? "250px" : "auto"
                         }}>
-                          {isOwner ? (
+                          {canEdit ? (
                             <div style={{ display: "flex", flexDirection: "column" }}>
                               <input
                                 type="text"
@@ -1128,7 +1247,7 @@ export default function AlbumDetail({ user }) {
               </table>
             )}
 
-            {isOwner && hasChanges && (
+            {canEdit && hasChanges && (
               <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                 <button
                   onClick={() => handleSaveRating(true)}
@@ -1484,7 +1603,7 @@ export default function AlbumDetail({ user }) {
                   </Link>
                 </button>
               ))}
-            {isOwner && (
+            {canEdit && (
               <button onClick={handleDeleteAlbum} style={{
                 backgroundColor: "red", color: "white", padding: "0.3rem 0.5rem",
                 border: "none", borderRadius: "4px", cursor: "pointer", width: "fit-content"
@@ -1492,7 +1611,7 @@ export default function AlbumDetail({ user }) {
                 Delete Album Rating
               </button>
             )}
-            {isOwner && (
+            {canEdit && (
               <button
                 onClick={toggleUntracked}
                 title={untracked ? "Click to track this album" : "Click to hide from activity feed"}
