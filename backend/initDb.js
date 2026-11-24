@@ -58,6 +58,7 @@ db.prepare(`
     rating INTEGER CHECK (rating BETWEEN 0 AND 2),
     is_best INTEGER NOT NULL DEFAULT 0,
     is_worst INTEGER NOT NULL DEFAULT 0,
+    activity_visible INTEGER NOT NULL DEFAULT 1,
     CHECK (NOT (is_best AND is_worst)),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -92,6 +93,9 @@ if (!songRatingColumns.has("is_best")) {
 }
 if (!songRatingColumns.has("is_worst")) {
   db.exec("ALTER TABLE song_ratings ADD COLUMN is_worst INTEGER NOT NULL DEFAULT 0");
+}
+if (!songRatingColumns.has("activity_visible")) {
+  db.exec("ALTER TABLE song_ratings ADD COLUMN activity_visible INTEGER NOT NULL DEFAULT 1");
 }
 
 db.exec(`

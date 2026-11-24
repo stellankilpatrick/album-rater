@@ -148,6 +148,9 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
     if (!songRows[0]) return res.status(404).json({ error: "Song not found" });
 
     const albumId = songRows[0].album_id;
+    const bumpActivity = req.body.bumpActivity ?? true;
+    const isDraft = Boolean(req.body.isDraft);
+    const publishActivity = Boolean(bumpActivity) && !isDraft;
 
     // 2. CHECK if first album rating (BEFORE update)
     const { rows: existingAlbumRating } = await pool.query(
@@ -164,23 +167,28 @@ router.patch("/:songId/rating", requireAuth, async (req, res) => {
         [songId, req.user.id]
       );
     } else {
-      const { bumpActivity = true } = req.body;
       await pool.query(
-        `INSERT INTO song_ratings (song_id, user_id, rating)
-         VALUES ($1, $2, $3)
+        `INSERT INTO song_ratings (song_id, user_id, rating, activity_visible)
+         VALUES ($1, $2, $3, $4)
          ON CONFLICT (song_id, user_id)
-         DO UPDATE SET rating = EXCLUDED.rating, updated_at = CASE WHEN $4 THEN NOW() ELSE song_ratings.updated_at END`,
-        [songId, req.user.id, rating, bumpActivity]
+         DO UPDATE SET
+           rating = EXCLUDED.rating,
+           updated_at = CASE WHEN $4 THEN NOW() ELSE song_ratings.updated_at END,
+           activity_visible = CASE
+             WHEN $5 THEN FALSE
+             WHEN $4 THEN TRUE
+             ELSE song_ratings.activity_visible
+           END`,
+        [songId, req.user.id, rating, publishActivity, isDraft]
       );
     }
 
     // 4. UPDATE album rating
-    const isDraft = Boolean(req.body.isDraft);
-    await updateAlbumRatingForUser(req.user.id, albumId, Boolean(req.body.bumpActivity), isDraft);
+    await updateAlbumRatingForUser(req.user.id, albumId, Boolean(bumpActivity), isDraft);
     await syncUserScore10s(req.user.id);
 
     // 5. NOTIFY only if first time
-    if (isFirstAlbumRating && (req.body.bumpActivity ?? true)) {
+    if (isFirstAlbumRating && publishActivity) {
       const { rows: recRows } = await pool.query(
         `SELECT r.from_user_id, a.title
          FROM recommendations r
@@ -314,7 +322,8 @@ router.patch("/:songId/comment", requireAuth, async (req, res) => {
   try {
     const { comment } = req.body;
     const bump = Boolean(req.body.bumpActivity);
-    const result = await updateSongComment(req.user.id, req.params.songId, comment, bump);
+    const isDraft = Boolean(req.body.isDraft);
+    const result = await updateSongComment(req.user.id, req.params.songId, comment, bump, isDraft);
     res.json(result);
   } catch (err) {
     console.error(err);

@@ -87,12 +87,19 @@ router.post("/:id/rate", requireAuth, async (req, res) => {
       for (const r of ratings) {
         await client.query(
           `
-          INSERT INTO song_ratings (user_id, song_id, rating, updated_at)
-          VALUES ($1, $2, $3, NOW())
+          INSERT INTO song_ratings (user_id, song_id, rating, updated_at, activity_visible)
+          VALUES ($1, $2, $3, NOW(), $4)
           ON CONFLICT (user_id, song_id)
-          DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()
+          DO UPDATE SET
+            rating = EXCLUDED.rating,
+            updated_at = CASE WHEN $4 THEN NOW() ELSE song_ratings.updated_at END,
+            activity_visible = CASE
+              WHEN $5 THEN FALSE
+              WHEN $4 THEN TRUE
+              ELSE song_ratings.activity_visible
+            END
           `,
-          [req.user.id, r.songId, r.rating]
+          [req.user.id, r.songId, r.rating, Boolean(bumpActivity) && !isDraft, isDraft]
         );
       }
 
@@ -634,8 +641,8 @@ router.patch("/:id/users/:username/song-tags", requireAuth, async (req, res) => 
 
     if (bestSongId !== null) {
       await client.query(
-        `INSERT INTO song_ratings (user_id, song_id, is_best)
-         VALUES ($1, $2, TRUE)
+        `INSERT INTO song_ratings (user_id, song_id, is_best, activity_visible)
+         VALUES ($1, $2, TRUE, FALSE)
          ON CONFLICT (user_id, song_id)
          DO UPDATE SET is_best = TRUE, is_worst = FALSE`,
         [req.user.id, bestSongId]
@@ -643,8 +650,8 @@ router.patch("/:id/users/:username/song-tags", requireAuth, async (req, res) => 
     }
     if (worstSongId !== null) {
       await client.query(
-        `INSERT INTO song_ratings (user_id, song_id, is_worst)
-         VALUES ($1, $2, TRUE)
+        `INSERT INTO song_ratings (user_id, song_id, is_worst, activity_visible)
+         VALUES ($1, $2, TRUE, FALSE)
          ON CONFLICT (user_id, song_id)
          DO UPDATE SET is_best = FALSE, is_worst = TRUE`,
         [req.user.id, worstSongId]
@@ -672,8 +679,9 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
       return res.status(403).json({ error: "Forbidden" });
     }
 
-    const { ratings } = req.body;
+    const { ratings, bumpActivity = true, isDraft = false } = req.body;
     if (!Array.isArray(ratings)) return res.status(400).json({ error: "Invalid ratings" });
+    const publishActivity = Boolean(bumpActivity) && !isDraft;
 
     const client = await pool.connect();
     try {
@@ -682,16 +690,23 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
       // insert/update song ratings
       for (const r of ratings) {
         await client.query(
-          `INSERT INTO song_ratings (user_id, song_id, rating, updated_at)
-          VALUES ($1, $2, $3, NOW())
+          `INSERT INTO song_ratings (user_id, song_id, rating, updated_at, activity_visible)
+          VALUES ($1, $2, $3, NOW(), $4)
           ON CONFLICT (user_id, song_id)
-          DO UPDATE SET rating = EXCLUDED.rating, updated_at = CASE WHEN $4 THEN NOW() ELSE song_ratings.updated_at END`,
-          [req.user.id, r.songId, r.rating, bumpActivity]
+          DO UPDATE SET
+            rating = EXCLUDED.rating,
+            updated_at = CASE WHEN $4 THEN NOW() ELSE song_ratings.updated_at END,
+            activity_visible = CASE
+              WHEN $5 THEN FALSE
+              WHEN $4 THEN TRUE
+              ELSE song_ratings.activity_visible
+            END`,
+          [req.user.id, r.songId, r.rating, publishActivity, isDraft]
         );
       }
 
       // update album_ratings table (pass bumpActivity so silent saves don't bump timestamps)
-      await updateAlbumRatingForUser(req.user.id, Number(req.params.id), bumpActivity, false);
+      await updateAlbumRatingForUser(req.user.id, Number(req.params.id), bumpActivity, isDraft);
 
       await client.query("COMMIT");
     } catch (err) {
@@ -703,22 +718,24 @@ router.post("/:id/rate/users/:username", requireAuth, async (req, res) => {
 
     await syncUserScore10s(req.user.id);
 
-    // notify anyone who recommended this album to this user
-    const { rows: recRows } = await pool.query(
-      `SELECT r.from_user_id, a.title
-        FROM recommendations r
-        JOIN albums a ON a.id = r.album_id
-        WHERE r.to_user_id = $1 AND r.album_id = $2`,
-      [req.user.id, Number(req.params.id)]
-    );
-    for (const rec of recRows) {
-      await createNotification(pool, {
-        userId: rec.from_user_id,
-        type: "recommendation_rated",
-        fromUserId: req.user.id,
-        albumId: Number(req.params.id),
-        message: `${req.user.username} rated ${rec.title}, which you recommended to them`
-      });
+    if (publishActivity) {
+      // notify anyone who recommended this album to this user
+      const { rows: recRows } = await pool.query(
+        `SELECT r.from_user_id, a.title
+          FROM recommendations r
+          JOIN albums a ON a.id = r.album_id
+          WHERE r.to_user_id = $1 AND r.album_id = $2`,
+        [req.user.id, Number(req.params.id)]
+      );
+      for (const rec of recRows) {
+        await createNotification(pool, {
+          userId: rec.from_user_id,
+          type: "recommendation_rated",
+          fromUserId: req.user.id,
+          albumId: Number(req.params.id),
+          message: `${req.user.username} rated ${rec.title}, which you recommended to them`
+        });
+      }
     }
 
     const album = await getAlbumDetailsPublic(req.params.id);

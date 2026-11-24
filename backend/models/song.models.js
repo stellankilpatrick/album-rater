@@ -104,16 +104,24 @@ export async function deleteSong(songId) {
 }
 
 // update song comment
-export async function updateSongComment(userId, songId, comment, bumpActivity = true) {
+export async function updateSongComment(userId, songId, comment, bumpActivity = true, isDraft = false) {
   if (comment && comment.length > 75) {
     throw new Error("Comment exceeds 75 character limit");
   }
+  const publishActivity = Boolean(bumpActivity) && !isDraft;
   const result = await pool.query(`
-    INSERT INTO song_ratings (user_id, song_id, comment, updated_at)
-    VALUES ($1, $2, $3, NOW())
+    INSERT INTO song_ratings (user_id, song_id, comment, updated_at, activity_visible)
+    VALUES ($1, $2, $3, NOW(), $4)
     ON CONFLICT (user_id, song_id)
-    DO UPDATE SET comment = EXCLUDED.comment, updated_at = CASE WHEN $4 THEN NOW() ELSE song_ratings.updated_at END
+    DO UPDATE SET
+      comment = EXCLUDED.comment,
+      updated_at = CASE WHEN $4 THEN NOW() ELSE song_ratings.updated_at END,
+      activity_visible = CASE
+        WHEN $5 THEN FALSE
+        WHEN $4 THEN TRUE
+        ELSE song_ratings.activity_visible
+      END
     RETURNING *
-  `, [userId, songId, comment, bumpActivity]);
+  `, [userId, songId, comment, publishActivity, isDraft]);
   return result.rows[0];
 }

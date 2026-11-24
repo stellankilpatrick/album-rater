@@ -857,7 +857,7 @@ export default function AlbumDetailPublic({ user }) {
                             placeholder="Music video URL"
                             aria-label={`Music video URL for ${song.title}`}
                             onChange={e => setSongs(prev => prev.map(s => s.id === song.id ? { ...s, musicVideoUrl: e.target.value } : s))}
-                            style={{ flex: isMobile ? "1 1 180px" : "0 1 180px", minWidth: "100px", maxWidth: "180px", boxSizing: "border-box", padding: "3px 8px", borderRadius: "6px", border: "1px solid #ccc" }}
+                            style={{ flex: isMobile ? "0 0 auto" : "0 1 180px", minWidth: "100px", maxWidth: "180px", boxSizing: "border-box", padding: "3px 8px", borderRadius: "6px", border: "1px solid #ccc" }}
                           />
                         </div>
                       ) : (

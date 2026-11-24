@@ -61,11 +61,16 @@ async function init() {
         rating INTEGER CHECK (rating BETWEEN 0 AND 2),
         is_best BOOLEAN NOT NULL DEFAULT FALSE,
         is_worst BOOLEAN NOT NULL DEFAULT FALSE,
+        activity_visible BOOLEAN NOT NULL DEFAULT TRUE,
         CHECK (NOT (is_best AND is_worst)),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
         PRIMARY KEY (user_id, song_id)
       );
+    `);
+    await pool.query(`
+      ALTER TABLE song_ratings
+      ADD COLUMN IF NOT EXISTS activity_visible BOOLEAN NOT NULL DEFAULT TRUE;
     `);
 
     // Album Ratings table
