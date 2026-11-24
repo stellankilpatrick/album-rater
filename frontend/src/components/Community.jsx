@@ -4,9 +4,8 @@ import api from "../api/api";
 import StarRating from "./StarRating";
 import { getRatingMode, score10ToStarValue, renderScore } from "../utils/rating";
 
-// Same rule as before: an entry whose first and last song ratings are within a
-// minute of each other is a new rating; anything later is an update
-const isNewRating = (item) => Math.abs(new Date(item.updated_at) - new Date(item.created_at)) < 60000;
+// Keep activity classified as a new rating for an hour after the first song rating.
+const isNewRating = (item) => Math.abs(new Date(item.updated_at) - new Date(item.created_at)) < 60 * 60 * 1000;
 
 function daysAgo(date) {
     const days = Math.floor((Date.now() - new Date(date).getTime()) / 86400000);
