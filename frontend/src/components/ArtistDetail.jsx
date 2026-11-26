@@ -222,7 +222,7 @@ export default function ArtistDetail({ user }) {
                                         boxShadow: '0 2px 10px rgba(0,0,0,0.45)',
                                         color: 'white',
                                         fontWeight: 700,
-                                        fontSize: isMobile ? '11px' : '13px',
+                                        fontSize: isMobile ? '13px' : '15px',
                                         fontVariantNumeric: 'tabular-nums'
                                     }}>
                                         {getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(album.adjustedRating ?? album.score10)} size={12} /> : <span style={{ lineHeight: 1 }}>{renderScore(album.adjustedRating ?? album.score10)}</span>}
