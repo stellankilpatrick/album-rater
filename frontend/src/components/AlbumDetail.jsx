@@ -1152,13 +1152,15 @@ export default function AlbumDetail({ user }) {
 
                     return (
                       <tr key={song.id}>
+                        <td style={{ paddingRight: canEdit || song.isBest || song.isWorst ? "4px" : "0px", whiteSpace: "nowrap" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "1px" }}>
+                            {renderSongTagControl(song, "best")}
+                            {renderSongTagControl(song, "worst")}
+                          </span>
+                        </td>
                         <td style={{ paddingRight: canEdit ? "4px" : "0px", width: "30px", opacity: 0.85 }}>{song.num}</td>
                         <td style={{ paddingRight: "12px", maxWidth: isMobile ? "250px" : undefined, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                           <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", minWidth: 0 }}>
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: "1px", flexShrink: 0 }}>
-                              {renderSongTagControl(song, "best")}
-                              {renderSongTagControl(song, "worst")}
-                            </span>
                             <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>
                               {song.musicVideoUrl
                                 ? <a href={song.musicVideoUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>{song.title}</a>
