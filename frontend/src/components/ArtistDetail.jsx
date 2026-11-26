@@ -204,9 +204,26 @@ export default function ArtistDetail({ user }) {
                                         style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: "6px", marginBottom: "4px" }}
                                     />
                                     <div style={{
-                                        position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.7)', color: 'white',
-                                        width: isMobile ? 30 : 34, height: isMobile ? 30 : 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        borderRadius: 6, fontWeight: 600, fontSize: isMobile ? '11px' : '16px'
+                                        position: 'absolute',
+                                        top: 10,
+                                        right: 10,
+                                        minWidth: 0,
+                                        height: isMobile ? 30 : 34,
+                                        padding: '0 5px',
+                                        boxSizing: 'border-box',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderRadius: 999,
+                                        border: '1px solid rgba(255,255,255,0.24)',
+                                        background: 'rgba(12,14,18,0.82)',
+                                        backdropFilter: 'blur(8px)',
+                                        WebkitBackdropFilter: 'blur(8px)',
+                                        boxShadow: '0 2px 10px rgba(0,0,0,0.45)',
+                                        color: 'white',
+                                        fontWeight: 700,
+                                        fontSize: isMobile ? '11px' : '13px',
+                                        fontVariantNumeric: 'tabular-nums'
                                     }}>
                                         {getRatingMode() === 'stars' ? <StarRating value={score10ToStarValue(album.adjustedRating ?? album.score10)} size={12} /> : <span style={{ lineHeight: 1 }}>{renderScore(album.adjustedRating ?? album.score10)}</span>}
                                     </div>
