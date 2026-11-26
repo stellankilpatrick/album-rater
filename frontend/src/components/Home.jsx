@@ -1,62 +1,46 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../api/api";
+import Community from "./Community";
 
 export default function Home({ user }) {
-  const [recent, setRecent] = useState([]);
   const [anniversary, setAnniversary] = useState([]);
 
   useEffect(() => {
     if (!user) return;
-    // fetch recent community activity (friends) and show latest 6
-    Promise.all([
-      api.get("/community"),
-      api.get("/community/albums")
-    ]).then(([feedRes, annRes]) => {
-      const feed = feedRes.data?.items || [];
-      setRecent(feed.slice(0, 6));
-      setAnniversary(annRes.data || []);
-    }).catch(() => {});
+    api.get("/community/albums")
+      .then(res => setAnniversary(res.data || []))
+      .catch(err => console.error("Failed to load anniversary albums:", err));
   }, [user]);
 
   return (
     <div style={{ padding: "32px" }}>
       <h1 style={{ fontSize: "2rem", marginBottom: "6px" }}>Welcome back, {user ? user.username : ""}</h1>
-      <p style={{ color: "#bbb", marginTop: 0 }}>Here's what's new from people you follow</p>
 
       {user ? (
-        <>
-          {recent.length > 0 ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "18px", marginTop: "18px" }}>
-                {recent.map(item => (
-                  <Link key={`${item.username}-${item.album_id}-${item.updated_at}`} to={`/albums/${item.album_id}/users/${item.username}`} style={{ textDecoration: "none", color: "inherit" }}>
-                    <div style={{ textAlign: "center" }}>
-                      <img src={item.coverArt || item.album_cover || ""} alt={item.album_title} style={{ width: "200px", height: "200px", objectFit: "cover", borderRadius: "6px", display: "block", margin: "0 auto" }} />
-                      <div style={{ fontSize: "13px", fontWeight: 500, marginTop: "6px" }}>
-                        <i>{item.album_title}</i>
-                      </div>
-                      <div style={{ fontSize: "12px", color: "#888" }}>{item.username}</div>
-                    </div>
-                  </Link>
-                ))}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+          gap: "24px",
+          alignItems: "start",
+          marginTop: "18px"
+        }}>
+          <section>
+            <Community user={user} homeFeed />
+            <div style={{ marginTop: "14px", textAlign: "center" }}>
+              <Link to="/community"><button>See all activity</button></Link>
             </div>
-          ) : (
-            <p style={{ color: "#999", marginTop: "12px" }}>No recent activity from your friends yet.</p>
-          )}
-
-          <div style={{ marginTop: "14px", textAlign: "center" }}>
-            <Link to="/community"><button>See all activity</button></Link>
-          </div>
+          </section>
 
           {anniversary.length > 0 && (
-            <div style={{ marginTop: "28px" }}>
-              <h3 style={{ marginBottom: "6px" }}>Released This Week In History</h3>
+            <section>
+              <h2 style={{ marginTop: 0, marginBottom: "6px" }}>Released This Week In History</h2>
               <p style={{ color: "#bbb", marginTop: 0, marginBottom: "12px" }}>Consider re-listening!</p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, 240px)", gap: "34px", rowGap: "36px", justifyContent: "start", justifyItems: "start" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, 140px)", gap: "20px", rowGap: "24px", justifyContent: "start", justifyItems: "start" }}>
                 {anniversary.map(album => (
                   <Link key={album.id} to={`/albums/${album.id}/me`} style={{ textDecoration: "none", color: "inherit" }}>
                     <div style={{ textAlign: "center" }}>
-                      <img src={album.coverArt} alt={album.title} style={{ width: "240px", height: "240px", objectFit: "cover", borderRadius: "6px", display: "block", margin: "0 auto" }} />
+                      <img src={album.coverArt} alt={album.title} style={{ width: "140px", height: "140px", objectFit: "cover", borderRadius: "6px", display: "block", margin: "0 auto" }} />
                       <div style={{ fontSize: "13px", fontWeight: 500, marginTop: "6px" }}>
                         <i>{album.title}</i>
                       </div>
@@ -65,9 +49,9 @@ export default function Home({ user }) {
                   </Link>
                 ))}
               </div>
-            </div>
+            </section>
           )}
-        </>
+        </div>
       ) : (
         <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
           <Link to="/login"><button>Login</button></Link>

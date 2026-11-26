@@ -78,12 +78,13 @@ async function fetchFeedPage(mine, before, profileUsername) {
     return res.data;
 }
 
-export default function Community({ user, profileUsername }) {
+export default function Community({ user, profileUsername, homeFeed = false }) {
     const isProfileActivity = Boolean(profileUsername);
+    const isHomeFeed = Boolean(homeFeed);
     const [feed, setFeed] = useState([]);
     const timelineContainerRef = useRef(null);
     const [loading, setLoading] = useState(true);
-    const navSpan = useNavCenterSpan(timelineContainerRef, !loading, !isProfileActivity);
+    const navSpan = useNavCenterSpan(timelineContainerRef, !loading, !isProfileActivity && !isHomeFeed);
     const [likePending, setLikePending] = useState(null);
 
     const [showMyActivity, setShowMyActivity] = useState(false);
@@ -148,12 +149,15 @@ export default function Community({ user, profileUsername }) {
 
     return (
         <div className={`community activity-page${isProfileActivity ? " profile-activity" : ""}`}>
-            {isProfileActivity
-                ? <h2 style={{ marginTop: 0 }}>Activity</h2>
+            {isProfileActivity || isHomeFeed
+                ? <h2 style={{ marginTop: 0, marginBottom: isHomeFeed ? "4px" : undefined }}>{isProfileActivity ? "Activity" : "Recent activity"}</h2>
                 : <h1 style={{ textAlign: "center" }}>Activity</h1>}
+            {isHomeFeed && (
+                <p style={{ color: "#bbb", marginTop: 0, marginBottom: "12px" }}>Here's what's new from people you follow</p>
+            )}
             <div className="activity-timeline" ref={timelineContainerRef}>
-                <div style={isProfileActivity ? undefined : navSpan ?? undefined}>
-                    {!isProfileActivity && (
+                <div style={!isProfileActivity && !isHomeFeed ? (navSpan ?? undefined) : undefined}>
+                    {!isProfileActivity && !isHomeFeed && (
                         <div className="activity-tabs" role="tablist">
                             <button
                                 type="button"
