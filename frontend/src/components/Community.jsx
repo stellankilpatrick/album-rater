@@ -178,7 +178,7 @@ export default function Community({ user, profileUsername }) {
                     {feed.length === 0 && (
                         <p className="activity-empty">
                             {isProfileActivity
-                                ? `${profileUsername} hasn't rated anything yet.`
+                                ? `${profileUsername} has had no activity in the last 30 days.`
                                 : showMyActivity ? "You haven't rated anything yet." : "No activity yet. Follow more people."}
                         </p>
                     )}

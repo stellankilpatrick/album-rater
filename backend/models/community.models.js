@@ -77,22 +77,28 @@ async function getActivityFeedPage(userId, { limit = 500, before = null, include
   const query = activityFeedQuery(mine, profileActivity);
   const filterParams = profileActivity ? [userId, profileUserId] : [userId];
   const cursorParam = profileActivity ? 3 : 2;
+  const recentInterval = profileActivity ? "30 days" : "7 days";
   let pageSize = limit;
 
   if (includeRecent && !before) {
     const { rows } = await pool.query(
       `SELECT COUNT(*)::int AS count
        FROM (${query}) AS activities
-       WHERE updated_at >= NOW() - INTERVAL '7 days'`,
+       WHERE updated_at >= NOW() - INTERVAL '${recentInterval}'`,
       filterParams
     );
     pageSize = Math.max(pageSize, rows[0].count);
   }
 
+  const profileWindowFilter = profileActivity
+    ? "updated_at >= NOW() - INTERVAL '30 days' AND "
+    : "";
   const res = await pool.query(
     `SELECT * FROM (${query}) AS activities
-     WHERE $${cursorParam}::timestamptz IS NULL
+     WHERE ${profileWindowFilter}(
+       $${cursorParam}::timestamptz IS NULL
        OR (updated_at, user_id, album_id) < ($${cursorParam}::timestamptz, $${cursorParam + 1}::int, $${cursorParam + 2}::int)
+     )
      ORDER BY updated_at DESC, user_id DESC, album_id DESC
      LIMIT $${cursorParam + 3}`,
     [...filterParams, ...parseCursor(before), pageSize + 1]

@@ -12,7 +12,7 @@ export default function ProfilePage({ user }) {
     const [ratingCounts, setRatingCounts] = useState({ albums: 0, artists: 0 });
     const [userStats, setUserStats] = useState(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-    const profileImageSize = isMobile ? 56 : 68;
+    const profileImageSize = isMobile ? 64 : 76;
 
     const [pfp, setPfp] = useState(null);
     const [editingPfp, setEditingPfp] = useState(false);
@@ -305,7 +305,7 @@ export default function ProfilePage({ user }) {
 
             <div style={{
                 display: "grid",
-                gridTemplateColumns: isMobile ? "1fr" : "minmax(160px, 0.8fr) minmax(260px, 1.5fr) minmax(240px, 1fr)",
+                gridTemplateColumns: isMobile ? "1fr" : "minmax(160px, 0.8fr) minmax(260px, 1.5fr) minmax(240px, 280px)",
                 gap: isMobile ? "20px" : "16px",
                 alignItems: "start"
             }}>
@@ -386,7 +386,7 @@ export default function ProfilePage({ user }) {
                     {userStats ? (
                         <div>
                             {/* Big stat grid */}
-                            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginBottom: "12px" }}>
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "12px", maxWidth: "260px", width: "100%", margin: "0 auto 12px" }}>
                                 <div style={{ background: "rgba(255,255,255,0.03)", padding: "12px", borderRadius: "8px", textAlign: "center" }}>
                                     <div style={{ fontSize: "34px", fontWeight: 600, color: "#fff" }}>{userStats.totalRatedSongs}</div>
                                     <div style={{ fontSize: "12px", color: "#bbb" }}>songs rated</div>
