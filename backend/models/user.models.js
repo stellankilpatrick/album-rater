@@ -3,7 +3,7 @@ import pool from "../db/database.js";
 const DEFAULT_PFP = "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg";
 
 /**
- * For user profile page - top 5 artists by total album score
+ * For user profile page - top 4 artists by total album score
  */
 export async function getTopArtists(userId) {
   const res = await pool.query(
@@ -45,11 +45,11 @@ export async function getTopArtists(userId) {
     };
   })
   .sort((a, b) => b.totalRating - a.totalRating)
-  .slice(0, 5);
+  .slice(0, 4);
 }
 
 /**
- * Top 5 albums by score
+ * Top 4 albums by adjusted percentile rating
  */
 export async function getTopAlbums(userId) {
   const { rows } = await pool.query(`
@@ -65,7 +65,7 @@ export async function getTopAlbums(userId) {
     WHERE r.user_id = $1
     GROUP BY a.id, ar.adjusted_rating, ar.score10
     ORDER BY COALESCE(ar.adjusted_rating, ar.score10) DESC NULLS LAST
-    LIMIT 5
+    LIMIT 4
   `, [userId]);
   return rows;
 }

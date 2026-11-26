@@ -37,10 +37,14 @@ function ArtistLinks({ item }) {
 // Left edge and width of the nav bar's centered items (Album Rankings through the
 // notification bell), relative to `container`; null when there's no such group (mobile).
 // `rendered` re-measures once the container exists (the feed renders after loading).
-function useNavCenterSpan(containerRef, rendered) {
+function useNavCenterSpan(containerRef, rendered, enabled) {
     const [span, setSpan] = useState(null);
 
     useLayoutEffect(() => {
+        if (!enabled) {
+            setSpan(null);
+            return;
+        }
         const group = document.querySelector(".nav-center-group");
         const measure = () => {
             const container = containerRef.current;
@@ -55,7 +59,7 @@ function useNavCenterSpan(containerRef, rendered) {
         if (containerRef.current) observer.observe(containerRef.current);
         window.addEventListener("resize", measure);
         return () => { observer.disconnect(); window.removeEventListener("resize", measure); };
-    }, [containerRef, rendered]);
+    }, [containerRef, rendered, enabled]);
 
     return span;
 }
@@ -63,19 +67,23 @@ function useNavCenterSpan(containerRef, rendered) {
 // Entries per page after the seven-day window; first page includes all recent activity.
 const PAGE_SIZE = 25;
 
-// One page of the friends or my-activity feed, after `before` (an entry's cursor).
-async function fetchFeedPage(mine, before) {
-    const res = await api.get(mine ? "/community/my-activity" : "/community", {
+// One page of the selected activity feed, after `before` (an entry's cursor).
+async function fetchFeedPage(mine, before, profileUsername) {
+    const url = profileUsername
+        ? `/users/${encodeURIComponent(profileUsername)}/activity`
+        : mine ? "/community/my-activity" : "/community";
+    const res = await api.get(url, {
         params: { limit: PAGE_SIZE, ...(before ? { before } : {}) }
     });
     return res.data;
 }
 
-export default function Community({ user }) {
+export default function Community({ user, profileUsername }) {
+    const isProfileActivity = Boolean(profileUsername);
     const [feed, setFeed] = useState([]);
     const timelineContainerRef = useRef(null);
     const [loading, setLoading] = useState(true);
-    const navSpan = useNavCenterSpan(timelineContainerRef, !loading);
+    const navSpan = useNavCenterSpan(timelineContainerRef, !loading, !isProfileActivity);
     const [likePending, setLikePending] = useState(null);
 
     const [showMyActivity, setShowMyActivity] = useState(false);
@@ -86,7 +94,12 @@ export default function Community({ user }) {
 
     useEffect(() => {
         const request = ++feedRequest.current;
-        fetchFeedPage(showMyActivity)
+        if (isProfileActivity) {
+            setLoading(true);
+            setFeed([]);
+            setHasMore(false);
+        }
+        fetchFeedPage(showMyActivity, null, profileUsername)
             .then(page => {
                 if (request !== feedRequest.current) return;
                 setFeed(page.items);
@@ -94,14 +107,14 @@ export default function Community({ user }) {
             })
             .catch(err => console.error("Failed to load activity:", err))
             .finally(() => { if (request === feedRequest.current) setLoading(false); });
-    }, [showMyActivity]);
+    }, [showMyActivity, isProfileActivity, profileUsername]);
 
     const loadMore = async () => {
         if (loadingMore || feed.length === 0) return;
         const request = feedRequest.current;
         setLoadingMore(true);
         try {
-            const page = await fetchFeedPage(showMyActivity, feed[feed.length - 1].cursor);
+            const page = await fetchFeedPage(showMyActivity, feed[feed.length - 1].cursor, profileUsername);
             if (request !== feedRequest.current) return;
             setFeed(prev => [...prev, ...page.items]);
             setHasMore(page.hasMore);
@@ -134,33 +147,39 @@ export default function Community({ user }) {
     if (loading) return <p>Loading…</p>;
 
     return (
-        <div className="community activity-page">
-            <h1 style={{ textAlign: "center" }}>Activity</h1>
+        <div className={`community activity-page${isProfileActivity ? " profile-activity" : ""}`}>
+            {isProfileActivity
+                ? <h2 style={{ marginTop: 0 }}>Activity</h2>
+                : <h1 style={{ textAlign: "center" }}>Activity</h1>}
             <div className="activity-timeline" ref={timelineContainerRef}>
-                <div style={navSpan ?? undefined}>
-                    <div className="activity-tabs" role="tablist">
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected={showMyActivity}
-                            className={`activity-tab${showMyActivity ? " active" : ""}`}
-                            onClick={() => setShowMyActivity(true)}
-                        >
-                            Me
-                        </button>
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected={!showMyActivity}
-                            className={`activity-tab${showMyActivity ? "" : " active"}`}
-                            onClick={() => setShowMyActivity(false)}
-                        >
-                            Friends
-                        </button>
-                    </div>
+                <div style={isProfileActivity ? undefined : navSpan ?? undefined}>
+                    {!isProfileActivity && (
+                        <div className="activity-tabs" role="tablist">
+                            <button
+                                type="button"
+                                role="tab"
+                                aria-selected={showMyActivity}
+                                className={`activity-tab${showMyActivity ? " active" : ""}`}
+                                onClick={() => setShowMyActivity(true)}
+                            >
+                                Me
+                            </button>
+                            <button
+                                type="button"
+                                role="tab"
+                                aria-selected={!showMyActivity}
+                                className={`activity-tab${showMyActivity ? "" : " active"}`}
+                                onClick={() => setShowMyActivity(false)}
+                            >
+                                Friends
+                            </button>
+                        </div>
+                    )}
                     {feed.length === 0 && (
                         <p className="activity-empty">
-                            {showMyActivity ? "You haven't rated anything yet." : "No activity yet. Follow more people."}
+                            {isProfileActivity
+                                ? `${profileUsername} hasn't rated anything yet.`
+                                : showMyActivity ? "You haven't rated anything yet." : "No activity yet. Follow more people."}
                         </p>
                     )}
                             {feed.map((item, i) => isNewRating(item) ? (

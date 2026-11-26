@@ -1,6 +1,7 @@
 import express from "express";
 import { requireAuth } from "../auth/auth.middleware.js";
 import { getTopAlbums, getTopArtists } from "../models/user.models.js";
+import { getProfileActivityFeed } from "../models/community.models.js";
 import {
   followUser,
   unfollowUser,
@@ -26,6 +27,25 @@ router.param("username", async (req, res, next, username) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.get("/:username/activity", requireAuth, async (req, res) => {
+  const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 500, 1), 500);
+  const before = req.query.before || null;
+  try {
+    const feed = await getProfileActivityFeed(req.user.id, req.profileUser.id, {
+      limit,
+      before,
+      includeRecent: req.query.limit !== undefined && !before
+    });
+    res.json(feed);
+  } catch (err) {
+    if (err.message === "Invalid cursor" || ["22007", "22008"].includes(err.code)) {
+      return res.status(400).json({ error: "Invalid cursor" });
+    }
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch profile activity" });
   }
 });
 

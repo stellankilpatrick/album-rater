@@ -28,12 +28,16 @@ function parseCursor(before) {
   return [time, Number(userId), Number(albumId)];
 }
 
-function activityFeedQuery(mine) {
-  const joins = mine
+function activityFeedQuery(mine, profileActivity) {
+  const joins = mine || profileActivity
     ? `JOIN users u ON u.id = r.user_id`
     : `JOIN follows f ON f.following_id = r.user_id
        JOIN users u ON u.id = r.user_id`;
-  const viewerFilter = mine ? "r.user_id = $1" : "f.follower_id = $1";
+  const viewerFilter = mine
+    ? "r.user_id = $1"
+    : profileActivity
+      ? "r.user_id = $2"
+      : "f.follower_id = $1";
 
   return `SELECT
       CONCAT(r.user_id, '-', al.id) AS activity_id,
@@ -68,8 +72,11 @@ function activityFeedQuery(mine) {
     GROUP BY r.user_id, al.id, u.username, u.pfp, al.title, alr.user_id, alr.album_id`;
 }
 
-async function getActivityFeedPage(userId, { limit = 500, before = null, includeRecent = false } = {}, mine) {
-  const query = activityFeedQuery(mine);
+async function getActivityFeedPage(userId, { limit = 500, before = null, includeRecent = false } = {}, mine, profileUserId = null) {
+  const profileActivity = profileUserId !== null;
+  const query = activityFeedQuery(mine, profileActivity);
+  const filterParams = profileActivity ? [userId, profileUserId] : [userId];
+  const cursorParam = profileActivity ? 3 : 2;
   let pageSize = limit;
 
   if (includeRecent && !before) {
@@ -77,18 +84,18 @@ async function getActivityFeedPage(userId, { limit = 500, before = null, include
       `SELECT COUNT(*)::int AS count
        FROM (${query}) AS activities
        WHERE updated_at >= NOW() - INTERVAL '7 days'`,
-      [userId]
+      filterParams
     );
     pageSize = Math.max(pageSize, rows[0].count);
   }
 
   const res = await pool.query(
     `SELECT * FROM (${query}) AS activities
-     WHERE $2::timestamptz IS NULL
-       OR (updated_at, user_id, album_id) < ($2::timestamptz, $3::int, $4::int)
+     WHERE $${cursorParam}::timestamptz IS NULL
+       OR (updated_at, user_id, album_id) < ($${cursorParam}::timestamptz, $${cursorParam + 1}::int, $${cursorParam + 2}::int)
      ORDER BY updated_at DESC, user_id DESC, album_id DESC
-     LIMIT $5`,
-    [userId, ...parseCursor(before), pageSize + 1]
+     LIMIT $${cursorParam + 3}`,
+    [...filterParams, ...parseCursor(before), pageSize + 1]
   );
 
   return {
@@ -129,4 +136,8 @@ export async function getAnniversaryAlbums(userId) {
 
 export async function getMyActivityFeed(userId, options) {
   return getActivityFeedPage(userId, options, true);
+}
+
+export async function getProfileActivityFeed(viewerId, profileUserId, options) {
+  return getActivityFeedPage(viewerId, options, false, profileUserId);
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/api"; // your axios/fetch wrapper
 import { Link, useParams } from "react-router-dom";
+import Community from "./Community";
 
 export default function ProfilePage({ user }) {
     if (!user) return null;
@@ -11,6 +12,7 @@ export default function ProfilePage({ user }) {
     const [ratingCounts, setRatingCounts] = useState({ albums: 0, artists: 0 });
     const [userStats, setUserStats] = useState(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const profileImageSize = isMobile ? 56 : 68;
 
     const [pfp, setPfp] = useState(null);
     const [editingPfp, setEditingPfp] = useState(false);
@@ -301,9 +303,14 @@ export default function ProfilePage({ user }) {
             )}
 
 
-            <div style={{ display: isMobile ? "block" : "flex", gap: "24px", alignItems: "flex-start" }}>
-                <div style={{ flex: 1 }}>
-                    {/* Top 5 Albums */}
+            <div style={{
+                display: "grid",
+                gridTemplateColumns: isMobile ? "1fr" : "minmax(160px, 0.8fr) minmax(260px, 1.5fr) minmax(240px, 1fr)",
+                gap: isMobile ? "20px" : "16px",
+                alignItems: "start"
+            }}>
+                <div style={{ minWidth: 0 }}>
+                    {/* Top 4 Albums */}
                     <Link
                         to={`/albums/users/${effectiveUsername}`}
                         style={{ color: "inherit", transition: "opacity 0.15s ease" }}
@@ -324,8 +331,8 @@ export default function ProfilePage({ user }) {
                                             src={album.coverArt}
                                             alt={album.title}
                                             style={{
-                                                width: isMobile ? "40vw" : "140px",
-                                                height: isMobile ? "90px" : "140px",
+                                                width: `${profileImageSize}px`,
+                                                height: `${profileImageSize}px`,
                                                 objectFit: "cover",
                                                 borderRadius: "4px"
                                             }}
@@ -336,7 +343,7 @@ export default function ProfilePage({ user }) {
                         </div>
                     )}
 
-                    {/* Top 5 Artists */}
+                    {/* Top 4 Artists */}
                     <Link
                         to={`/artists/users/${effectiveUsername}`}
                         style={{ color: "inherit", transition: "opacity 0.15s ease" }}
@@ -357,8 +364,8 @@ export default function ProfilePage({ user }) {
                                             src={artist.image}
                                             alt=""
                                             style={{
-                                                width: isMobile ? "40vw" : "140px",
-                                                height: isMobile ? "40vw" : "140px",
+                                                width: `${profileImageSize}px`,
+                                                height: `${profileImageSize}px`,
                                                 objectFit: "cover",
                                                 borderRadius: "50%"
                                             }}
@@ -370,7 +377,11 @@ export default function ProfilePage({ user }) {
                     )}
                 </div>
 
-                <aside style={{ width: isMobile ? "100%" : "320px", background: "rgba(255,255,255,0.02)", padding: "14px", borderRadius: "10px", color: "#ddd" }}>
+                <div style={{ minWidth: 0 }}>
+                    <Community user={user} profileUsername={effectiveUsername} />
+                </div>
+
+                <aside style={{ width: "100%", boxSizing: "border-box", background: "rgba(255,255,255,0.02)", padding: "14px", borderRadius: "10px", color: "#ddd" }}>
                     <h3 style={{ marginTop: 0 }}>Stats</h3>
                     {userStats ? (
                         <div>
