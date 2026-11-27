@@ -12,7 +12,7 @@ export default function ProfilePage({ user }) {
     const [ratingCounts, setRatingCounts] = useState({ albums: 0, artists: 0 });
     const [userStats, setUserStats] = useState(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-    const profileImageSize = isMobile ? 64 : 76;
+    const profileImageSize = isMobile ? 56 : 68;
 
     const [pfp, setPfp] = useState(null);
     const [editingPfp, setEditingPfp] = useState(false);
@@ -310,7 +310,7 @@ export default function ProfilePage({ user }) {
                 alignItems: "start"
             }}>
                 <div style={{ minWidth: 0 }}>
-                    {/* Top 4 Albums */}
+                    {/* Top 5 Albums */}
                     <Link
                         to={`/albums/users/${effectiveUsername}`}
                         style={{ color: "inherit", transition: "opacity 0.15s ease" }}
@@ -343,7 +343,7 @@ export default function ProfilePage({ user }) {
                         </div>
                     )}
 
-                    {/* Top 4 Artists */}
+                    {/* Top 5 Artists */}
                     <Link
                         to={`/artists/users/${effectiveUsername}`}
                         style={{ color: "inherit", transition: "opacity 0.15s ease" }}
