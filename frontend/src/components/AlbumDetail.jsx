@@ -1059,7 +1059,7 @@ export default function AlbumDetail({ user }) {
           {/* Tracklist */}
           <div style={{ overflowX: "auto", width: "100%", maxWidth: isMobile ? "calc(100vw - 32px)" : "100%" }}>
             {isMobile ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: canEdit ? "4px" : "6px" }}>
                 {pendingSongs.map(song => {
                   const selectedStyle = getRatingOptionStyle(song.localRating);
 
@@ -1146,7 +1146,12 @@ export default function AlbumDetail({ user }) {
                 })}
               </div>
             ) : (
-              <table style={{ borderCollapse: "collapse", width: "auto", lineHeight: canEdit ? "normal" : 1.25 }}>
+              <table style={{
+                borderCollapse: canEdit ? "collapse" : "separate",
+                borderSpacing: canEdit ? "0" : "0 2px",
+                width: "auto",
+                lineHeight: canEdit ? "normal" : 1.25
+              }}>
                 <tbody>
                   {pendingSongs.map(song => {
                     const selectedStyle = getRatingOptionStyle(song.localRating);
